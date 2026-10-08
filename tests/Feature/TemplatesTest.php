@@ -168,6 +168,13 @@ class TemplatesTest extends TestCase
         $this->assertStringContainsString('BHD و125/1000', $context->tafqeet('1.125', 'BHD'));
     }
 
+    public function test_invoice_discount_is_a_negative_number_like_in_word(): void
+    {
+        $html = Doc::template('invoice', Doc::templates()->get('invoice')->sample())->locale('ar')->toHtml();
+
+        $this->assertStringContainsString('<bdo dir="ltr">-400.00</bdo>', $html);
+    }
+
     public function test_vat_rates_keep_their_decimals(): void
     {
         $invoice = Doc::templates()->get('invoice')->sample();
