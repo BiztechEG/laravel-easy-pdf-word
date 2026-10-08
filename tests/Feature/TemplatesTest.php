@@ -68,6 +68,17 @@ class TemplatesTest extends TestCase
         $this->assertStringContainsString('شركة المثال', Doc::template('invoice', $data)->locale('ar')->toHtml());
     }
 
+    public function test_invoices_in_unknown_currencies_render_in_arabic(): void
+    {
+        $data = Doc::templates()->get('invoice')->sample();
+        $data['invoice']['currency'] = 'GBP';
+
+        $html = Doc::template('invoice', $data)->locale('ar')->toHtml();
+
+        $this->assertStringContainsString('فقط تسعة وثلاثون ألفاً وثلاثمائة وثلاثون GBP لا غير', $html);
+        $this->assertStringStartsWith('PK', Doc::template('invoice', $data)->locale('ar')->word()->content());
+    }
+
     public function test_template_data_is_validated(): void
     {
         $this->expectException(ValidationException::class);
