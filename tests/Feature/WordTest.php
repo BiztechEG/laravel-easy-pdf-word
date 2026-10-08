@@ -232,6 +232,18 @@ class WordTest extends TestCase
         $this->assertStringNotContainsString('${', $xml);
     }
 
+    public function test_docx_amounts_keep_the_decimals_of_their_currency(): void
+    {
+        $this->makeDocxTemplate('quote');
+
+        $xml = $this->documentXml(Doc::template('quote', [
+            'currency' => 'KWD',
+            'items' => [['description' => 'x', 'price' => 10.125]],
+        ])->locale('ar')->word()->content());
+
+        $this->assertStringContainsString('10.125', $xml);
+    }
+
     public function test_values_cannot_add_placeholders_to_docx_templates(): void
     {
         $this->makeDocxTemplate('quote');
