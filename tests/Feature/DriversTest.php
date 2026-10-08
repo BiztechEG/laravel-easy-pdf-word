@@ -114,6 +114,15 @@ class DriversTest extends TestCase
         $this->assertSame('{page}/{pages}', $driver->options->footer);
     }
 
+    public function test_short_margins_from_the_config_are_expanded(): void
+    {
+        config(['easy-pdf-word.pdf.margins' => [10, 20]]);
+
+        $this->assertSame([10.0, 20.0, 10.0, 20.0], Doc::html('<p>x</p>')->options()->margins);
+        $this->assertStringStartsWith('%PDF', Doc::html('<p>x</p>')->pdf()->content());
+        $this->assertStringStartsWith('PK', Doc::make()->paragraph('x')->word()->content());
+    }
+
     public function test_template_errors_are_not_hidden_by_the_fallback(): void
     {
         Doc::extend('fake', fn () => new FakeDriver);

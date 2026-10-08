@@ -496,7 +496,7 @@ class PendingDocument
         return new PdfOptions(
             paper: $this->paper ?? $this->template?->paper() ?? $config['pdf']['paper'] ?? 'A4',
             orientation: $this->orientation ?? $this->template?->orientation() ?? $config['pdf']['orientation'] ?? 'portrait',
-            margins: $this->margins ?? $this->template?->margins() ?? $config['pdf']['margins'] ?? [15, 15, 15, 15],
+            margins: self::expandMargins($this->margins ?? $this->template?->margins() ?? $config['pdf']['margins'] ?? [15, 15, 15, 15]),
             direction: $direction,
             locale: $locale,
             font: $this->resolvedFont($direction),
@@ -510,6 +510,15 @@ class PendingDocument
             ] + $this->watermark,
             protection: $this->protection,
         );
+    }
+
+    /** [10, 20] in a config or template.php means what ->margins(10, 20) means. */
+    private static function expandMargins(array $margins): array
+    {
+        $margins = array_map('floatval', array_values($margins)) ?: [15.0];
+        [$top, $right, $bottom, $left] = $margins + [null, null, null, null];
+
+        return [$top, $right ?? $top, $bottom ?? $top, $left ?? $right ?? $top];
     }
 
     public function __clone()
