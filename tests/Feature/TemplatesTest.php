@@ -385,6 +385,8 @@ class TemplatesTest extends TestCase
         $this->assertStringContainsString('بعدد ساعتين تدريبيتين', $hours(2));
         $this->assertStringContainsString('بعدد 5 ساعات تدريبية', $hours(5));
         $this->assertStringContainsString('بعدد 7.5 ساعة تدريبية', $hours(7.5));
+        $this->assertStringContainsString('بعدد 103 ساعات تدريبية', $hours(103));
+        $this->assertStringContainsString('بعدد 140 ساعة تدريبية', $hours(140));
         $this->assertStringContainsString('لإتمامه بنجاح', $hours(12));
 
         // A one-day event.
