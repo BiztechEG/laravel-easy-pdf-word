@@ -402,6 +402,14 @@ class TemplatesTest extends TestCase
         Doc::template('certificate', $data)->toHtml();
     }
 
+    public function test_receipt_signatures_print_custom_roles_as_written(): void
+    {
+        $html = Doc::template('receipt', ['signatures' => ['payer', 'الشاهد']] + Doc::templates()->get('receipt')->sample())->locale('ar')->toHtml();
+
+        $this->assertStringContainsString('الشاهد', $html);
+        $this->assertStringNotContainsString('signature_labels.', $html);
+    }
+
     public function test_receipt_and_quotation_amounts_in_words(): void
     {
         $receipt = Doc::template('receipt', Doc::templates()->get('receipt')->sample());
