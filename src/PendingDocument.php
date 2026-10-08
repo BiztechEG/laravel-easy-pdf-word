@@ -205,6 +205,15 @@ class PendingDocument
 
     public function paper(string $paper, ?string $orientation = null): static
     {
+        // "A4-L" as mPDF writes it: A4, landscape.
+        if (preg_match('/^(.+)-([LP])$/i', $paper, $match)) {
+            [$paper, $orientation] = [$match[1], $orientation ?? (strtoupper($match[2]) === 'L' ? 'landscape' : 'portrait')];
+        }
+
+        if (! isset(PdfOptions::PAPER_SIZES[strtoupper($paper)])) {
+            throw PdfOptions::unknownPaper($paper);
+        }
+
         $this->paper = $paper;
 
         if ($orientation) {

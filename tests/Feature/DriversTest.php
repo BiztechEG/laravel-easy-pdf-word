@@ -123,6 +123,16 @@ class DriversTest extends TestCase
         $this->assertStringStartsWith('PK', Doc::make()->paragraph('x')->word()->content());
     }
 
+    public function test_paper_sizes(): void
+    {
+        $this->assertSame([176, 250], Doc::html('<p>x</p>')->paper('B5')->options()->paperSize());
+        $this->assertSame([297, 210], Doc::html('<p>x</p>')->paper('A4-L')->options()->paperSize());
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unknown paper size [B6]');
+        Doc::html('<p>x</p>')->paper('B6');
+    }
+
     public function test_template_errors_are_not_hidden_by_the_fallback(): void
     {
         Doc::extend('fake', fn () => new FakeDriver);
