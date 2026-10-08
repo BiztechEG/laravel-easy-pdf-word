@@ -3,6 +3,7 @@
 namespace BiztechEG\EasyPdfWord\Tests\Feature;
 
 use BiztechEG\EasyPdfWord\Tests\TestCase;
+use Illuminate\Support\Facades\Gate;
 
 class PreviewTest extends TestCase
 {
@@ -12,6 +13,37 @@ class PreviewTest extends TestCase
 
         $app['config']->set('easy-pdf-word.preview.enabled', true);
         $app['config']->set('app.key', 'base64:'.base64_encode(str_repeat('k', 32)));
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Gate::define('viewDocPreview', fn ($user = null) => true);
+    }
+
+    public function test_outside_local_the_page_needs_the_view_doc_preview_gate(): void
+    {
+        Gate::define('viewDocPreview', fn ($user = null) => false);
+
+        $this->get('/doc-preview')->assertForbidden();
+        $this->get('/doc-preview/receipt')->assertForbidden();
+    }
+
+    public function test_without_a_gate_the_page_is_closed_outside_local(): void
+    {
+        $this->app->forgetInstance(\Illuminate\Contracts\Auth\Access\Gate::class);
+        Gate::clearResolvedInstances();
+
+        $this->get('/doc-preview')->assertForbidden();
+    }
+
+    public function test_in_local_the_page_is_open_without_a_gate(): void
+    {
+        Gate::define('viewDocPreview', fn ($user = null) => false);
+        $this->app['env'] = 'local';
+
+        $this->get('/doc-preview')->assertOk();
     }
 
     public function test_the_preview_page_lists_the_templates(): void

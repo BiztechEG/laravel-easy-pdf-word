@@ -149,7 +149,10 @@ return [
     |
     | A page at /doc-preview that shows every template with its sample data,
     | in any language, digits and engine, with PDF and Word downloads.
-    | null turns it on in the "local" environment only.
+    | null turns it on in the "local" environment only. Outside "local" it
+    | also needs the "viewDocPreview" gate, e.g. in AppServiceProvider:
+    |
+    |   Gate::define('viewDocPreview', fn ($user) => $user->isAdmin());
     |
     */
 

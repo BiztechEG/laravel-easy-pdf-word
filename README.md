@@ -225,7 +225,12 @@ php artisan doc:sample eg-invoice --locale=ar --format=docx   # render the sampl
 
 ### Preview page
 
-In the `local` environment, `/doc-preview` lists every template and shows it with its sample data. You can switch the language, the digits and the PDF engine, open the PDF or download the Word file. Turn it on elsewhere with `DOC_PREVIEW=true` (and protect it with `preview.middleware`), or off with `DOC_PREVIEW=false`.
+In the `local` environment, `/doc-preview` lists every template and shows it with its sample data. You can switch the language, the digits and the PDF engine, open the PDF or download the Word file. Turn it on elsewhere with `DOC_PREVIEW=true`, or off with `DOC_PREVIEW=false`. Outside `local` the page also needs the `viewDocPreview` gate, so only the people you choose can open it:
+
+```php
+// app/Providers/AppServiceProvider.php
+Gate::define('viewDocPreview', fn ($user) => $user->isAdmin());
+```
 
 When working on the package itself, `composer preview` serves the page at http://127.0.0.1:8000/doc-preview.
 
@@ -410,7 +415,7 @@ php artisan doc:make-template delivery-note        # قالب جديد من ال
 php artisan doc:sample eg-invoice --format=docx    # ملف تجريبي من بيانات القالب
 ```
 
-وفي بيئة `local` افتح `/doc-preview` عشان تشوف كل القوالب ببياناتها التجريبية، وتبدّل بين العربي والإنجليزي والأرقام والمحرك، وتنزّل PDF أو Word.
+وفي بيئة `local` افتح `/doc-preview` عشان تشوف كل القوالب ببياناتها التجريبية، وتبدّل بين العربي والإنجليزي والأرقام والمحرك، وتنزّل PDF أو Word. ولو شغّلتها برّه `local` بـ `DOC_PREVIEW=true` لازم تعرّف صلاحية `viewDocPreview` بـ `Gate::define` عشان محدش غير اللي تختاره يفتحها.
 
 ### الأدوات العربية
 
