@@ -6,6 +6,8 @@ All notable changes to this package are listed here. The format follows
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-08
+
 ### Added
 
 The first release.
@@ -26,3 +28,6 @@ The first release.
 - The preview page is on in the local environment only. Anywhere else it has to be turned on and passes through the `viewDocPreview` gate.
 - Colour values, fonts and locales are checked before they reach HTML, CSS or file paths.
 - Chromium runs without JavaScript unless it is turned on in config.
+
+[Unreleased]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/BiztechEG/laravel-easy-pdf-word/releases/tag/v1.0.0
