@@ -310,6 +310,20 @@ DOC_REMOTE_IMAGES=cdn.example.com,*.amazonaws.com
 # or: DOC_REMOTE_IMAGES=true
 ```
 
+SVG images are used only when they are self-contained: an SVG that links to other files or URLs is ignored, because the PDF engine would load them.
+
+## Security
+
+The package treats the data you pass to a template as untrusted:
+
+- Text is escaped in Blade templates, `Doc::make()` blocks and Word files. `${...}` in a value stays text in `word.docx` templates.
+- Images follow the rules in [Images](#images); colours must be real colours (`#0F766E`, `rgb(...)`, `red`), so they cannot add CSS.
+- `->locale()` and `->font()` accept plain names only (`ar`, `ar_EG`, `cairo`).
+- Chromium renders with JavaScript off (`DOC_CHROME_JAVASCRIPT=true` turns it on).
+- The preview page is local only unless you enable it and define the `viewDocPreview` gate.
+
+HTML you write yourself is trusted as is: never pass user input to `Doc::html()` or print it with `{!! !!}` in a view.
+
 ## Fonts
 
 Cairo (default), Tajawal and Noto Naskh Arabic are bundled under the SIL Open Font License. Use one with `->font('tajawal')` or `font-family: 'naskh'` in CSS.
@@ -431,5 +445,9 @@ Arabic::tafqeet(1250.5, 'EGP');   // ألف ومائتان وخمسون جنيه
 Arabic::hijri('2026-10-08');      // ٢٧ ربيع الآخر ١٤٤٨ هـ
 Arabic::numerals('2026');         // ٢٠٢٦
 ```
+
+### الأمان
+
+البيانات اللي بتبعتها للقالب بتتعامل كأنها من المستخدم: النصوص بتتعمل لها escape، والصور بتتقري من الفولدرات المسموحة بس، وروابط الصور مقفولة إلا لو سمحت بيها في `DOC_REMOTE_IMAGES`، والألوان لازم تكون ألوان حقيقية. أما الـ HTML اللي بتكتبه بنفسك فبيتعامل كأنه موثوق، فمتبعتش أي حاجة من المستخدم لـ `Doc::html()` ولا تطبعها بـ `{!! !!}`.
 
 باقي التفاصيل في الجزء الإنجليزي فوق.
