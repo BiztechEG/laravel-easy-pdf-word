@@ -193,6 +193,20 @@ class WordTest extends TestCase
         $this->assertStringNotContainsString('${', $xml);
     }
 
+    public function test_values_cannot_add_placeholders_to_docx_templates(): void
+    {
+        $this->makeDocxTemplate('quote');
+
+        $xml = $this->documentXml(Doc::template('quote', [
+            'customer' => ['name' => '${t.title} ${items.price}'],
+            'items' => [['description' => '${customer.name}', 'price' => 10]],
+        ])->locale('ar')->word()->content());
+
+        $this->assertSame(1, substr_count($xml, 'عرض سعر'));
+        $this->assertStringContainsString("\u{2060}{t.title}", $xml);
+        $this->assertStringContainsString("\u{2060}{customer.name}", $xml);
+    }
+
     public function test_templates_without_a_word_layout_explain_what_is_missing(): void
     {
         mkdir($this->templates.'/pdf-only', 0775, true);
