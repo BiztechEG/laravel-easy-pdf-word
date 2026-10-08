@@ -65,8 +65,10 @@ class SampleCommand extends Command
             $path = getcwd().DIRECTORY_SEPARATOR.$path;
         }
 
-        if (! is_dir(dirname($path))) {
-            mkdir(dirname($path), 0775, true);
+        if (! is_dir(dirname($path)) && ! @mkdir(dirname($path), 0775, true) && ! is_dir(dirname($path))) {
+            $this->error('Could not create the folder ['.dirname($path).'].');
+
+            return self::FAILURE;
         }
 
         match ($format) {
