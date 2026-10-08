@@ -262,6 +262,24 @@ class DriversTest extends TestCase
         $this->assertSame([], array_filter($pages, fn ($page) => str_contains((string) @file_get_contents($page), $marker)));
     }
 
+    public function test_custom_font_files_with_the_same_name_are_refused(): void
+    {
+        $dir = sys_get_temp_dir().'/easy-pdf-word-tests/fonts';
+        @mkdir($dir.'/fa', 0775, true);
+        @mkdir($dir.'/fb', 0775, true);
+        copy(__DIR__.'/../../resources/fonts/Cairo-Regular.ttf', $dir.'/fa/Regular.ttf');
+        copy(__DIR__.'/../../resources/fonts/Tajawal-Regular.ttf', $dir.'/fb/Regular.ttf');
+
+        $fonts = app(\BiztechEG\EasyPdfWord\Fonts\FontRegistry::class)
+            ->register('fa', ['regular' => $dir.'/fa/Regular.ttf'])
+            ->register('fb', ['regular' => $dir.'/fb/Regular.ttf']);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('have the same name');
+
+        $fonts->forMpdf();
+    }
+
     public function test_mpdf_renders_landscape_pages(): void
     {
         $pdf = Doc::html('<p>x</p>')->landscape()->pdf()->content();
