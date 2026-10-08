@@ -388,7 +388,7 @@ class PendingDocument
             Validator::make($data, $this->template->rules())->validate();
         }
 
-        return $this->template->prepare($data);
+        return $this->template->prepare($data, $this->resolvedTheme());
     }
 
     private function wrapHtml(string $html, array $data): string

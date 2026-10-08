@@ -53,6 +53,21 @@ class TemplatesTest extends TestCase
         $this->assertStringContainsString('data:image/png;base64,', $html);
     }
 
+    public function test_zatca_qr_uses_the_company_from_the_theme(): void
+    {
+        $this->app['config']->set('easy-pdf-word.theme.company', ['name' => 'شركة المثال', 'tax_number' => '300000000000003']);
+        $data = Doc::templates()->get('invoice')->sample();
+        unset($data['seller']);
+        $data['qr'] = 'zatca';
+
+        $prepared = Doc::templates()->get('invoice')->prepare($data, config('easy-pdf-word.theme'));
+        $fields = \BiztechEG\EasyPdfWord\Zatca\ZatcaQr::decode($prepared['qr']);
+
+        $this->assertSame('شركة المثال', $fields[1]);
+        $this->assertSame('300000000000003', $fields[2]);
+        $this->assertStringContainsString('شركة المثال', Doc::template('invoice', $data)->locale('ar')->toHtml());
+    }
+
     public function test_template_data_is_validated(): void
     {
         $this->expectException(ValidationException::class);
