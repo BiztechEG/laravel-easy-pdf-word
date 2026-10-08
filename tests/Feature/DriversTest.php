@@ -186,6 +186,21 @@ class DriversTest extends TestCase
         Doc::html('<p>x</p>')->driver('chromuim')->pdf()->content();
     }
 
+    public function test_mpdf_reads_a_font_again_when_its_file_changes(): void
+    {
+        $font = sys_get_temp_dir().'/easy-pdf-word-tests/MyFont.ttf';
+        @mkdir(dirname($font), 0775, true);
+        copy(dirname(__DIR__, 2).'/resources/fonts/Cairo-Regular.ttf', $font);
+
+        $fonts = new \BiztechEG\EasyPdfWord\Fonts\FontRegistry(['my-font' => ['regular' => $font]]);
+        $before = $fonts->signature();
+        touch($font, time() + 60);
+        clearstatcache();
+
+        $this->assertNotSame($before, $fonts->signature());
+        @unlink($font);
+    }
+
     public function test_the_word_allah_can_be_copied_from_a_cairo_pdf(): void
     {
         if (! is_executable('/usr/bin/pdftotext')) {
