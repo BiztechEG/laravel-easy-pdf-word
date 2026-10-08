@@ -34,12 +34,14 @@
     "require-dev": {
         "mpdf/mpdf": "^8.2",
         "orchestra/testbench": "^10.0|^11.0",
+        "phpoffice/phpword": "^1.4",
         "phpunit/phpunit": "^10.5|^11.0|^12.0",
         "spatie/browsershot": "^5.4"
     },
     "suggest": {
         "mpdf/mpdf": "Default PDF engine: pure PHP, native Arabic shaping and bidi (GPL-2.0).",
         "spatie/browsershot": "Chromium PDF engine via Puppeteer, highest rendering quality.",
+        "phpoffice/phpword": "Word (.docx) output: Arabic right-to-left documents and Word-designed templates.",
         "ext-intl": "Required for Hijri dates and locale-aware number formatting."
     },
     "autoload": {
