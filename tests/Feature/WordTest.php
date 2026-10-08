@@ -156,6 +156,14 @@ class WordTest extends TestCase
         $this->assertStringContainsString('<w:color w:val="0F766E"/>', $xml);
     }
 
+    public function test_the_receipt_box_follows_the_theme_colour(): void
+    {
+        $receipt = Doc::template('receipt', Doc::templates()->get('receipt')->sample())->theme(['primary' => '#1D4ED8']);
+
+        $this->assertStringContainsString('#EFF3FC', $receipt->toHtml());
+        $this->assertStringContainsString('EFF3FC', $this->documentXml($receipt->word()->content()));
+    }
+
     public function test_page_settings_and_footer_page_numbers(): void
     {
         $content = Doc::make()
