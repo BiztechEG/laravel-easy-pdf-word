@@ -47,6 +47,9 @@ class DocumentTest extends TestCase
         $this->assertSame('1,250.50', $doc->numberText('1,250.5'));
         $this->assertSame('1,250.50', (string) $doc->number('١٬٢٥٠٫٥'));
         $this->assertSame('one thousand two hundred fifty EGP and 50/100 only', $doc->inWords('1,250.50', 'EGP'));
+        $this->assertSame('minus zero GBP and 50/100 only', $doc->inWords(-0.5, 'GBP'));
+        $this->assertSame('minus one GBP and 50/100 only', $doc->inWords(-1.5, 'GBP'));
+        $this->assertSame('فقط سالب صفر GBP و50/100 لا غير', $doc->tafqeet(-0.5, 'GBP'));
         $this->assertSame('1500', $doc->rate('1,500'));
         $this->assertSame('2.5', $doc->rate('٢٫٥'));
     }
