@@ -107,6 +107,22 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Word
+    |--------------------------------------------------------------------------
+    |
+    | Word files (needs phpoffice/phpword) do not embed fonts, so use a font
+    | that is installed on your readers' machines and covers Arabic: Arial,
+    | Tahoma, Times New Roman, Simplified Arabic, Sakkal Majalla ...
+    |
+    */
+
+    'word' => [
+        'font' => env('DOC_WORD_FONT', 'Arial'),
+        'font_size' => 11,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Templates
     |--------------------------------------------------------------------------
     |
