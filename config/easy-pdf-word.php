@@ -144,6 +144,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Preview page
+    |--------------------------------------------------------------------------
+    |
+    | A page at /doc-preview that shows every template with its sample data,
+    | in any language, digits and engine, with PDF and Word downloads.
+    | null turns it on in the "local" environment only.
+    |
+    */
+
+    'preview' => [
+        'enabled' => env('DOC_PREVIEW'),
+        'path' => 'doc-preview',
+        'middleware' => ['web'],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Templates
     |--------------------------------------------------------------------------
     |
