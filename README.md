@@ -10,7 +10,7 @@ Generate PDF and Word (.docx) documents from Laravel in any language, with first
 - Arabic that renders correctly: joined letters, right-to-left layout, mixed Arabic and English, Arabic or Latin digits.
 - Two PDF engines you can switch between: **mPDF** (pure PHP, works on shared hosting) and **Chromium** (via Browsershot or Gotenberg), with automatic fallback.
 - Word files with real right-to-left paragraphs and tables, from the same templates, from code, or from a .docx you design in Word.
-- Ready-made templates, each in PDF and Word: tax invoice (with ZATCA QR), Egyptian e-invoice (ETA), price quotation, receipt/payment voucher, official letter, table report. Use them as they are, copy and customise them, or build your own.
+- Ready-made templates, each in PDF and Word: tax invoice (with ZATCA QR), Egyptian e-invoice (ETA), credit/debit note, price quotation, purchase order, delivery note, receipt/payment voucher, official letter, table report. Use them as they are, copy and customise them, or build your own.
 - A preview page that shows every template in any language, digits and engine.
 - Arabic helpers: amounts in words (تفقيط), Hijri dates, Arabic numerals.
 - Bundled Arabic fonts: Cairo, Tajawal and Noto Naskh Arabic.
@@ -233,7 +233,7 @@ Styles: `bold`, `italic`, `size` (pt), `color`, `align` (`start`, `end`, `center
 
 A template folder can describe its layout in three ways:
 
-- `layout.php` returns `fn (DocumentBuilder $doc, array $data, DocContext $context)` and adds blocks. One layout makes both the PDF and the Word file; the quotation, receipt and Egyptian e-invoice templates work this way.
+- `layout.php` returns `fn (DocumentBuilder $doc, array $data, DocContext $context)` and adds blocks. One layout makes both the PDF and the Word file; the quotation, purchase order, delivery note, credit note, receipt and Egyptian e-invoice templates work this way.
 - `word.php` has the same shape and is used for Word only, next to a `pdf.blade.php` for the PDF, like the invoice, letter and report templates.
 - `word.docx` is a file you design in Word with placeholders. It wins over `word.php` and `layout.php` for Word.
 
@@ -289,7 +289,10 @@ Doc::extend('my-engine', fn ($app) => new MyPdfDriver);   // implements Contract
 | --- | --- |
 | `invoice` | Tax invoice: seller, buyer, items, discount, VAT, total, amount in words, Hijri date, QR (ZATCA or any link) |
 | `eg-invoice` | Egyptian e-invoice, credit or debit note (ETA): tax registration numbers, branch and activity codes, EGS/GS1 item codes, units, ETA tax types per line (T1 VAT, T2/T3 table tax, T4 withholding ...), tax summary, portal QR |
+| `credit-note` | Credit or debit note (إشعار دائن / مدين) against an invoice: original invoice, reason, items, VAT, amount in words, QR (ZATCA or any link) |
 | `quotation` | Price quotation: customer, items with details and units, discount, optional VAT, validity date, terms, signature |
+| `purchase-order` | Purchase order (أمر شراء) to a supplier: items with codes and units, discount, optional VAT, delivery date and place, payment terms, terms, approval signatures |
+| `delivery-note` | Delivery note (إذن تسليم): customer and delivery address, items with ordered, delivered and remaining quantities, packages, driver and vehicle, receipt acknowledgement, signatures |
 | `receipt` | Receipt or payment voucher (سند قبض / سند صرف): amount in figures and words, payer or payee, purpose, cash/cheque/transfer/card, signatures |
 | `letter` | Official letter: letterhead, reference number, Gregorian and Hijri date, recipient, subject, body, signature, stamp, copies |
 | `report` | Table report: any rows, chosen columns, totals row, summary cards, header repeated on every page |
@@ -300,8 +303,8 @@ Each template's `template.php` lists its fields and contains sample data.
 php artisan doc:templates                              # list templates
 php artisan doc:template invoice --as=my-invoice       # copy to resources/doc-templates to customise
 php artisan doc:template invoice                       # copy under the same name: overrides the original
-php artisan doc:make-template delivery-note            # start a new template from scratch
-php artisan doc:sample eg-invoice --locale=ar --format=docx   # render the sample data to a file
+php artisan doc:make-template packing-list             # start a new template from scratch
+php artisan doc:sample eg-invoice --locale=ar --output=eg-invoice.docx   # render the sample data to a file
 ```
 
 ### Preview page
@@ -489,7 +492,7 @@ MIT. mPDF, an optional dependency, is GPL-2.0; check that it fits your project, 
 - العربي بيطلع صح: الحروف متشبكة، الاتجاه من اليمين للشمال، والنص المختلط عربي وإنجليزي، وأرقام عربية أو لاتينية.
 - محركين PDF تقدر تبدل بينهم: **mPDF** (PHP بس، شغال على الاستضافة المشتركة) و **Chromium** (عن طريق Browsershot أو Gotenberg)، ولو المحرك المختار مش موجود بيرجع للتاني تلقائياً.
 - ملفات Word بفقرات وجداول من اليمين للشمال، من نفس القوالب، أو من الكود، أو من ملف docx تصممه في Word.
-- قوالب جاهزة، وكل قالب بيطلع PDF و Word: فاتورة ضريبية (مع QR هيئة الزكاة)، فاتورة إلكترونية مصرية، عرض سعر، سند قبض وسند صرف، خطاب رسمي، تقرير جدولي. تستخدمها زي ما هي، أو تنسخها وتعدلها، أو تعمل قالبك.
+- قوالب جاهزة، وكل قالب بيطلع PDF و Word: فاتورة ضريبية (مع QR هيئة الزكاة)، فاتورة إلكترونية مصرية، إشعار دائن ومدين، عرض سعر، أمر شراء، إذن تسليم، سند قبض وسند صرف، خطاب رسمي، تقرير جدولي. تستخدمها زي ما هي، أو تنسخها وتعدلها، أو تعمل قالبك.
 - صفحة معاينة بتعرض كل القوالب بأي لغة وأي محرك.
 - أدوات عربية: التفقيط، التاريخ الهجري، الأرقام العربية.
 - خطوط عربية مدمجة: Cairo و Tajawal و Noto Naskh Arabic.
@@ -551,8 +554,8 @@ Doc::template('invoice', $data)->driver('chromium')->pdf();
 ```bash
 php artisan doc:templates                          # عرض القوالب
 php artisan doc:template invoice --as=my-invoice   # نسخ قالب جاهز لتعديله
-php artisan doc:make-template delivery-note        # قالب جديد من الصفر
-php artisan doc:sample eg-invoice --format=docx    # ملف تجريبي من بيانات القالب
+php artisan doc:make-template packing-list         # قالب جديد من الصفر
+php artisan doc:sample eg-invoice --output=eg-invoice.docx   # ملف تجريبي من بيانات القالب
 ```
 
 وفي بيئة `local` افتح `/doc-preview` عشان تشوف كل القوالب ببياناتها التجريبية، وتبدّل بين العربي والإنجليزي والأرقام والمحرك، وتنزّل PDF أو Word. ولو شغّلتها برّه `local` بـ `DOC_PREVIEW=true` لازم تعرّف صلاحية `viewDocPreview` بـ `Gate::define` عشان محدش غير اللي تختاره يفتحها.

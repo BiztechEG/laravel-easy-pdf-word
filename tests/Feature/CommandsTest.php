@@ -58,13 +58,24 @@ class CommandsTest extends TestCase
 
     public function test_make_a_new_template(): void
     {
-        $this->artisan('doc:make-template', ['name' => 'delivery-note'])->assertSuccessful();
+        $this->artisan('doc:make-template', ['name' => 'packing-list'])
+            ->doesntExpectOutputToContain('replaces the bundled')
+            ->assertSuccessful();
 
-        $pdf = Doc::template('delivery-note', ['title' => 'إذن تسليم'])->locale('ar')->pdf();
+        $pdf = Doc::template('packing-list', ['title' => 'قائمة التعبئة'])->locale('ar')->pdf();
 
         $this->assertStringStartsWith('%PDF', $pdf->content());
-        $this->assertStringStartsWith('PK', Doc::template('delivery-note', ['title' => 'إذن تسليم'])->locale('ar')->word()->content());
-        $this->artisan('doc:make-template', ['name' => 'delivery-note'])->assertFailed();
+        $this->assertStringStartsWith('PK', Doc::template('packing-list', ['title' => 'قائمة التعبئة'])->locale('ar')->word()->content());
+        $this->artisan('doc:make-template', ['name' => 'packing-list'])->assertFailed();
+    }
+
+    public function test_a_new_template_named_like_a_bundled_one_warns_that_it_replaces_it(): void
+    {
+        $this->artisan('doc:make-template', ['name' => 'delivery-note'])
+            ->expectsOutputToContain('replaces the bundled [delivery-note] template')
+            ->assertSuccessful();
+
+        $this->assertFalse(Doc::templates()->isBundled('delivery-note'));
     }
 
     public function test_template_names_cannot_leave_the_templates_folder(): void
@@ -87,7 +98,23 @@ class CommandsTest extends TestCase
 
         $this->artisan('doc:sample', ['name' => 'nope'])->assertFailed();
         $this->artisan('doc:sample', ['name' => 'receipt', '--format' => 'xls'])->assertFailed();
+        $this->artisan('doc:sample', ['name' => 'receipt', '--output' => "{$dir}/receipt.xls"])->assertSuccessful();
+        $this->assertStringStartsWith('%PDF', file_get_contents("{$dir}/receipt.xls"));
         $this->artisan('doc:sample', ['name' => 'receipt', '--locale' => '../x'])->assertFailed();
+    }
+
+    public function test_the_sample_format_follows_the_output_extension(): void
+    {
+        $dir = sys_get_temp_dir().'/easy-pdf-word-tests/samples';
+
+        foreach (['pdf' => '%PDF', 'docx' => 'PK', 'html' => '<!DOCTYPE'] as $format => $start) {
+            $this->artisan('doc:sample', ['name' => 'receipt', '--output' => "{$dir}/by-extension.{$format}"])->assertSuccessful();
+            $this->assertStringStartsWith($start, file_get_contents("{$dir}/by-extension.{$format}"));
+        }
+
+        // An explicit --format wins over the extension.
+        $this->artisan('doc:sample', ['name' => 'receipt', '--format' => 'html', '--output' => "{$dir}/forced.pdf"])->assertSuccessful();
+        $this->assertStringStartsWith('<!DOCTYPE', file_get_contents("{$dir}/forced.pdf"));
     }
 
     public function test_sample_output_paths_are_relative_to_the_current_folder(): void

@@ -24,6 +24,12 @@ class TemplatesTest extends TestCase
             'receipt en' => ['receipt', 'en'],
             'eg-invoice ar' => ['eg-invoice', 'ar'],
             'eg-invoice en' => ['eg-invoice', 'en'],
+            'purchase-order ar' => ['purchase-order', 'ar'],
+            'purchase-order en' => ['purchase-order', 'en'],
+            'delivery-note ar' => ['delivery-note', 'ar'],
+            'delivery-note en' => ['delivery-note', 'en'],
+            'credit-note ar' => ['credit-note', 'ar'],
+            'credit-note en' => ['credit-note', 'en'],
         ];
     }
 
@@ -41,7 +47,10 @@ class TemplatesTest extends TestCase
 
     public function test_bundled_templates_are_listed(): void
     {
-        $this->assertSame(['eg-invoice', 'invoice', 'letter', 'quotation', 'receipt', 'report'], array_keys(Doc::templates()->all()));
+        $this->assertSame(
+            ['credit-note', 'delivery-note', 'eg-invoice', 'invoice', 'letter', 'purchase-order', 'quotation', 'receipt', 'report'],
+            array_keys(Doc::templates()->all()),
+        );
     }
 
     public function test_invoice_totals_and_zatca_qr_are_prepared(): void
@@ -197,13 +206,89 @@ class TemplatesTest extends TestCase
 
     public function test_line_totals_add_up_to_the_subtotal(): void
     {
-        foreach (['invoice', 'quotation'] as $name) {
+        foreach (['invoice', 'quotation', 'purchase-order', 'credit-note'] as $name) {
             $data = Doc::templates()->get($name)->sample();
             $data['items'] = array_fill(0, 3, ['description' => 'x', 'quantity' => 1.5, 'unit_price' => 3.33]);
             $prepared = Doc::templates()->get($name)->prepare($data);
 
             $this->assertSame(5.0, $prepared['items'][0]['total']);
             $this->assertSame(15.0, $prepared['totals']['subtotal'], $name);
+        }
+    }
+
+    public function test_purchase_order_totals_columns_and_signatures(): void
+    {
+        $data = Doc::templates()->get('purchase-order')->sample();
+        $html = Doc::template('purchase-order', $data)->locale('ar')->toHtml();
+
+        // 38,000 + 32,000 - 1,500 + 28,500 = 97,000; VAT 14% = 13,580
+        $this->assertStringContainsString('110,580.00', $html);
+        $this->assertStringContainsString('فقط مائة وعشرة آلاف وخمسمائة وثمانون جنيهاً لا غير', $html);
+        $this->assertStringContainsString('الكود', $html);
+        $this->assertStringContainsString('موافقة المورد', $html);
+
+        // Without codes or discounts those columns are left out, and a
+        // signature label that is not a known role is printed as it is.
+        $data['items'] = [['description' => 'ورق تصوير', 'quantity' => 2, 'unit_price' => 100]];
+        $data['signatures'] = ['approved_by', 'مدير المشتريات'];
+        $html = Doc::template('purchase-order', $data)->locale('ar')->toHtml();
+
+        $this->assertStringNotContainsString('الكود', $html);
+        $this->assertStringNotContainsString('الخصم', $html);
+        $this->assertStringContainsString('مدير المشتريات', $html);
+        $this->assertStringNotContainsString('موافقة المورد', $html);
+    }
+
+    public function test_delivery_note_counts_and_remaining_quantities(): void
+    {
+        $data = Doc::templates()->get('delivery-note')->sample();
+        $prepared = Doc::templates()->get('delivery-note')->prepare($data);
+
+        $this->assertSame(['items' => 3, 'quantity' => 26.0], $prepared['totals']);
+        $this->assertSame([0.0, 4.0, 0.0], array_column($prepared['items'], 'remaining'));
+        $this->assertStringContainsString('المتبقي', Doc::template('delivery-note', $data)->locale('ar')->toHtml());
+
+        // Without ordered quantities there is nothing remaining to show.
+        $data['items'] = [['description' => 'شاشة', 'quantity' => 2]];
+        $html = Doc::template('delivery-note', $data)->locale('ar')->toHtml();
+
+        $this->assertStringNotContainsString('المطلوب', $html);
+        $this->assertStringNotContainsString('المتبقي', $html);
+    }
+
+    public function test_credit_note_totals_reference_and_zatca_qr(): void
+    {
+        $data = Doc::templates()->get('credit-note')->sample();
+        $html = Doc::template('credit-note', $data)->locale('ar')->toHtml();
+
+        // 3 x 450 + 1,500 = 2,850; VAT 14% = 399
+        $this->assertStringContainsString('3,249.00', $html);
+        $this->assertStringContainsString('INV-2026-1024', $html);
+        $this->assertStringContainsString('إشعار دائن', $html);
+        $this->assertStringContainsString('أُضيفت قيمة هذا الإشعار إلى رصيد حسابكم لدينا.', $html);
+
+        $data['type'] = 'debit';
+        $data['note'] = ['currency' => 'SAR', 'tax_rate' => 15] + $data['note'];
+        $data['seller'] = ['name' => 'شركة المثال', 'tax_number' => '300000000000003'];
+        $data['qr'] = 'zatca';
+        $fields = \BiztechEG\EasyPdfWord\Zatca\ZatcaQr::decode(Doc::templates()->get('credit-note')->prepare($data)['qr']);
+
+        $this->assertSame(['شركة المثال', '300000000000003'], [$fields[1], $fields[2]]);
+        $this->assertSame(['3277.50', '427.50'], [$fields[4], $fields[5]]);
+        $this->assertStringContainsString('إشعار مدين', Doc::template('credit-note', $data)->locale('ar')->toHtml());
+    }
+
+    public function test_credit_notes_need_the_original_invoice_and_a_reason(): void
+    {
+        $data = Doc::templates()->get('credit-note')->sample();
+        unset($data['invoice'], $data['reason']);
+
+        try {
+            Doc::template('credit-note', $data)->toHtml();
+            $this->fail('The credit note was not validated.');
+        } catch (ValidationException $e) {
+            $this->assertArrayHasKey('invoice.number', $e->errors());
+            $this->assertArrayHasKey('reason', $e->errors());
         }
     }
 

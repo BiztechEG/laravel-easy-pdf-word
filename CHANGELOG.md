@@ -6,6 +6,17 @@ All notable changes to this package are listed here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- `purchase-order` template: a purchase order to a supplier with item codes and units, discounts, optional VAT, delivery date and place, payment terms and approval signatures.
+- `delivery-note` template: a delivery note with ordered, delivered and remaining quantities, packages, driver and vehicle, and the receiver's acknowledgement.
+- `credit-note` template: a credit or debit note against an invoice, with the reason, VAT, amount in words and a ZATCA or e-invoice QR.
+
+### Changed
+
+- `doc:sample` picks the format from the `--output` extension when `--format` is not given, so `--output=invoice.docx` makes a Word file.
+- `doc:make-template` warns when the new template has the name of a bundled one, which it then replaces in the app.
+
 ## [1.1.0] - 2026-10-08
 
 ### Added
