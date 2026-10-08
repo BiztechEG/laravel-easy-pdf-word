@@ -295,6 +295,27 @@ class WordTest extends TestCase
         $this->assertStringNotContainsString('logo.png', $xml);
     }
 
+    public function test_docx_values_without_arabic_letters_keep_their_order(): void
+    {
+        $this->makeDocxTemplate('quote');
+
+        $word = Doc::template('quote', [
+            'customer' => ['name' => '+20 100 000 0000'],
+            'quote' => ['currency' => 'KWD'],
+            'items' => [['description' => 'تطوير (Laravel)', 'price' => 10.125], ['description' => 'INV-2026/10', 'price' => 3.5]],
+        ]);
+
+        $xml = $this->documentXml($word->locale('ar')->word()->content());
+
+        $this->assertStringContainsString("\u{202D}+20 100 000 0000\u{202C}", $xml);
+        $this->assertStringContainsString("\u{202D}INV-2026/10\u{202C}", $xml);
+        $this->assertStringContainsString("\u{202D}10.125\u{202C}", $xml);
+        $this->assertStringContainsString('>تطوير (Laravel)<', $xml);
+        $this->assertStringContainsString('<w:t xml:space="preserve">1</w:t>', $xml);
+
+        $this->assertStringNotContainsString("\u{202D}", $this->documentXml($word->locale('en')->word()->content()));
+    }
+
     public function test_a_failed_docx_fill_leaves_no_temp_files(): void
     {
         $this->makeDocxTemplate('quote');
