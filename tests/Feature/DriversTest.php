@@ -181,6 +181,21 @@ class DriversTest extends TestCase
         Doc::html('<p>x</p>')->pdf()->content();
     }
 
+    public function test_a_failed_chromium_render_leaves_no_page_in_the_temp_folder(): void
+    {
+        config(['easy-pdf-word.pdf.fallback' => null, 'easy-pdf-word.pdf.drivers.browsershot.chrome_path' => '/nonexistent/chrome', 'easy-pdf-word.pdf.drivers.browsershot.timeout' => 5]);
+        $marker = 'secret-'.bin2hex(random_bytes(6));
+
+        try {
+            Doc::html("<p>{$marker}</p>")->driver('chromium')->pdf()->content();
+        } catch (\Throwable) {
+            // Expected: there is no Chrome at that path.
+        }
+
+        $pages = array_merge(glob(sys_get_temp_dir().'/*/index.html'), glob(sys_get_temp_dir().'/*/*/index.html'));
+        $this->assertSame([], array_filter($pages, fn ($page) => str_contains((string) @file_get_contents($page), $marker)));
+    }
+
     public function test_mpdf_renders_landscape_pages(): void
     {
         $pdf = Doc::html('<p>x</p>')->landscape()->pdf()->content();

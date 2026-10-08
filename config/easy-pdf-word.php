@@ -69,6 +69,8 @@ return [
             'browsershot' => [
                 'node_binary' => env('DOC_NODE_BINARY'),
                 'npm_binary' => env('DOC_NPM_BINARY'),
+                // The global node_modules folder (npm root -g); found on every render when empty.
+                'node_modules_path' => env('DOC_NODE_MODULES_PATH'),
                 'chrome_path' => env('DOC_CHROME_PATH'),
                 'no_sandbox' => env('DOC_CHROME_NO_SANDBOX', false),
                 // Templates need no JavaScript; turn it on only for documents that draw with it (charts).
