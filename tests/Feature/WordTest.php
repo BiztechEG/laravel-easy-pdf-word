@@ -83,9 +83,20 @@ class WordTest extends TestCase
             ->word()
             ->content());
 
+        // A left-to-right override: Arabic-Indic digits are "Arabic numbers" to the
+        // bidi algorithm, so an embedding alone still swaps the groups of +20 100.
         $this->assertStringContainsString('فاتورة ١٠٢٤', $xml);
-        $this->assertStringContainsString("\u{202A}+٢٠ ١٠٠\u{202C}", $xml);
-        $this->assertStringContainsString("\u{202A}-٢.٥\u{202C}", $xml);
+        $this->assertStringContainsString("\u{202D}+٢٠ ١٠٠\u{202C}", $xml);
+        $this->assertStringContainsString("\u{202D}-٢.٥\u{202C}", $xml);
+    }
+
+    public function test_invoice_tax_numbers_keep_their_order_in_word(): void
+    {
+        $sample = Doc::templates()->get('invoice')->sample();
+        $xml = $this->documentXml(Doc::template('invoice', $sample)->locale('ar')->numerals('arabic')->word()->content());
+
+        $this->assertStringContainsString("\u{202D}١٢٣-٤٥٦-٧٨٩\u{202C}", $xml);
+        $this->assertStringContainsString("\u{202D}٩٨٧-٦٥٤-٣٢١\u{202C}", $xml);
     }
 
     public function test_special_characters_are_escaped(): void
