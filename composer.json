@@ -1,0 +1,76 @@
+{
+    "name": "biztecheg/laravel-easy-pdf-word",
+    "description": "Generate PDF and Word documents in Laravel in any language, with first-class Arabic support (RTL, shaping, numerals, tafqeet, Hijri dates) and ready-made templates.",
+    "keywords": [
+        "laravel",
+        "pdf",
+        "word",
+        "docx",
+        "arabic",
+        "rtl",
+        "mpdf",
+        "invoice",
+        "templates",
+        "zatca"
+    ],
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "BizTech",
+            "homepage": "https://github.com/BiztechEG"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "ext-mbstring": "*",
+        "ext-gd": "*",
+        "illuminate/support": "^12.0|^13.0",
+        "illuminate/view": "^12.0|^13.0",
+        "illuminate/console": "^12.0|^13.0",
+        "illuminate/filesystem": "^12.0|^13.0",
+        "chillerlan/php-qrcode": "^5.0"
+    },
+    "require-dev": {
+        "mpdf/mpdf": "^8.2",
+        "orchestra/testbench": "^10.0|^11.0",
+        "phpunit/phpunit": "^10.5|^11.0|^12.0",
+        "spatie/browsershot": "^5.4"
+    },
+    "suggest": {
+        "mpdf/mpdf": "Default PDF engine: pure PHP, native Arabic shaping and bidi (GPL-2.0).",
+        "spatie/browsershot": "Chromium PDF engine via Puppeteer, highest rendering quality.",
+        "ext-intl": "Required for Hijri dates and locale-aware number formatting."
+    },
+    "autoload": {
+        "psr-4": {
+            "BiztechEG\\EasyPdfWord\\": "src/"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "BiztechEG\\EasyPdfWord\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "BiztechEG\\EasyPdfWord\\EasyPdfWordServiceProvider"
+            ],
+            "aliases": {
+                "Doc": "BiztechEG\\EasyPdfWord\\Facades\\Doc"
+            }
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
