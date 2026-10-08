@@ -161,6 +161,28 @@ class QueueTest extends TestCase
         Queue::assertNothingPushed();
     }
 
+    public function test_the_watermark_and_password_reach_the_worker(): void
+    {
+        Doc::fake();
+
+        Doc::template('quotation', Doc::templates()->get('quotation')->sample())->watermark('مسودة')->password('1234')->queue('q.pdf');
+
+        Doc::assertSaved(fn (GeneratedDocument $doc) => $doc->watermark === 'مسودة' && $doc->protected);
+    }
+
+    public function test_a_word_file_with_a_password_is_refused_before_it_is_queued(): void
+    {
+        Queue::fake();
+
+        try {
+            Doc::make()->paragraph('سري')->password('1234')->queue('secret.docx');
+            $this->fail('Word files cannot take a password.');
+        } catch (\LogicException) {
+        }
+
+        Queue::assertNothingPushed();
+    }
+
     public function test_the_extension_picks_the_format(): void
     {
         $this->expectException(InvalidArgumentException::class);
