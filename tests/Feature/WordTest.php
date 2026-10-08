@@ -293,6 +293,32 @@ class WordTest extends TestCase
         }
     }
 
+    public function test_word_files_take_webp_and_bmp_images_and_leave_out_svg(): void
+    {
+        // Different sizes, so Word does not store them as one picture.
+        $encode = function (string $function, int $size): string {
+            ob_start();
+            $function(imagecreatetruecolor($size, $size));
+
+            return base64_encode(ob_get_clean());
+        };
+        $svg = 'data:image/svg+xml;base64,'.base64_encode('<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4"><rect width="4" height="4"/></svg>');
+
+        $docx = Doc::make()
+            ->image('data:image/webp;base64,'.$encode('imagewebp', 4))
+            ->image('data:image/bmp;base64,'.$encode('imagebmp', 5))
+            ->image($svg)
+            ->paragraph('x')
+            ->word()->content();
+
+        $this->assertCount(2, array_filter($this->zipNames($docx), fn ($name) => str_starts_with($name, 'word/media/')));
+
+        // An SVG logo in a bundled template, which the PDF shows.
+        $invoice = Doc::template('invoice', Doc::templates()->get('invoice')->sample())->theme(['logo' => $svg]);
+        $this->assertStringStartsWith('PK', $invoice->word()->content());
+        $this->assertStringStartsWith('%PDF', $invoice->pdf()->content());
+    }
+
     public function test_templates_without_a_word_layout_explain_what_is_missing(): void
     {
         mkdir($this->templates.'/pdf-only', 0775, true);
@@ -391,6 +417,20 @@ class WordTest extends TestCase
         $table->addCell(4000)->addText('${items.description}');
         $table->addCell(2000)->addText('${items.price}');
         IOFactory::createWriter($word, 'Word2007')->save($dir.'/word.docx');
+    }
+
+    /** @return list<string> */
+    private function zipNames(string $docx): array
+    {
+        $file = tempnam(sys_get_temp_dir(), 'docx-test');
+        file_put_contents($file, $docx);
+        $zip = new ZipArchive;
+        $zip->open($file);
+        $names = array_map(fn ($i) => $zip->getNameIndex($i), range(0, $zip->numFiles - 1));
+        $zip->close();
+        @unlink($file);
+
+        return $names;
     }
 
     private function documentXml(string $docx): string
