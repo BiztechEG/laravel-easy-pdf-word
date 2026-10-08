@@ -13,6 +13,7 @@
         "templates",
         "zatca"
     ],
+    "homepage": "https://github.com/BiztechEG/laravel-easy-pdf-word",
     "license": "MIT",
     "type": "library",
     "authors": [
@@ -21,6 +22,11 @@
             "homepage": "https://github.com/BiztechEG"
         }
     ],
+    "support": {
+        "issues": "https://github.com/BiztechEG/laravel-easy-pdf-word/issues",
+        "source": "https://github.com/BiztechEG/laravel-easy-pdf-word",
+        "security": "https://github.com/BiztechEG/laravel-easy-pdf-word/security/policy"
+    },
     "require": {
         "php": "^8.2",
         "ext-mbstring": "*",
