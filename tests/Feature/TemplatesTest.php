@@ -79,6 +79,20 @@ class TemplatesTest extends TestCase
         $this->assertStringStartsWith('PK', Doc::template('invoice', $data)->locale('ar')->word()->content());
     }
 
+    public function test_report_cells_with_arrays_and_dates(): void
+    {
+        $data = [
+            'title' => 'تقرير',
+            'columns' => ['name' => 'الاسم', 'tags' => 'الوسوم', 'joined' => 'التاريخ'],
+            'rows' => [['name' => 'سارة', 'tags' => ['أ', 'ب'], 'joined' => now()->setDate(2026, 10, 8)]],
+        ];
+
+        $html = Doc::template('report', $data)->locale('ar')->toHtml();
+
+        $this->assertStringContainsString('2026/10/08', $html);
+        $this->assertStringStartsWith('PK', Doc::template('report', $data)->locale('ar')->word()->content());
+    }
+
     public function test_template_data_is_validated(): void
     {
         $this->expectException(ValidationException::class);
