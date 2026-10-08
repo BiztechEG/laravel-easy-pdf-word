@@ -2,6 +2,7 @@
 
 namespace BiztechEG\EasyPdfWord\Templates;
 
+use BiztechEG\EasyPdfWord\Support\Locale;
 use RuntimeException;
 
 /**
@@ -171,7 +172,11 @@ class Template
 
     public function translations(string $locale): array
     {
-        $language = strtolower(preg_split('/[-_]/', $locale)[0]);
+        $language = Locale::language($locale);
+
+        if ($language === null) {
+            return [];
+        }
 
         if (! array_key_exists($language, $this->translations)) {
             $file = $this->path."/lang/{$language}.php";
