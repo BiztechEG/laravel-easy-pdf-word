@@ -429,6 +429,13 @@ class WordTest extends TestCase
         Doc::template('pdf-only')->word();
     }
 
+    public function test_word_checks_template_data_at_once_like_pdf(): void
+    {
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+
+        Doc::template('receipt', ['type' => 'refund'])->word();
+    }
+
     public function test_views_and_html_cannot_make_word_files(): void
     {
         $this->expectException(WordNotSupported::class);

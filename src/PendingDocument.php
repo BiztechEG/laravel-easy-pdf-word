@@ -387,6 +387,8 @@ class PendingDocument
 
         $document = clone $this;
         $filename ??= ($this->template?->name ?? 'document').'.docx';
+        // Invalid data is reported here, as ->pdf() does, not when the file is first read.
+        $document->templateData();
 
         if ($document->fake !== null) {
             $generated = $document->generated('word', $document->options());
