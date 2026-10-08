@@ -16,7 +16,7 @@ class SampleCommand extends Command
     protected $signature = 'doc:sample
         {name : The template, e.g. invoice}
         {--locale=ar : Language of the document}
-        {--format=pdf : pdf, docx or html}
+        {--format= : pdf, docx or html; by default the --output extension, or pdf}
         {--numerals=latin : latin (123) or arabic (١٢٣)}
         {--driver= : PDF engine: mpdf, chromium or gotenberg}
         {--output= : File to write, by default in storage/app/doc-samples}';
@@ -26,7 +26,9 @@ class SampleCommand extends Command
     public function handle(DocFactory $docs, TemplateRegistry $templates): int
     {
         $name = $this->argument('name');
-        $format = strtolower($this->option('format'));
+        $output = $this->option('output');
+        $extension = strtolower(pathinfo((string) $output, PATHINFO_EXTENSION));
+        $format = strtolower($this->option('format') ?: (in_array($extension, ['pdf', 'docx', 'html'], true) ? $extension : 'pdf'));
 
         if (! $templates->exists($name)) {
             $this->components->error("Template [{$name}] was not found. Run php artisan doc:templates to list them.");
@@ -56,7 +58,7 @@ class SampleCommand extends Command
             $document->driver($this->option('driver'));
         }
 
-        $path = $this->option('output') ?: storage_path("app/doc-samples/{$name}-{$locale}.{$format}");
+        $path = $output ?: storage_path("app/doc-samples/{$name}-{$locale}.{$format}");
 
         // A relative --output is relative to where the command runs, not to a storage disk.
         if (! preg_match('#^(/|\\\\|[A-Za-z]:[\\\\/])#', $path)) {

@@ -87,7 +87,23 @@ class CommandsTest extends TestCase
 
         $this->artisan('doc:sample', ['name' => 'nope'])->assertFailed();
         $this->artisan('doc:sample', ['name' => 'receipt', '--format' => 'xls'])->assertFailed();
+        $this->artisan('doc:sample', ['name' => 'receipt', '--output' => "{$dir}/receipt.xls"])->assertSuccessful();
+        $this->assertStringStartsWith('%PDF', file_get_contents("{$dir}/receipt.xls"));
         $this->artisan('doc:sample', ['name' => 'receipt', '--locale' => '../x'])->assertFailed();
+    }
+
+    public function test_the_sample_format_follows_the_output_extension(): void
+    {
+        $dir = sys_get_temp_dir().'/easy-pdf-word-tests/samples';
+
+        foreach (['pdf' => '%PDF', 'docx' => 'PK', 'html' => '<!DOCTYPE'] as $format => $start) {
+            $this->artisan('doc:sample', ['name' => 'receipt', '--output' => "{$dir}/by-extension.{$format}"])->assertSuccessful();
+            $this->assertStringStartsWith($start, file_get_contents("{$dir}/by-extension.{$format}"));
+        }
+
+        // An explicit --format wins over the extension.
+        $this->artisan('doc:sample', ['name' => 'receipt', '--format' => 'html', '--output' => "{$dir}/forced.pdf"])->assertSuccessful();
+        $this->assertStringStartsWith('<!DOCTYPE', file_get_contents("{$dir}/forced.pdf"));
     }
 
     public function test_sample_output_paths_are_relative_to_the_current_folder(): void
