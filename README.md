@@ -133,6 +133,22 @@ Doc::template('report', $data)
     ->pdf();
 ```
 
+### Watermark and password
+
+```php
+Doc::template('quotation', $data)
+    ->watermark('مسودة')                                  // across every page; opacity: 0.12, color: '#000000'
+    ->password('1234')                                     // asked for when the PDF is opened
+    ->pdf();
+
+// Opens freely, but readers may only print it.
+Doc::template('receipt', $data)->password('', owner: 'admin-secret', allow: ['print'])->pdf();
+```
+
+Both are for PDF files. Word files are made without the watermark, and `->word()` refuses a document with a password so it never goes out unprotected. `allow` takes any of `print`, `print-highres`, `copy`, `modify`, `annot-forms`, `fill-forms`, `extract`, `assemble`; without an owner password a random one is used, so the limits hold.
+
+mPDF encrypts with 128-bit RC4, the strongest it offers: enough to keep a file from being opened by chance, not to protect secrets. Chromium cannot encrypt, so its PDF is copied into an encrypted file by mPDF (`mpdf/mpdf` must be installed). The pages stay text, but links inside them stop working.
+
 ## Word files
 
 Every bundled template also makes a Word file from the same data:
@@ -409,7 +425,7 @@ Doc::assertDownloaded('فاتورة-1024.pdf');
 | `assertDownloaded($name or fn)` | A file was sent as a download |
 | `assertStreamed($name or fn)` | A file was shown in the browser, or returned from a controller |
 
-Each `GeneratedDocument` has `format` (`pdf` or `word`), `template`, `view`, `locale`, `direction`, `numerals`, `driver`, `filename()`, `data($key)` with the prepared data, and for PDFs `html()` and `contains($text)`. With Arabic digits, `contains()` needs the text in Arabic digits too. `Doc::generated()` returns them all.
+Each `GeneratedDocument` has `format` (`pdf` or `word`), `template`, `view`, `locale`, `direction`, `numerals`, `driver`, `watermark`, `protected`, `filename()`, `data($key)` with the prepared data, and for PDFs `html()` and `contains($text)`. With Arabic digits, `contains()` needs the text in Arabic digits too. `Doc::generated()` returns them all.
 
 ## Running the package's tests
 
@@ -533,6 +549,14 @@ Doc::assertSaved('invoices/INV-1024.pdf', disk: 's3');
 ```
 
 باقي الـ assertions في الجزء الإنجليزي فوق.
+
+### علامة مائية وكلمة سر
+
+```php
+Doc::template('quotation', $data)->watermark('مسودة')->password('1234')->pdf();
+```
+
+الاتنين لملفات الـ PDF بس. ملف Word بيطلع من غير العلامة المائية، و `->word()` بيرفض مستند عليه كلمة سر عشان ميطلعش مفتوح. التشفير RC4 بطول 128 بت، وده كفاية يمنع فتح الملف بالصدفة لكنه مش حماية لأسرار مهمة.
 
 ### الأمان
 

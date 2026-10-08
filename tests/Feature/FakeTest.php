@@ -115,6 +115,17 @@ class FakeTest extends TestCase
         Doc::assertGenerated();
     }
 
+    public function test_watermark_and_password_are_recorded(): void
+    {
+        Doc::fake();
+
+        Doc::make()->paragraph('عرض')->locale('ar')->watermark('مسودة')->password('1234')->pdf();
+        Doc::make()->paragraph('عرض')->locale('ar')->watermark('مسودة')->word();
+
+        Doc::assertGenerated(fn (GeneratedDocument $doc) => $doc->isPdf() && $doc->watermark === 'مسودة' && $doc->protected);
+        Doc::assertGenerated(fn (GeneratedDocument $doc) => $doc->isWord() && $doc->watermark === null && ! $doc->protected);
+    }
+
     public function test_word_files_have_no_html(): void
     {
         Doc::fake();

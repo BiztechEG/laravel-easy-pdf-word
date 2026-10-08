@@ -26,6 +26,7 @@ use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Support\Facades\Validator;
 use InvalidArgumentException;
+use LogicException;
 
 /**
  * A document being configured. Every setter returns $this; ->pdf() and
@@ -72,6 +73,13 @@ class PendingDocument
     private ?string $title = null;
 
     private bool $validate = true;
+
+    private ?array $watermark = null;
+
+    private ?array $protection = null;
+
+    /** What ->password() may allow readers to do (mPDF's permission names). */
+    public const PERMISSIONS = ['print', 'print-highres', 'copy', 'modify', 'annot-forms', 'fill-forms', 'extract', 'assemble'];
 
     private const THEME_COLORS = ['primary' => '#0F766E', 'text' => '#1F2937', 'muted' => '#6B7280', 'border' => '#E5E7EB'];
 
@@ -254,6 +262,43 @@ class PendingDocument
         return $this;
     }
 
+    /**
+     * Text across every page of the PDF, such as "مسودة" or "نسخة". Word
+     * files are made without it.
+     */
+    public function watermark(string $text, float $opacity = 0.12, string $color = '#000000'): static
+    {
+        if (trim($text) === '') {
+            throw new InvalidArgumentException('The watermark text is empty.');
+        }
+
+        $this->watermark = [
+            'text' => mb_substr(trim($text), 0, 100),
+            'opacity' => max(0.01, min(1.0, $opacity)),
+            'color' => Color::css($color, '#000000'),
+        ];
+
+        return $this;
+    }
+
+    /**
+     * Encrypt the PDF. $user is asked for to open it ('' opens without one);
+     * $owner unlocks everything, and is random when left out, so the limits
+     * in $allow hold. Word files cannot take a password.
+     *
+     * @param  list<string>  $allow  any of self::PERMISSIONS
+     */
+    public function password(string $user, ?string $owner = null, array $allow = ['print', 'print-highres', 'copy']): static
+    {
+        if ($unknown = array_diff($allow, self::PERMISSIONS)) {
+            throw new InvalidArgumentException('Unknown PDF permission ['.implode(', ', $unknown).'], expected any of: '.implode(', ', self::PERMISSIONS).'.');
+        }
+
+        $this->protection = ['user' => $user, 'owner' => $owner, 'allow' => array_values(array_unique($allow))];
+
+        return $this;
+    }
+
     public function withoutValidation(): static
     {
         $this->validate = false;
@@ -300,6 +345,11 @@ class PendingDocument
     {
         if ($this->builder === null && ($this->template === null || ! $this->template->supportsWord())) {
             throw $this->template ? WordNotSupported::forTemplate($this->template->name) : WordNotSupported::forSource();
+        }
+
+        // A file the caller believes is locked must not go out open.
+        if ($this->protection !== null) {
+            throw new LogicException('Word files cannot take a password; ->password() works for PDF files only.');
         }
 
         $document = clone $this;
@@ -378,6 +428,10 @@ class PendingDocument
             title: $this->title ?? $this->template?->title(),
             author: $this->resolvedTheme()['company']['name'] ?? null,
             numerals: $numerals,
+            watermark: $this->watermark === null ? null : [
+                'text' => $numerals === Numerals::ARABIC ? Numerals::convert($this->watermark['text'], Numerals::ARABIC) : $this->watermark['text'],
+            ] + $this->watermark,
+            protection: $this->protection,
         );
     }
 
@@ -416,6 +470,8 @@ class PendingDocument
             driver: $this->driver,
             data: fn () => $this->templateData(),
             html: fn () => $this->toHtml(new FakePdfDriver, $options),
+            watermark: $format === 'pdf' ? $options->watermark['text'] ?? null : null,
+            protected: $format === 'pdf' && $options->protection !== null,
         );
     }
 
