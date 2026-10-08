@@ -8,6 +8,8 @@ All notable changes to this package are listed here. The format follows
 
 ### Added
 
+- `Doc::zip($files, $filename)` puts PDF and Word files in one ZIP archive to download, save or attach to mail.
+- `->queue($path, disk)` renders and saves a document on a queue worker, with `->onQueue()`, `->delay()` and `->chain()`. Template data is validated before the job is queued, and the job is encrypted.
 - PDF and Word files can be attached to mail as they are: return one from a Mailable's `attachments()` or pass it to a notification's `->attach()`.
 - `->filename()` on a rendered file gives its name with the extension.
 - `Doc::fake()` records documents instead of rendering them, with `assertGenerated`, `assertNotGenerated`, `assertGeneratedCount`, `assertNothingGenerated`, `assertSaved`, `assertDownloaded` and `assertStreamed`.
