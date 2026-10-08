@@ -201,7 +201,7 @@ class DocContext
      */
     public function image(?string $source): ?string
     {
-        if ($source === null || $source === '') {
+        if ($source === null || $source === '' || str_contains($source, "\0")) {
             return null;
         }
 
@@ -211,6 +211,11 @@ class DocContext
 
         if (preg_match('#^https?://#i', $source)) {
             return $this->remoteImages ? $source : null;
+        }
+
+        // Other schemes (phar://, ftp://, php://) and network shares are never read.
+        if (preg_match('#^([a-z][a-z0-9+.-]+:|\\\\|//)#i', $source)) {
+            return null;
         }
 
         $path = realpath($source);

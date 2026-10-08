@@ -3,6 +3,7 @@
 namespace BiztechEG\EasyPdfWord\Tests\Feature;
 
 use BiztechEG\EasyPdfWord\Facades\Doc;
+use BiztechEG\EasyPdfWord\Support\DocContext;
 use BiztechEG\EasyPdfWord\Tests\TestCase;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -49,5 +50,29 @@ class SecurityTest extends TestCase
         $this->assertSame([], $template->translations('../../../../tests/fixtures/probe'));
         $this->assertArrayNotHasKey('easy_pdf_word_lang_probe', $GLOBALS);
         $this->assertNotSame([], $template->translations('ar_EG'));
+    }
+
+    public static function unreadableImageSources(): array
+    {
+        return [
+            'ftp' => ['ftp://example.com/logo.png'],
+            'phar' => ['phar:///tmp/archive.phar/logo.png'],
+            'file scheme' => ['file:///etc/passwd'],
+            'php filter' => ['php://filter/resource=/etc/passwd'],
+            'network share' => ['\\\\server\\share\\logo.png'],
+            'network share with slashes' => ['//server/share/logo.png'],
+            'null byte' => ["logo.png\0.php"],
+        ];
+    }
+
+    #[DataProvider('unreadableImageSources')]
+    public function test_images_are_never_read_through_other_schemes_or_network_paths(string $source): void
+    {
+        $this->assertNull($this->context(imagePaths: null)->image($source));
+    }
+
+    private function context(?array $imagePaths = [], bool $remoteImages = false): DocContext
+    {
+        return new DocContext('en', 'ltr', 'cairo', [], 'latin', '', imagePaths: $imagePaths, remoteImages: $remoteImages);
     }
 }
