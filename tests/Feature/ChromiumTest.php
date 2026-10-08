@@ -3,6 +3,7 @@
 namespace BiztechEG\EasyPdfWord\Tests\Feature;
 
 use BiztechEG\EasyPdfWord\Facades\Doc;
+use BiztechEG\EasyPdfWord\Pdf\PdfManager;
 use BiztechEG\EasyPdfWord\Tests\TestCase;
 use Spatie\Browsershot\Browsershot;
 
@@ -36,5 +37,30 @@ class ChromiumTest extends TestCase
             $this->assertStringStartsWith('%PDF', $pdf->content());
             $this->keep("{$name}-ar-chromium", $pdf->content());
         }
+    }
+
+    public function test_scripts_do_not_run_unless_enabled(): void
+    {
+        if (! is_executable('/usr/bin/pdftotext')) {
+            $this->markTestSkipped('Needs pdftotext.');
+        }
+
+        $html = '<p id="out">static</p><script>document.getElementById("out").textContent = "scripted"</script>';
+
+        $this->assertStringContainsString('static', $this->text(Doc::html($html)->driver('chromium')->pdf()->content()));
+
+        config(['easy-pdf-word.pdf.drivers.browsershot.javascript' => true]);
+        app(PdfManager::class)->forgetDrivers();
+        $this->assertStringContainsString('scripted', $this->text(Doc::html($html)->driver('chromium')->pdf()->content()));
+    }
+
+    private function text(string $pdf): string
+    {
+        $file = tempnam(sys_get_temp_dir(), 'pdf');
+        file_put_contents($file, $pdf);
+        $text = (string) shell_exec('/usr/bin/pdftotext '.escapeshellarg($file).' -');
+        @unlink($file);
+
+        return $text;
     }
 }

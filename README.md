@@ -225,7 +225,12 @@ php artisan doc:sample eg-invoice --locale=ar --format=docx   # render the sampl
 
 ### Preview page
 
-In the `local` environment, `/doc-preview` lists every template and shows it with its sample data. You can switch the language, the digits and the PDF engine, open the PDF or download the Word file. Turn it on elsewhere with `DOC_PREVIEW=true` (and protect it with `preview.middleware`), or off with `DOC_PREVIEW=false`.
+In the `local` environment, `/doc-preview` lists every template and shows it with its sample data. You can switch the language, the digits and the PDF engine, open the PDF or download the Word file. Turn it on elsewhere with `DOC_PREVIEW=true`, or off with `DOC_PREVIEW=false`. Outside `local` the page also needs the `viewDocPreview` gate, so only the people you choose can open it:
+
+```php
+// app/Providers/AppServiceProvider.php
+Gate::define('viewDocPreview', fn ($user) => $user->isAdmin());
+```
 
 When working on the package itself, `composer preview` serves the page at http://127.0.0.1:8000/doc-preview.
 
@@ -296,7 +301,28 @@ Currencies included: EGP, SAR, AED, QAR, KWD, USD, EUR. Add more in `config/easy
 
 ## Images
 
-Logos, signatures and stamps can be file paths, URLs or data URIs. Local files are read only from `public/`, `storage/app` and `resources/` by default, and only when they are real images, so a path that comes from user input cannot embed other files from the server. Change the folders in `images.paths`, and set `DOC_REMOTE_IMAGES=false` to ignore image URLs.
+Logos, signatures and stamps can be file paths, URLs or data URIs. Local files are read only from `public/`, `storage/app` and `resources/` by default, and only when they are real images, so a path that comes from user input cannot embed other files from the server. Change the folders in `images.paths`.
+
+Image URLs are downloaded by your server (the PDF engine or PhpWord), so they are ignored unless you allow them. Allow the hosts you use, or any URL when image URLs never come from users:
+
+```env
+DOC_REMOTE_IMAGES=cdn.example.com,*.amazonaws.com
+# or: DOC_REMOTE_IMAGES=true
+```
+
+SVG images are used only when they are self-contained: an SVG that links to other files or URLs is ignored, because the PDF engine would load them.
+
+## Security
+
+The package treats the data you pass to a template as untrusted:
+
+- Text is escaped in Blade templates, `Doc::make()` blocks and Word files. `${...}` in a value stays text in `word.docx` templates.
+- Images follow the rules in [Images](#images); colours must be real colours (`#0F766E`, `rgb(...)`, `red`), so they cannot add CSS.
+- `->locale()` and `->font()` accept plain names only (`ar`, `ar_EG`, `cairo`).
+- Chromium renders with JavaScript off (`DOC_CHROME_JAVASCRIPT=true` turns it on).
+- The preview page is local only unless you enable it and define the `viewDocPreview` gate.
+
+HTML you write yourself is trusted as is: never pass user input to `Doc::html()` or print it with `{!! !!}` in a view.
 
 ## Fonts
 
@@ -410,7 +436,7 @@ php artisan doc:make-template delivery-note        # قالب جديد من ال
 php artisan doc:sample eg-invoice --format=docx    # ملف تجريبي من بيانات القالب
 ```
 
-وفي بيئة `local` افتح `/doc-preview` عشان تشوف كل القوالب ببياناتها التجريبية، وتبدّل بين العربي والإنجليزي والأرقام والمحرك، وتنزّل PDF أو Word.
+وفي بيئة `local` افتح `/doc-preview` عشان تشوف كل القوالب ببياناتها التجريبية، وتبدّل بين العربي والإنجليزي والأرقام والمحرك، وتنزّل PDF أو Word. ولو شغّلتها برّه `local` بـ `DOC_PREVIEW=true` لازم تعرّف صلاحية `viewDocPreview` بـ `Gate::define` عشان محدش غير اللي تختاره يفتحها.
 
 ### الأدوات العربية
 
@@ -419,5 +445,9 @@ Arabic::tafqeet(1250.5, 'EGP');   // ألف ومائتان وخمسون جنيه
 Arabic::hijri('2026-10-08');      // ٢٧ ربيع الآخر ١٤٤٨ هـ
 Arabic::numerals('2026');         // ٢٠٢٦
 ```
+
+### الأمان
+
+البيانات اللي بتبعتها للقالب بتتعامل كأنها من المستخدم: النصوص بتتعمل لها escape، والصور بتتقري من الفولدرات المسموحة بس، وروابط الصور مقفولة إلا لو سمحت بيها في `DOC_REMOTE_IMAGES`، والألوان لازم تكون ألوان حقيقية. أما الـ HTML اللي بتكتبه بنفسك فبيتعامل كأنه موثوق، فمتبعتش أي حاجة من المستخدم لـ `Doc::html()` ولا تطبعها بـ `{!! !!}`.
 
 باقي التفاصيل في الجزء الإنجليزي فوق.

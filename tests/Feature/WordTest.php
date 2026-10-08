@@ -105,6 +105,19 @@ class WordTest extends TestCase
         $this->assertStringContainsString('R&amp;D', $this->zipEntry($content, 'word/footer1.xml'));
     }
 
+    public function test_colours_are_written_as_hex_values(): void
+    {
+        $xml = $this->documentXml(Doc::make()
+            ->paragraph('short', ['color' => '#abc'])
+            ->paragraph('named', ['color' => 'red'])
+            ->paragraph('broken', ['color' => '"><x'])
+            ->word()
+            ->content());
+
+        $this->assertStringContainsString('<w:color w:val="AABBCC"/>', $xml);
+        $this->assertSame(1, substr_count($xml, '<w:color '));
+    }
+
     public function test_page_settings_and_footer_page_numbers(): void
     {
         $content = Doc::make()
@@ -178,6 +191,45 @@ class WordTest extends TestCase
         $this->assertStringContainsString('<w:t xml:space="preserve">١</w:t>', $xml);
         $this->assertStringContainsString('<w:t xml:space="preserve">٢</w:t>', $xml);
         $this->assertStringNotContainsString('${', $xml);
+    }
+
+    public function test_values_cannot_add_placeholders_to_docx_templates(): void
+    {
+        $this->makeDocxTemplate('quote');
+
+        $xml = $this->documentXml(Doc::template('quote', [
+            'customer' => ['name' => '${t.title} ${items.price}'],
+            'items' => [['description' => '${customer.name}', 'price' => 10]],
+        ])->locale('ar')->word()->content());
+
+        $this->assertSame(1, substr_count($xml, 'عرض سعر'));
+        $this->assertStringContainsString("\u{2060}{t.title}", $xml);
+        $this->assertStringContainsString("\u{2060}{customer.name}", $xml);
+    }
+
+    public function test_docx_image_values_are_not_looked_up_through_stream_wrappers(): void
+    {
+        $this->makeDocxTemplate('quote');
+        stream_wrapper_register('probe', ProbeStream::class);
+
+        try {
+            Doc::template('quote', ['customer' => ['name' => 'probe://server/logo.png']])->locale('ar')->word()->content();
+        } finally {
+            stream_wrapper_unregister('probe');
+        }
+
+        $this->assertSame([], ProbeStream::$calls);
+    }
+
+    public function test_docx_images_that_cannot_be_used_leave_the_placeholder_empty(): void
+    {
+        $this->makeDocxTemplate('quote');
+
+        $xml = $this->documentXml(Doc::template('quote', [
+            'customer' => ['name' => 'data:image/svg+xml;base64,'.base64_encode('<svg xmlns="http://www.w3.org/2000/svg"/>')],
+        ])->locale('ar')->word()->content());
+
+        $this->assertStringNotContainsString('data:image', $xml);
     }
 
     public function test_templates_without_a_word_layout_explain_what_is_missing(): void
@@ -270,5 +322,27 @@ class WordTest extends TestCase
         @unlink($file);
 
         return $content;
+    }
+}
+
+/** Records every use of the probe:// stream wrapper. */
+class ProbeStream
+{
+    public static array $calls = [];
+
+    public $context;
+
+    public function url_stat(string $path, int $flags): array|false
+    {
+        self::$calls[] = $path;
+
+        return false;
+    }
+
+    public function stream_open(string $path, string $mode, int $options, ?string &$opened): bool
+    {
+        self::$calls[] = $path;
+
+        return false;
     }
 }

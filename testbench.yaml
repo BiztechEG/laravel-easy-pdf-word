@@ -3,5 +3,6 @@
 providers:
   - BiztechEG\EasyPdfWord\EasyPdfWordServiceProvider
 env:
+  - APP_ENV=local
   - DOC_PREVIEW=true
   - APP_KEY=base64:a2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2s=

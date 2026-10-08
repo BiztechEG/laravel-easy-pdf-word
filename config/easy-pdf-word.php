@@ -71,6 +71,8 @@ return [
                 'npm_binary' => env('DOC_NPM_BINARY'),
                 'chrome_path' => env('DOC_CHROME_PATH'),
                 'no_sandbox' => env('DOC_CHROME_NO_SANDBOX', false),
+                // Templates need no JavaScript; turn it on only for documents that draw with it (charts).
+                'javascript' => env('DOC_CHROME_JAVASCRIPT', false),
                 'timeout' => 60,
             ],
 
@@ -113,7 +115,11 @@ return [
     | Local images (logo, signature, stamp, ...) are read only from these
     | folders, so a file path that arrives in user data cannot embed other
     | files from the server. Set "paths" to null to allow any folder.
-    | "remote" lets image URLs through; the PDF engine downloads them.
+    |
+    | Image URLs are downloaded by the server (the PDF engine or PhpWord), so
+    | they are off by default. "remote" is true for any URL, or the hosts to
+    | allow: ['cdn.example.com', '*.amazonaws.com'], or in .env
+    | DOC_REMOTE_IMAGES=cdn.example.com,*.amazonaws.com
     |
     */
 
@@ -123,7 +129,7 @@ return [
             storage_path('app'),
             resource_path(),
         ],
-        'remote' => env('DOC_REMOTE_IMAGES', true),
+        'remote' => env('DOC_REMOTE_IMAGES', false),
     ],
 
     /*
@@ -149,7 +155,10 @@ return [
     |
     | A page at /doc-preview that shows every template with its sample data,
     | in any language, digits and engine, with PDF and Word downloads.
-    | null turns it on in the "local" environment only.
+    | null turns it on in the "local" environment only. Outside "local" it
+    | also needs the "viewDocPreview" gate, e.g. in AppServiceProvider:
+    |
+    |   Gate::define('viewDocPreview', fn ($user) => $user->isAdmin());
     |
     */
 

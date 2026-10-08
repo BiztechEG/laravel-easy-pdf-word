@@ -11,7 +11,9 @@ use BiztechEG\EasyPdfWord\Exceptions\WordNotSupported;
 use BiztechEG\EasyPdfWord\Fonts\FontRegistry;
 use BiztechEG\EasyPdfWord\Pdf\PdfManager;
 use BiztechEG\EasyPdfWord\Pdf\PdfOptions;
+use BiztechEG\EasyPdfWord\Support\Color;
 use BiztechEG\EasyPdfWord\Support\DocContext;
+use BiztechEG\EasyPdfWord\Support\Locale;
 use BiztechEG\EasyPdfWord\Templates\Template;
 use BiztechEG\EasyPdfWord\Word\DocxTemplateFiller;
 use BiztechEG\EasyPdfWord\Word\WordRenderer;
@@ -20,6 +22,7 @@ use Illuminate\Contracts\Config\Repository as Config;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Support\Facades\Validator;
+use InvalidArgumentException;
 
 /**
  * A document being configured. Every setter returns $this; ->pdf() and
@@ -66,6 +69,8 @@ class PendingDocument
     private ?string $title = null;
 
     private bool $validate = true;
+
+    private const THEME_COLORS = ['primary' => '#0F766E', 'text' => '#1F2937', 'muted' => '#6B7280', 'border' => '#E5E7EB'];
 
     /** Validated and prepared template data, kept until the data or theme changes. */
     private ?array $prepared = null;
@@ -118,9 +123,16 @@ class PendingDocument
         return $this->data(is_array($key) ? $key : [$key => $value]);
     }
 
-    /** Sets language and, unless ->direction() is called, the direction (ar => rtl). */
+    /**
+     * Sets language and, unless ->direction() is called, the direction (ar => rtl).
+     * Takes a locale name such as "ar", "en" or "ar_EG".
+     */
     public function locale(string $locale): static
     {
+        if (! Locale::isValid($locale)) {
+            throw new InvalidArgumentException('Invalid locale ['.substr($locale, 0, 40).'], expected a name such as "ar", "en" or "ar_EG".');
+        }
+
         $this->locale = $locale;
 
         return $this;
@@ -160,8 +172,13 @@ class PendingDocument
         return $this;
     }
 
+    /** A font name from config "fonts": cairo, tajawal, naskh or one you registered. */
     public function font(string $font): static
     {
+        if (! preg_match('/^[A-Za-z0-9][A-Za-z0-9 _-]{0,63}\z/', $font)) {
+            throw new InvalidArgumentException('Invalid font name ['.substr($font, 0, 40).'].');
+        }
+
         $this->font = strtolower($font);
 
         return $this;
@@ -380,8 +397,21 @@ class PendingDocument
             translations: $this->template?->translations($options->locale) ?? [],
             fallbackTranslations: $this->template?->translations('en') ?? [],
             imagePaths: $this->config->get('easy-pdf-word.images.paths'),
-            remoteImages: (bool) $this->config->get('easy-pdf-word.images.remote', true),
+            remoteImages: $this->remoteImages(),
         );
+    }
+
+    /** Config "images.remote": true, false, or hosts as a list or a comma-separated string. */
+    private function remoteImages(): bool|array
+    {
+        $remote = $this->config->get('easy-pdf-word.images.remote', false);
+
+        if (is_array($remote) || is_bool($remote) || $remote === null) {
+            return is_array($remote) ? $remote : (bool) $remote;
+        }
+
+        return filter_var($remote, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE)
+            ?? array_values(array_filter(array_map('trim', explode(',', (string) $remote))));
     }
 
     private function viewData(DocContext $context): array
@@ -446,10 +476,17 @@ class PendingDocument
 
     private function resolvedTheme(): array
     {
-        return array_replace_recursive(
+        $theme = array_replace_recursive(
             (array) $this->config->get('easy-pdf-word.theme', []),
             $this->template?->theme() ?? [],
             $this->theme,
         );
+
+        // Theme colours go into the templates' CSS, so only real colours pass.
+        foreach (self::THEME_COLORS as $key => $default) {
+            $theme[$key] = Color::css($theme[$key] ?? null, $default);
+        }
+
+        return $theme;
     }
 }
