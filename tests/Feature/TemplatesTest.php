@@ -442,6 +442,10 @@ class TemplatesTest extends TestCase
         $this->assertStringContainsString('فقط خمسة عشر ألفاً وسبعمائة وخمسون جنيهاً وخمسون قرشاً لا غير', $receipt->locale('ar')->toHtml());
         $this->assertStringContainsString('fifteen thousand seven hundred fifty EGP and 50/100 only', $receipt->locale('en')->toHtml());
 
+        $invoice = Doc::template('invoice', Doc::templates()->get('invoice')->sample())->locale('en');
+        $this->assertStringContainsString('thirty-nine thousand three hundred thirty EGP only', $invoice->toHtml());
+        $this->assertStringContainsString('thirty-nine thousand three hundred thirty EGP only', $this->zipEntry($invoice->word()->content(), 'word/document.xml'));
+
         $quote = Doc::template('quotation', Doc::templates()->get('quotation')->sample())->locale('ar')->numerals('arabic')->toHtml();
         $this->assertStringContainsString('<bdo dir="ltr">QT-٢٠٢٦-٠٠٨٨</bdo>', $quote);
         $this->assertStringContainsString('٧١,٢٥٠.٠٠', $quote);
