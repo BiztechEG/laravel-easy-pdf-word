@@ -179,6 +179,19 @@ class SecurityTest extends TestCase
         $this->assertStringContainsString('blue', $html);
     }
 
+    public function test_report_decimals_from_data_cannot_build_huge_numbers(): void
+    {
+        $data = [
+            'title' => 'x',
+            'columns' => [['key' => 'amount', 'label' => 'Amount', 'format' => 'number', 'decimals' => 100000000]],
+            'rows' => [['amount' => 1.5]],
+        ];
+
+        $this->assertLessThan(20000, strlen(Doc::template('report', $data)->locale('en')->toHtml()));
+        $this->assertSame('1.5000000000', $this->context()->numberText(1.5, 1000));
+        $this->assertSame('2', $this->context()->numberText(1.5, -3));
+    }
+
     private function context(?array $imagePaths = [], bool|array $remoteImages = false): DocContext
     {
         return new DocContext('en', 'ltr', 'cairo', [], 'latin', '', imagePaths: $imagePaths, remoteImages: $remoteImages);

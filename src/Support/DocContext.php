@@ -97,7 +97,7 @@ class DocContext
     /** Format a number with thousands separators. Digits follow the document's numerals setting. */
     public function number(int|float|string|null $value, int $decimals = 2): HtmlString
     {
-        $formatted = number_format(self::toFloat($value), $decimals);
+        $formatted = number_format(self::toFloat($value), self::clampDecimals($decimals));
 
         // Keeps the minus sign before the digits in RTL text ("-2.3", not "2.3-").
         return new HtmlString(str_starts_with($formatted, '-') ? '<bdo dir="ltr">'.$formatted.'</bdo>' : $formatted);
@@ -109,7 +109,13 @@ class DocContext
      */
     public function numberText(int|float|string|null $value, int $decimals = 2): string
     {
-        return number_format(self::toFloat($value), $decimals);
+        return number_format(self::toFloat($value), self::clampDecimals($decimals));
+    }
+
+    /** Decimals can come from data (a report column), so a huge value must not build a huge string. */
+    private static function clampDecimals(int $decimals): int
+    {
+        return max(0, min(10, $decimals));
     }
 
     /** "1,250.50" and "١٬٢٥٠٫٥٠" as 1250.5, not 1. */
