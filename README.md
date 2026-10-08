@@ -324,6 +324,8 @@ The package treats the data you pass to a template as untrusted:
 
 HTML you write yourself is trusted as is: never pass user input to `Doc::html()` or print it with `{!! !!}` in a view.
 
+Found a vulnerability? Please report it privately, as described in [SECURITY.md](SECURITY.md).
+
 ## Fonts
 
 Cairo (default), Tajawal and Noto Naskh Arabic are bundled under the SIL Open Font License. Use one with `->font('tajawal')` or `font-family: 'naskh'` in CSS.
@@ -453,5 +455,7 @@ Arabic::numerals('2026');         // ٢٠٢٦
 ### الأمان
 
 البيانات اللي بتبعتها للقالب بتتعامل كأنها من المستخدم: النصوص بتتعمل لها escape، والصور بتتقري من الفولدرات المسموحة بس، وروابط الصور مقفولة إلا لو سمحت بيها في `DOC_REMOTE_IMAGES`، والألوان لازم تكون ألوان حقيقية. أما الـ HTML اللي بتكتبه بنفسك فبيتعامل كأنه موثوق، فمتبعتش أي حاجة من المستخدم لـ `Doc::html()` ولا تطبعها بـ `{!! !!}`.
+
+لو لقيت ثغرة، بلّغ عنها بشكل خاص زي ما هو مكتوب في [SECURITY.md](SECURITY.md)، مش في issue عام.
 
 باقي التفاصيل في الجزء الإنجليزي فوق.
