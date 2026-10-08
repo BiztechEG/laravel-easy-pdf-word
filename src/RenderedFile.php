@@ -139,7 +139,7 @@ abstract class RenderedFile implements Attachable, Responsable
         ]);
     }
 
-    private function cleanFilename(string $filename): string
+    protected function cleanFilename(string $filename): string
     {
         // Slashes are not allowed in a file name.
         $filename = str_replace(['/', '\\'], '-', $filename);
