@@ -446,6 +446,21 @@ class TemplatesTest extends TestCase
         $this->assertStringContainsString("\u{202D}QT-٢٠٢٦-٠٠٨٨\u{202C}", $this->zipEntry($word, 'word/footer1.xml'));
     }
 
+    public function test_a_discount_cannot_exceed_its_line(): void
+    {
+        foreach (['invoice' => 'items', 'quotation' => 'items', 'purchase-order' => 'items', 'credit-note' => 'items', 'eg-invoice' => 'lines'] as $name => $key) {
+            $data = Doc::templates()->get($name)->sample();
+            $data[$key] = [array_merge($data[$key][0], ['quantity' => 1, 'unit_price' => 100, 'discount' => 150])];
+
+            try {
+                Doc::template($name, $data)->toHtml();
+                $this->fail("{$name} accepted a discount larger than its line.");
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertArrayHasKey("{$key}.0.discount", $e->errors(), $name);
+            }
+        }
+    }
+
     public function test_template_data_is_validated(): void
     {
         $this->expectException(ValidationException::class);
