@@ -24,8 +24,8 @@ abstract class TestCase extends Orchestra
         $app['config']->set('easy-pdf-word.pdf.drivers.mpdf.temp_dir', sys_get_temp_dir().'/easy-pdf-word-tests/mpdf');
     }
 
-    /** Write a rendered PDF to tests/output for manual inspection. */
-    protected function keep(string $name, string $pdf): string
+    /** Write a rendered file to tests/output for manual inspection. */
+    protected function keep(string $name, string $content, string $extension = 'pdf'): string
     {
         $dir = dirname(__DIR__).'/tests/output';
 
@@ -33,8 +33,8 @@ abstract class TestCase extends Orchestra
             mkdir($dir, 0775, true);
         }
 
-        file_put_contents("{$dir}/{$name}.pdf", $pdf);
+        file_put_contents("{$dir}/{$name}.{$extension}", $content);
 
-        return "{$dir}/{$name}.pdf";
+        return "{$dir}/{$name}.{$extension}";
     }
 }
