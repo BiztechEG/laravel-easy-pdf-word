@@ -168,6 +168,15 @@ class TemplatesTest extends TestCase
         $this->assertStringContainsString('BHD و125/1000', $context->tafqeet('1.125', 'BHD'));
     }
 
+    public function test_letter_shows_the_hijri_date_when_show_hijri_is_null_in_both_formats(): void
+    {
+        $data = ['show_hijri' => null] + Doc::templates()->get('letter')->sample();
+        $hijri = \BiztechEG\EasyPdfWord\Arabic\Hijri::format($data['date'], numerals: 'latin');
+
+        $this->assertStringContainsString($hijri, Doc::template('letter', $data)->locale('ar')->toHtml());
+        $this->assertStringContainsString($hijri, $this->zipEntry(Doc::template('letter', $data)->locale('ar')->word()->content(), 'word/document.xml'));
+    }
+
     public function test_invoice_discount_is_a_negative_number_like_in_word(): void
     {
         $html = Doc::template('invoice', Doc::templates()->get('invoice')->sample())->locale('ar')->toHtml();
