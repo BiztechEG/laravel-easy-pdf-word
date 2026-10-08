@@ -48,6 +48,23 @@ class DocumentTest extends TestCase
         $this->assertSame('صفحة 3 من 5', $doc->t('page', ['pages' => 5, 'page' => 3]));
     }
 
+    public function test_the_pdf_title_comes_from_title_or_the_template(): void
+    {
+        $this->assertStringContainsString('<title>Credit note</title>', Doc::template('credit-note', Doc::templates()->get('credit-note')->sample())->toHtml());
+        $this->assertStringContainsString('<title>عقد &amp; ملحق</title>', Doc::template('contract', Doc::templates()->get('contract')->sample())->title('عقد & ملحق')->toHtml());
+        $this->assertStringContainsString('<title>Mine $1</title>', Doc::html('<html><head><title>Old</title></head><body>x</body></html>')->title('Mine $1')->toHtml());
+        $this->assertStringContainsString('<title>Old</title>', Doc::html('<html><head><title>Old</title></head><body>x</body></html>')->toHtml());
+
+        if (is_executable('/usr/bin/pdfinfo')) {
+            $file = tempnam(sys_get_temp_dir(), 'pdf');
+            file_put_contents($file, Doc::template('receipt', Doc::templates()->get('receipt')->sample())->title('سند قبض 315')->pdf()->content());
+            $info = (string) shell_exec('/usr/bin/pdfinfo '.escapeshellarg($file));
+            @unlink($file);
+
+            $this->assertMatchesRegularExpression('/Title:\s+سند قبض 315/u', $info);
+        }
+    }
+
     public function test_formatted_numbers_are_read_whole(): void
     {
         $doc = new \BiztechEG\EasyPdfWord\Support\DocContext('en', 'ltr', 'cairo', [], 'latin', '');

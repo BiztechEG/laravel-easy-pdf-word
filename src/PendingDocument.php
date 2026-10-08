@@ -496,6 +496,8 @@ class PendingDocument
             default => $this->wrapHtml((string) $this->html, $data),
         };
 
+        $html = $this->withTitle($html, $options->title);
+
         if ($context->usesCssFonts() && ! str_contains($html, '@font-face')) {
             $html = preg_replace('/<\/head>/i', '<style>'.$context->fontCss.'</style></head>', $html, 1) ?? $html;
         }
@@ -702,6 +704,27 @@ class PendingDocument
             is_array($value) => $this->toArrays($value),
             default => $value,
         }, $data);
+    }
+
+    /**
+     * The PDF's title, which every engine reads from <title>: ->title() replaces
+     * the page's own title, the template's title fills an empty one.
+     */
+    private function withTitle(string $html, ?string $title): string
+    {
+        if ($title === null || $title === '') {
+            return $html;
+        }
+
+        $tag = '<title>'.e($title).'</title>';
+
+        if (! preg_match('/<title\b[^>]*>(.*?)<\/title>/is', $html, $match)) {
+            return preg_replace('/<\/head>/i', $tag.'</head>', $html, 1) ?? $html;
+        }
+
+        return $this->title !== null || trim($match[1]) === ''
+            ? (preg_replace('/<title\b[^>]*>.*?<\/title>/is', addcslashes($tag, '\\$'), $html, 1) ?? $html)
+            : $html;
     }
 
     private function wrapHtml(string $html, array $data): string
