@@ -6,6 +6,8 @@ All notable changes to this package are listed here. The format follows
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-08
+
 ### Added
 
 - `purchase-order` template: a purchase order to a supplier with item codes and units, discounts, optional VAT, delivery date and place, payment terms and approval signatures.
@@ -66,6 +68,7 @@ The first release.
 - Colour values, fonts and locales are checked before they reach HTML, CSS or file paths.
 - Chromium runs without JavaScript unless it is turned on in config.
 
-[Unreleased]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/BiztechEG/laravel-easy-pdf-word/releases/tag/v1.0.0
