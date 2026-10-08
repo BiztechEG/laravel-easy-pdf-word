@@ -1,5 +1,10 @@
 # Laravel Easy PDF & Word
 
+[![Tests](https://github.com/BiztechEG/laravel-easy-pdf-word/actions/workflows/tests.yml/badge.svg)](https://github.com/BiztechEG/laravel-easy-pdf-word/actions/workflows/tests.yml)
+[![Latest version](https://img.shields.io/packagist/v/biztecheg/laravel-easy-pdf-word)](https://packagist.org/packages/biztecheg/laravel-easy-pdf-word)
+[![PHP](https://img.shields.io/packagist/php-v/biztecheg/laravel-easy-pdf-word)](https://packagist.org/packages/biztecheg/laravel-easy-pdf-word)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 Generate PDF and Word (.docx) documents from Laravel in any language, with first-class Arabic support and ready-made templates.
 
 - Arabic that renders correctly: joined letters, right-to-left layout, mixed Arabic and English, Arabic or Latin digits.
