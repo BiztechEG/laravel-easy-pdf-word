@@ -48,7 +48,8 @@ class DocxTemplateFiller
         Settings::setOutputEscapingEnabled(true);
 
         try {
-            $currency = $data['currency'] ?? $data['invoice']['currency'] ?? $data['document']['currency'] ?? null;
+            // The document's currency: top level, or in a group such as invoice, quote or document.
+            $currency = $data['currency'] ?? collect($data)->first(fn ($value) => is_array($value) && is_string($value['currency'] ?? null))['currency'] ?? null;
             $this->decimals = $doc->decimals(is_string($currency) ? $currency : null);
             $values = $this->flatten($data + ['theme' => $doc->theme, 't' => $doc->translations()]);
             $values += $this->extras($data, $doc);
