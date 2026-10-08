@@ -4,21 +4,37 @@ namespace BiztechEG\EasyPdfWord;
 
 use BiztechEG\EasyPdfWord\Arabic\Direction;
 use BiztechEG\EasyPdfWord\Arabic\Numerals;
+use BiztechEG\EasyPdfWord\Builder\DocumentBuilder;
+use BiztechEG\EasyPdfWord\Builder\HtmlRenderer;
 use BiztechEG\EasyPdfWord\Contracts\PdfDriver;
+use BiztechEG\EasyPdfWord\Exceptions\WordNotSupported;
 use BiztechEG\EasyPdfWord\Fonts\FontRegistry;
 use BiztechEG\EasyPdfWord\Pdf\PdfManager;
 use BiztechEG\EasyPdfWord\Pdf\PdfOptions;
 use BiztechEG\EasyPdfWord\Support\DocContext;
 use BiztechEG\EasyPdfWord\Templates\Template;
+use BiztechEG\EasyPdfWord\Word\DocxTemplateFiller;
+use BiztechEG\EasyPdfWord\Word\WordRenderer;
+use BadMethodCallException;
 use Illuminate\Contracts\Config\Repository as Config;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Support\Facades\Validator;
 
 /**
- * A document being configured. Every setter returns $this, and ->pdf()
- * turns it into a PdfDocument.
+ * A document being configured. Every setter returns $this; ->pdf() and
+ * ->word() turn it into a file.
  *
  *   Doc::template('invoice')->data($data)->locale('ar')->pdf()->download('invoice.pdf');
+ *   Doc::make()->heading('تقرير')->table($rows)->locale('ar')->word()->download('report.docx');
+ *
+ * @method static heading(string $text, int $level = 1, array $style = [])
+ * @method static paragraph(string|array $text, array $style = [])
+ * @method static table(array $rows, array $options = [])
+ * @method static image(string $source, float $widthMm = 40, string $align = 'start')
+ * @method static qr(string $value, float $sizeMm = 30, string $align = 'start')
+ * @method static spacer(float $heightMm = 5)
+ * @method static pageBreak()
+ * @method static line(?string $color = null)
  */
 class PendingDocument
 {
@@ -58,6 +74,7 @@ class PendingDocument
         private ?Template $template = null,
         private ?string $view = null,
         private ?string $html = null,
+        private ?DocumentBuilder $builder = null,
     ) {}
 
     public static function forTemplate(Template $template, PdfManager $pdf, FontRegistry $fonts, ViewFactory $views, Config $config): self
@@ -73,6 +90,11 @@ class PendingDocument
     public static function forHtml(string $html, PdfManager $pdf, FontRegistry $fonts, ViewFactory $views, Config $config): self
     {
         return new self($pdf, $fonts, $views, $config, html: $html);
+    }
+
+    public static function forBuilder(DocumentBuilder $builder, PdfManager $pdf, FontRegistry $fonts, ViewFactory $views, Config $config): self
+    {
+        return new self($pdf, $fonts, $views, $config, builder: $builder);
     }
 
     public function data(array $data): static
@@ -217,6 +239,22 @@ class PendingDocument
     }
 
     /**
+     * A Word (.docx) file, from the template's word.docx or word.php, or from
+     * the blocks added with Doc::make().
+     */
+    public function word(?string $filename = null): WordDocument
+    {
+        if ($this->builder === null && ($this->template === null || ! $this->template->supportsWord())) {
+            throw $this->template ? WordNotSupported::forTemplate($this->template->name) : WordNotSupported::forSource();
+        }
+
+        return new WordDocument(
+            fn () => $this->renderWord(),
+            $filename ?? ($this->template?->name ?? 'document').'.docx',
+        );
+    }
+
+    /**
      * The final HTML handed to the engine; useful for previews and debugging.
      */
     public function toHtml(?PdfDriver $engine = null, ?PdfOptions $options = null): string
@@ -227,6 +265,9 @@ class PendingDocument
         $data = $this->viewData($context);
 
         $html = match (true) {
+            $this->builder !== null => $this->wrapHtml((new HtmlRenderer)->render($this->builder, $context), $data),
+            $this->template !== null && ! $this->template->hasPdfView() && $this->template->supportsWord()
+                => $this->wrapHtml((new HtmlRenderer)->render($this->wordLayout($data, $context), $context), $data),
             $this->template !== null => $this->views->file($this->template->pdfView(), $data)->render(),
             $this->view !== null => $this->views->make($this->view, $data)->render(),
             default => $this->wrapHtml((string) $this->html, $data),
@@ -272,6 +313,47 @@ class PendingDocument
         );
     }
 
+    /**
+     * Add blocks to a Doc::make() document: heading, paragraph, table, image,
+     * qr, spacer, pageBreak, line.
+     */
+    public function __call(string $method, array $arguments): static
+    {
+        if ($this->builder === null || ! method_exists($this->builder, $method) || in_array($method, ['blocks', 'isEmpty'], true)) {
+            throw new BadMethodCallException(sprintf('Method %s::%s does not exist.', static::class, $method));
+        }
+
+        $this->builder->{$method}(...$arguments);
+
+        return $this;
+    }
+
+    /** @return array{0: string, 1: string} [bytes, engine name] */
+    private function renderWord(): array
+    {
+        $options = $this->options();
+        $context = $this->context($options, null);
+        $data = $this->templateData();
+
+        if ($this->builder === null && ($file = $this->template->wordFile())) {
+            return [(new DocxTemplateFiller)->fill($file, $data, $context), 'docx-template'];
+        }
+
+        $builder = $this->builder ?? $this->wordLayout($data, $context);
+        $renderer = new WordRenderer((array) $this->config->get('easy-pdf-word.word', []));
+
+        return [$renderer->render($builder, $context, $options), 'phpword'];
+    }
+
+    /** Run the template's word.php layout. */
+    private function wordLayout(array $data, DocContext $context): DocumentBuilder
+    {
+        $builder = new DocumentBuilder;
+        ($this->template->wordLayout())($builder, $data, $context);
+
+        return $builder;
+    }
+
     private function context(PdfOptions $options, ?PdfDriver $engine): DocContext
     {
         $usesCss = $engine?->usesCssFonts() ?? false;
@@ -315,7 +397,7 @@ class PendingDocument
             return $html;
         }
 
-        return $this->views->make('easy-pdf-word::raw', $data + ['body' => $html])->render();
+        return $this->views->make('easy-pdf-word::raw', ['body' => $html] + $data)->render();
     }
 
     private function resolvedLocale(): string

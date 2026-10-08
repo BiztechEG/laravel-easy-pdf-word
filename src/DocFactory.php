@@ -2,6 +2,7 @@
 
 namespace BiztechEG\EasyPdfWord;
 
+use BiztechEG\EasyPdfWord\Builder\DocumentBuilder;
 use BiztechEG\EasyPdfWord\Fonts\FontRegistry;
 use BiztechEG\EasyPdfWord\Pdf\PdfManager;
 use BiztechEG\EasyPdfWord\Templates\TemplateRegistry;
@@ -39,6 +40,15 @@ class DocFactory
     public function html(string $html): PendingDocument
     {
         return PendingDocument::forHtml($html, $this->pdf, $this->fonts, $this->views, $this->config);
+    }
+
+    /**
+     * Build a document in code, block by block; it renders to both PDF and
+     * Word: Doc::make()->heading('...')->table($rows)->word().
+     */
+    public function make(): PendingDocument
+    {
+        return PendingDocument::forBuilder(new DocumentBuilder, $this->pdf, $this->fonts, $this->views, $this->config);
     }
 
     public function templates(): TemplateRegistry
