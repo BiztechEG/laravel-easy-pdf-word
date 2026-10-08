@@ -25,15 +25,15 @@
         "php": "^8.2",
         "ext-mbstring": "*",
         "ext-gd": "*",
-        "illuminate/support": "^11.0|^12.0|^13.0",
-        "illuminate/view": "^11.0|^12.0|^13.0",
-        "illuminate/console": "^11.0|^12.0|^13.0",
-        "illuminate/filesystem": "^11.0|^12.0|^13.0",
+        "illuminate/support": "^12.0|^13.0",
+        "illuminate/view": "^12.0|^13.0",
+        "illuminate/console": "^12.0|^13.0",
+        "illuminate/filesystem": "^12.0|^13.0",
         "chillerlan/php-qrcode": "^5.0"
     },
     "require-dev": {
         "mpdf/mpdf": "^8.2",
-        "orchestra/testbench": "^9.0|^10.0|^11.0",
+        "orchestra/testbench": "^10.0|^11.0",
         "phpunit/phpunit": "^10.5|^11.0|^12.0",
         "spatie/browsershot": "^5.4"
     },

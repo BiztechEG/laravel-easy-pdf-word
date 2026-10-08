@@ -13,7 +13,7 @@ Generate PDF documents from Laravel in any language, with first-class Arabic sup
 ## Requirements
 
 - PHP 8.2+
-- Laravel 11, 12 or 13
+- Laravel 12 or 13
 - ext-mbstring, ext-gd; ext-intl for Hijri dates
 
 ## Installation
