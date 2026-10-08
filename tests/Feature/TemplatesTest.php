@@ -378,6 +378,10 @@ class TemplatesTest extends TestCase
         $this->assertStringContainsString('بعدد 7.5 ساعة تدريبية', $hours(7.5));
         $this->assertStringContainsString('لإتمامه بنجاح', $hours(12));
 
+        // A one-day event.
+        $day = Doc::template('certificate', ['from' => null, 'to' => '2026-10-01'] + $data)->locale('ar')->toHtml();
+        $this->assertStringContainsString('بتاريخ 2026/10/01', $day);
+
         // Appreciation, issued by the company in the theme.
         $this->app['config']->set('easy-pdf-word.theme.company.name', 'شركة المثال');
         $data = ['type' => 'appreciation', 'issuer' => null] + $data;
