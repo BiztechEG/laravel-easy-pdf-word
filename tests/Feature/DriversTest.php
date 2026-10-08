@@ -31,6 +31,13 @@ class DriversTest extends TestCase
         $this->assertSame('mpdf', Doc::html('<p>x</p>')->pdf()->engine());
     }
 
+    public function test_engine_names_ignore_case(): void
+    {
+        Doc::extend('MyEngine', fn () => new FakeDriver);
+
+        $this->assertSame('myengine', Doc::html('<p>x</p>')->driver('MyEngine')->pdf()->engine());
+    }
+
     public function test_chromium_is_an_alias_of_browsershot(): void
     {
         $this->assertSame('browsershot', Doc::pdfManager()->normalize('chromium'));
