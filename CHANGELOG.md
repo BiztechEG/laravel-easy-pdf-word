@@ -11,12 +11,22 @@ All notable changes to this package are listed here. The format follows
 - Paper sizes `A2`, `B4`, `B5`, `Tabloid` and `Executive`, and `A4-L` for A4 landscape.
 - `node_modules_path` (`DOC_NODE_MODULES_PATH`) for Browsershot, which saves running `npm root -g` for every document.
 - Word files take WebP and BMP images, turned into PNG.
+- `->paper([width, height])` in mm, and `[width, height]` or `A4-L` in `template.php` and the config.
+- The e-invoice prints the ETA submission ID, names the non-taxable taxes T13 to T20 and accepts lowercase tax types.
+- The invoice prints the amount in words in English too (with `ext-intl`), like the other templates.
+- Chromium gets every registered font the page's CSS names, so `font-family: 'naskh'` works there as in mPDF.
+- Word files take `rgb()`, `hsl()` and `#RRGGBBAA` colours.
 
 ### Changed
 
 - The package requires `laravel/framework` instead of single `illuminate/*` packages, as it already needed the framework. Apps with mPDF older than 8.2, PhpWord older than 1.4 or Browsershot older than 5.4 now get a Composer conflict instead of a runtime error.
 - mPDF works in a private folder per system user (`/tmp/easy-pdf-word-{uid}`), so the web server and a queue worker running as different users no longer lock each other out.
 - Unknown paper names, a line discount larger than the line amount, and custom fonts whose files share a name now fail with a clear message instead of rendering something wrong.
+- A misspelt engine name (`->driver('chromuim')`) is an error instead of a silent fallback to mPDF.
+- `->word()` checks the template data when it is called, as `->pdf()` does.
+- Certificates refuse zero hours, and a letter's `cc` entries must be text.
+- An empty `DOC_PREVIEW=` means the same as leaving it out: the preview page is on in `local` only.
+- `doc:template` with an unknown name prints an error instead of throwing.
 
 ### Fixed
 
@@ -42,12 +52,22 @@ All notable changes to this package are listed here. The format follows
 - Receipt signature roles without a label printed their translation key, and the receipt took two pages with Chromium.
 - Certificates said "103 ساعة" instead of "103 ساعات".
 - Browsershot temp pages and PhpWord template copies were left in the temp folder when a render failed.
+- `template.php` with `'paper' => [width, height]` crashed.
+- `$doc->t()` replaced `:page` inside `:pages` ("صفحة 3 من 3s").
+- mPDF swapped the right and left margins of Arabic documents.
+- PDFs from 8 of the 12 templates had no title, and `->title()` was ignored.
+- The word "الله" was lost when text was copied or searched in Cairo PDFs.
+- mPDF kept using its cached copy of a font file after the file changed.
+- `word.docx` templates printed the path of an image they could not read, reversed phone numbers, dates and codes in Arabic paragraphs, and read the currency only from `invoice` or `document`.
+- Arabic download names became a row of underscores for clients that do not read UTF-8 names; they are now written in Latin letters.
+- The receipt's amount box stayed teal with any theme colour, and English contracts named the 11th party "11 party".
 
 ### Security
 
 - A report column's `decimals` from data could build a huge string; decimals are capped at 10.
 - Word images from allowed hosts were fetched by PhpWord, which followed redirects past the allowed hosts. They are now fetched without redirects and with a 10 second limit, as mPDF's remote images also are.
 - Gotenberg ran JavaScript in every page; it is now off unless `DOC_CHROME_JAVASCRIPT` is on, as with Browsershot.
+- Chromium and Gotenberg followed redirects on allowed remote images, past the allowed hosts. The package now fetches those images itself, without redirects, as it does for mPDF and Word.
 
 ## [1.2.0] - 2026-10-08
 
