@@ -168,6 +168,17 @@ class TemplatesTest extends TestCase
         $this->assertStringContainsString('BHD و125/1000', $context->tafqeet('1.125', 'BHD'));
     }
 
+    public function test_vat_rates_keep_their_decimals(): void
+    {
+        $invoice = Doc::templates()->get('invoice')->sample();
+        $invoice['invoice']['tax_rate'] = 2.5;
+        $this->assertStringContainsString('(2.5%)', Doc::template('invoice', $invoice)->locale('ar')->toHtml());
+
+        $quote = Doc::templates()->get('quotation')->sample();
+        $quote['quote']['tax_rate'] = 14;
+        $this->assertStringContainsString('(14%)', Doc::template('quotation', $quote)->locale('ar')->toHtml());
+    }
+
     public function test_line_totals_add_up_to_the_subtotal(): void
     {
         foreach (['invoice', 'quotation'] as $name) {
