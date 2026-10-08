@@ -88,7 +88,7 @@ return [
     | Fonts
     |--------------------------------------------------------------------------
     |
-    | Cairo, Tajawal and Amiri ship with the package (SIL Open Font License).
+    | Cairo, Tajawal and Noto Naskh Arabic ("naskh") ship with the package (SIL Open Font License).
     | "default" is used for RTL documents and "default_ltr" for the rest.
     | Register your own fonts under "custom":
     |
