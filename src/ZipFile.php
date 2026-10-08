@@ -48,6 +48,11 @@ class ZipFile extends RenderedFile
         }
 
         $path = tempnam(sys_get_temp_dir(), 'easy-pdf-word-zip');
+
+        if ($path === false) {
+            throw new RuntimeException('Could not create a ZIP file in '.sys_get_temp_dir().'.');
+        }
+
         $zip = new ZipArchive;
 
         try {
@@ -68,7 +73,10 @@ class ZipFile extends RenderedFile
                 $zip->addFromString(self::unique($name, $names), $file->content());
             }
 
-            $zip->close();
+            // A failed write (a full disk) must not hand out an empty archive.
+            if (! $zip->close()) {
+                throw new RuntimeException('Could not write the ZIP file: '.$zip->getStatusString());
+            }
 
             return (string) file_get_contents($path);
         } finally {
