@@ -121,7 +121,7 @@ return (new MailMessage)
     ->attach(Doc::template('receipt', $data)->pdf('receipt.pdf'));
 ```
 
-The file is rendered when the mail is built, so a queued mail renders it in the queue worker.
+The file is rendered when the mail is built. For a queued mail, make the file inside `attachments()` or `toMail()` as above, not in the constructor: a file waiting to be rendered cannot be serialized onto the queue.
 
 ### Page settings
 
