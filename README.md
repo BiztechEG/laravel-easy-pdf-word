@@ -96,11 +96,32 @@ Doc::html('<h1>مرحبا</h1>')->locale('ar')->pdf()->stream();
 | `->pdf()->download('file.pdf')` | Download response |
 | `->pdf()->stream()` | Show in the browser |
 | `->pdf()->save('path.pdf', disk: 's3')` | Save to a disk (or an absolute path without a disk) |
-| `->pdf()->content()` | PDF bytes, e.g. for mail attachments |
+| `->pdf()->content()` | PDF bytes |
 | `->word()->download('file.docx')` | The same for Word: `download`, `stream`, `save`, `content` |
 | `->toHtml()` | The final HTML, for debugging |
 
 Returning `->pdf()` from a controller streams it.
+
+### Mail attachments
+
+A PDF or Word file can be attached to a mail as it is. The name given to `->pdf()` or `->word()` becomes the attachment's name:
+
+```php
+// In a Mailable
+public function attachments(): array
+{
+    return [
+        Doc::template('invoice', $this->data)->locale('ar')->pdf('فاتورة-1024.pdf'),
+    ];
+}
+
+// In a notification
+return (new MailMessage)
+    ->line('مرفق إيصال الدفع.')
+    ->attach(Doc::template('receipt', $data)->pdf('receipt.pdf'));
+```
+
+The file is rendered when the mail is built, so a queued mail renders it in the queue worker.
 
 ### Page settings
 
@@ -360,7 +381,37 @@ python3 vendor/biztecheg/laravel-easy-pdf-word/bin/mpdf-font-fix.py resources/fo
 
 The bundled fonts are already fixed this way.
 
-## Testing
+## Testing your app
+
+`Doc::fake()` records documents instead of rendering them, like `Mail::fake()`. Templates still get their defaults, `prepare()` and validation, but no PDF engine runs and nothing is saved, so tests stay fast:
+
+```php
+use BiztechEG\EasyPdfWord\Facades\Doc;
+use BiztechEG\EasyPdfWord\Testing\GeneratedDocument;
+
+Doc::fake();
+
+$this->post('/orders/1024/invoice')->assertOk();
+
+Doc::assertGenerated(fn (GeneratedDocument $doc) => $doc->template === 'invoice'
+    && $doc->locale === 'ar'
+    && $doc->data('invoice.number') === 'INV-1024'
+    && $doc->contains('مؤسسة النور'));
+Doc::assertSaved('invoices/INV-1024.pdf', disk: 's3');
+Doc::assertDownloaded('فاتورة-1024.pdf');
+```
+
+| Assertion | Passes when |
+| --- | --- |
+| `assertGenerated(?fn)` | A file was made (and matches the callback) |
+| `assertNotGenerated(fn)`, `assertNothingGenerated()`, `assertGeneratedCount(n)` | The opposite, or an exact count |
+| `assertSaved($path or fn, ?disk)` | A file was saved there |
+| `assertDownloaded($name or fn)` | A file was sent as a download |
+| `assertStreamed($name or fn)` | A file was shown in the browser, or returned from a controller |
+
+Each `GeneratedDocument` has `format` (`pdf` or `word`), `template`, `view`, `locale`, `direction`, `numerals`, `driver`, `filename()`, `data($key)` with the prepared data, and for PDFs `html()` and `contains($text)`. With Arabic digits, `contains()` needs the text in Arabic digits too. `Doc::generated()` returns them all.
+
+## Running the package's tests
 
 ```bash
 composer test
@@ -456,6 +507,32 @@ Arabic::tafqeet(1250.5, 'EGP');   // ألف ومائتان وخمسون جنيه
 Arabic::hijri('2026-10-08');      // ٢٧ ربيع الآخر ١٤٤٨ هـ
 Arabic::numerals('2026');         // ٢٠٢٦
 ```
+
+### إرفاق الملف في إيميل
+
+ملف الـ PDF أو Word يتحط زي ما هو في `attachments()` بتاعة الـ Mailable أو في `->attach()` بتاعة الإشعار، والاسم اللي بتديه لـ `->pdf()` هو اسم المرفق:
+
+```php
+public function attachments(): array
+{
+    return [Doc::template('invoice', $this->data)->locale('ar')->pdf('فاتورة-1024.pdf')];
+}
+```
+
+### الاختبارات في مشروعك
+
+`Doc::fake()` بيسجّل الملفات بدل ما يولّدها، زي `Mail::fake()`. القالب بيتعمله validation عادي، لكن مفيش محرك PDF بيشتغل ولا ملف بيتحفظ:
+
+```php
+Doc::fake();
+
+$this->post('/orders/1024/invoice');
+
+Doc::assertGenerated(fn ($doc) => $doc->template === 'invoice' && $doc->data('invoice.number') === 'INV-1024');
+Doc::assertSaved('invoices/INV-1024.pdf', disk: 's3');
+```
+
+باقي الـ assertions في الجزء الإنجليزي فوق.
 
 ### الأمان
 
