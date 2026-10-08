@@ -28,7 +28,7 @@ return function (DocumentBuilder $voucher, array $data, DocContext $doc): void {
             ['text' => $doc->t('title.'.$type), 'bold' => true, 'size' => 18, 'color' => $primary, 'align' => 'center'],
         ]],
         ['lines' => [
-            ['text' => $doc->t('number').': '.$data['number'], 'size' => 9.5],
+            [['text' => $doc->t('number').': ', 'size' => 9.5], ['text' => (string) $data['number'], 'size' => 9.5, 'ltr' => true]],
             ['text' => $doc->t('date').': '.$date($data['date']), 'size' => 9.5],
         ], 'align' => 'end'],
     ]], ['columns' => [38, 24, 38], 'borders' => false]);

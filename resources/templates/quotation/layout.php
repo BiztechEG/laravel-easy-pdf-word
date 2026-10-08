@@ -23,7 +23,7 @@ return function (DocumentBuilder $quote, array $data, DocContext $doc): void {
     // Company, title and quotation details.
     $details = [
         ['text' => $doc->t('title'), 'bold' => true, 'size' => 20, 'color' => $primary],
-        $doc->t('number').': '.$info['number'],
+        [$doc->t('number').': ', ['text' => (string) $info['number'], 'ltr' => true]],
         $doc->t('date').': '.$date($info['date']),
     ];
 

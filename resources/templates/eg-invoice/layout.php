@@ -24,12 +24,12 @@ return function (DocumentBuilder $invoice, array $data, DocContext $doc): void {
     // Title and document identifiers.
     $meta = [
         ['text' => $doc->t('types.'.$document['type']), 'bold' => true, 'size' => 17, 'color' => $primary],
-        $doc->t('internal_id').': '.$document['internal_id'],
+        [$doc->t('internal_id').': ', ['text' => (string) $document['internal_id'], 'ltr' => true]],
         $doc->t('issued_at').': '.Carbon::parse($document['issued_at'])->format('Y/m/d H:i'),
     ];
 
     if (! empty($document['purchase_order'])) {
-        $meta[] = $doc->t('purchase_order').': '.$document['purchase_order'];
+        $meta[] = [$doc->t('purchase_order').': ', ['text' => (string) $document['purchase_order'], 'ltr' => true]];
     }
 
     $invoice->table([[
