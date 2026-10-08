@@ -147,6 +147,21 @@ class DriversTest extends TestCase
         Doc::html('<p>x</p>')->driver('gotenberg')->pdf()->content();
     }
 
+    public function test_mpdf_renders_html_longer_than_the_pcre_backtrack_limit(): void
+    {
+        $limit = ini_get('pcre.backtrack_limit');
+        ini_set('pcre.backtrack_limit', '100000');
+
+        try {
+            $pdf = Doc::html('<!-- '.str_repeat('x', 150_000).' --><p>x</p>')->pdf()->content();
+        } finally {
+            $this->assertSame('100000', ini_get('pcre.backtrack_limit'));
+            ini_set('pcre.backtrack_limit', $limit);
+        }
+
+        $this->assertStringStartsWith('%PDF', $pdf);
+    }
+
     public function test_mpdf_renders_landscape_pages(): void
     {
         $pdf = Doc::html('<p>x</p>')->landscape()->pdf()->content();
