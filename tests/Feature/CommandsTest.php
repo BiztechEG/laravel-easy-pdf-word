@@ -56,6 +56,25 @@ class CommandsTest extends TestCase
         $this->assertStringContainsString('بخصوص:', $html);
     }
 
+    public function test_force_restores_the_bundled_template_over_a_project_copy(): void
+    {
+        $this->artisan('doc:template', ['name' => 'letter'])->assertSuccessful();
+        file_put_contents($this->projectTemplates.'/letter/lang/ar.php', "<?php return ['subject' => 'بخصوص'];");
+
+        $this->artisan('doc:template', ['name' => 'letter', '--force' => true])->assertSuccessful();
+
+        $this->assertFileEquals(\BiztechEG\EasyPdfWord\Templates\TemplateRegistry::packagePath().'/letter/lang/ar.php', $this->projectTemplates.'/letter/lang/ar.php');
+    }
+
+    public function test_a_project_template_cannot_be_copied_onto_itself(): void
+    {
+        $this->artisan('doc:make-template', ['name' => 'packing-list'])->assertSuccessful();
+
+        $this->artisan('doc:template', ['name' => 'packing-list', '--force' => true])
+            ->expectsOutputToContain('is the template itself')
+            ->assertFailed();
+    }
+
     public function test_make_a_new_template(): void
     {
         $this->artisan('doc:make-template', ['name' => 'packing-list'])

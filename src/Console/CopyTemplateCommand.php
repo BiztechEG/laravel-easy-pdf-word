@@ -22,6 +22,10 @@ class CopyTemplateCommand extends Command
     {
         $source = $templates->get($this->argument('name'));
         $name = $this->option('as') ?: $source->name;
+        // The package's own template when there is one, so --force restores
+        // it over a project copy rather than copying that copy onto itself.
+        $bundled = TemplateRegistry::packagePath().'/'.$source->name;
+        $from = $files->isDirectory($bundled) ? $bundled : $source->path;
 
         if (! TemplateRegistry::isValidName($name)) {
             $this->components->error('Use letters, digits, dots, dashes or underscores for the template name.');
@@ -37,7 +41,17 @@ class CopyTemplateCommand extends Command
             return self::FAILURE;
         }
 
-        $files->copyDirectory($source->path, $target);
+        if (realpath($from) === realpath($target)) {
+            $this->components->error("{$target} is the template itself. Use --as to copy it under another name.");
+
+            return self::FAILURE;
+        }
+
+        if (! $files->copyDirectory($from, $target)) {
+            $this->components->error("Could not copy the template to {$target}.");
+
+            return self::FAILURE;
+        }
 
         $this->components->info("Template copied to {$target}");
 
