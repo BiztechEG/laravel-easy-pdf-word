@@ -137,6 +137,22 @@ class TemplatesTest extends TestCase
         $this->assertStringContainsString('٧١,٢٥٠.٠٠', $quote);
     }
 
+    public function test_footers_keep_codes_and_contacts_left_to_right(): void
+    {
+        $footer = fn (string $name) => Doc::template($name, Doc::templates()->get($name)->sample())
+            ->locale('ar')->numerals('arabic')
+            ->theme(['company' => ['phone' => '+20 100 000 0000', 'email' => 'info@example.com']])
+            ->options()->footer;
+
+        $this->assertStringContainsString('<bdo dir="ltr">QT-٢٠٢٦-٠٠٨٨</bdo>', $footer('quotation'));
+        $this->assertStringContainsString('<bdo dir="ltr">+٢٠ ١٠٠ ٠٠٠ ٠٠٠٠</bdo>', $footer('letter'));
+        $this->assertStringContainsString('<bdo dir="ltr">info@example.com</bdo>', $footer('letter'));
+        $this->assertMatchesRegularExpression('/<bdo dir="ltr">[^<]+<\/bdo>/', $footer('eg-invoice'));
+
+        $word = Doc::template('quotation', Doc::templates()->get('quotation')->sample())->locale('ar')->numerals('arabic')->word()->content();
+        $this->assertStringContainsString("\u{202D}QT-٢٠٢٦-٠٠٨٨\u{202C}", $this->zipEntry($word, 'word/footer1.xml'));
+    }
+
     public function test_template_data_is_validated(): void
     {
         $this->expectException(ValidationException::class);
@@ -166,5 +182,18 @@ class TemplatesTest extends TestCase
 
         $this->assertStringContainsString('749.50', $html);
         $this->assertStringContainsString('<bdo dir="ltr">-250.50</bdo>', $html);
+    }
+
+    private function zipEntry(string $docx, string $entry): string
+    {
+        $file = tempnam(sys_get_temp_dir(), 'docx-test');
+        file_put_contents($file, $docx);
+        $zip = new \ZipArchive;
+        $zip->open($file);
+        $content = (string) $zip->getFromName($entry);
+        $zip->close();
+        @unlink($file);
+
+        return $content;
     }
 }
