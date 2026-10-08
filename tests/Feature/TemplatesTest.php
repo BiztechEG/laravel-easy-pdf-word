@@ -460,6 +460,14 @@ class TemplatesTest extends TestCase
         $this->assertStringContainsString('<bdo dir="ltr">-250.50</bdo>', $html);
     }
 
+    public function test_report_columns_without_a_label_show_their_key(): void
+    {
+        $data = ['title' => 'Sales', 'columns' => [['key' => 'branch'], ['key' => 'revenue', 'format' => 'number']], 'rows' => [['branch' => 'Cairo', 'revenue' => 10]]];
+
+        $this->assertStringContainsString('>branch</th>', Doc::template('report', $data)->locale('en')->toHtml());
+        $this->assertStringStartsWith('PK', Doc::template('report', $data)->locale('en')->word()->content());
+    }
+
     public function test_report_totals_read_formatted_numbers_like_the_cells(): void
     {
         $html = Doc::template('report', [
