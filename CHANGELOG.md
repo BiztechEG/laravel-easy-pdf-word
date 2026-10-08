@@ -8,6 +8,9 @@ All notable changes to this package are listed here. The format follows
 
 ### Added
 
+- PDF and Word files can be attached to mail as they are: return one from a Mailable's `attachments()` or pass it to a notification's `->attach()`.
+- `->filename()` on a rendered file gives its name with the extension.
+- `Doc::fake()` records documents instead of rendering them, with `assertGenerated`, `assertNotGenerated`, `assertGeneratedCount`, `assertNothingGenerated`, `assertSaved`, `assertDownloaded` and `assertStreamed`.
 - `->watermark($text, opacity, color)` prints text across every page of a PDF, with mPDF, Chromium and Gotenberg.
 - `->password($user, owner, allow)` encrypts a PDF. Chromium files are encrypted afterwards by mPDF. `->word()` refuses a document with a password.
 

@@ -15,6 +15,9 @@ use BiztechEG\EasyPdfWord\Support\Color;
 use BiztechEG\EasyPdfWord\Support\DocContext;
 use BiztechEG\EasyPdfWord\Support\Locale;
 use BiztechEG\EasyPdfWord\Templates\Template;
+use BiztechEG\EasyPdfWord\Testing\DocFake;
+use BiztechEG\EasyPdfWord\Testing\FakePdfDriver;
+use BiztechEG\EasyPdfWord\Testing\GeneratedDocument;
 use BiztechEG\EasyPdfWord\Word\DocxTemplateFiller;
 use BiztechEG\EasyPdfWord\Word\WordRenderer;
 use BadMethodCallException;
@@ -82,6 +85,9 @@ class PendingDocument
 
     /** Validated and prepared template data, kept until the data or theme changes. */
     private ?array $prepared = null;
+
+    /** Set by Doc::fake(): files are recorded there instead of rendered. */
+    private ?DocFake $fake = null;
 
     private function __construct(
         private PdfManager $pdf,
@@ -301,15 +307,33 @@ class PendingDocument
         return $this;
     }
 
+    /** @internal Used by Doc::fake(). */
+    public function recordTo(DocFake $fake): static
+    {
+        $this->fake = $fake;
+
+        return $this;
+    }
+
     public function pdf(?string $filename = null): PdfDocument
     {
         // A copy, so changes made to this document afterwards do not reach the file.
         $document = clone $this;
         $options = $document->options();
+        $filename ??= ($this->template?->name ?? 'document').'.pdf';
+
+        if ($document->fake !== null) {
+            $generated = $document->generated('pdf', $options);
+
+            $file = new PdfDocument(fn () => [$generated->content(), 'fake'], $filename, $generated);
+            $document->fake->record($generated->for($file));
+
+            return $file;
+        }
 
         return new PdfDocument(
             fn () => $document->pdf->render('', $options, $document->driver, fn (PdfDriver $engine) => $document->toHtml($engine, $options)),
-            $filename ?? ($this->template?->name ?? 'document').'.pdf',
+            $filename,
         );
     }
 
@@ -329,11 +353,18 @@ class PendingDocument
         }
 
         $document = clone $this;
+        $filename ??= ($this->template?->name ?? 'document').'.docx';
 
-        return new WordDocument(
-            fn () => $document->renderWord(),
-            $filename ?? ($this->template?->name ?? 'document').'.docx',
-        );
+        if ($document->fake !== null) {
+            $generated = $document->generated('word', $document->options());
+
+            $file = new WordDocument(fn () => [$generated->content(), 'fake'], $filename, $generated);
+            $document->fake->record($generated->for($file));
+
+            return $file;
+        }
+
+        return new WordDocument(fn () => $document->renderWord(), $filename);
     }
 
     /**
@@ -424,6 +455,22 @@ class PendingDocument
         $this->builder->{$method}(...$arguments);
 
         return $this;
+    }
+
+    /** What Doc::fake() records for a ->pdf() or ->word() file. */
+    private function generated(string $format, PdfOptions $options): GeneratedDocument
+    {
+        return new GeneratedDocument(
+            format: $format,
+            template: $this->template?->name,
+            view: $this->view,
+            locale: $options->locale,
+            direction: $options->direction,
+            numerals: $options->numerals,
+            driver: $this->driver,
+            data: fn () => $this->templateData(),
+            html: fn () => $this->toHtml(new FakePdfDriver, $options),
+        );
     }
 
     /** @return array{0: string, 1: string} [bytes, engine name] */
