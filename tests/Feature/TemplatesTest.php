@@ -93,6 +93,14 @@ class TemplatesTest extends TestCase
         $this->assertStringStartsWith('PK', Doc::template('report', $data)->locale('ar')->word()->content());
     }
 
+    public function test_collections_are_accepted_as_template_data(): void
+    {
+        $data = Doc::templates()->get('invoice')->sample();
+        $data['items'] = collect($data['items']);
+
+        $this->assertStringContainsString('39,330.00', Doc::template('invoice', $data)->locale('ar')->toHtml());
+    }
+
     public function test_template_data_is_validated(): void
     {
         $this->expectException(ValidationException::class);
