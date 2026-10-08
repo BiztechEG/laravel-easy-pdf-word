@@ -20,6 +20,12 @@ class CopyTemplateCommand extends Command
 
     public function handle(TemplateRegistry $templates, Filesystem $files): int
     {
+        if (! $templates->exists($this->argument('name'))) {
+            $this->components->error("Template [{$this->argument('name')}] was not found. Run php artisan doc:templates to list them.");
+
+            return self::FAILURE;
+        }
+
         $source = $templates->get($this->argument('name'));
         $name = $this->option('as') ?: $source->name;
         // The package's own template when there is one, so --force restores
