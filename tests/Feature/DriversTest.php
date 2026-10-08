@@ -137,6 +137,16 @@ class DriversTest extends TestCase
         Http::assertSent(fn (Request $request) => ! str_contains($this->gotenbergPage($request), 'Content-Security-Policy'));
     }
 
+    public function test_a_gotenberg_answer_that_is_not_a_pdf_is_a_failure(): void
+    {
+        $this->fakeGotenberg('<html><body>Please sign in</body></html>');
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('did not return a PDF');
+
+        Doc::html('<p>x</p>')->driver('gotenberg')->pdf()->content();
+    }
+
     public function test_mpdf_renders_landscape_pages(): void
     {
         $pdf = Doc::html('<p>x</p>')->landscape()->pdf()->content();
