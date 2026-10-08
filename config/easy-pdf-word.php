@@ -71,6 +71,8 @@ return [
                 'npm_binary' => env('DOC_NPM_BINARY'),
                 'chrome_path' => env('DOC_CHROME_PATH'),
                 'no_sandbox' => env('DOC_CHROME_NO_SANDBOX', false),
+                // Templates need no JavaScript; turn it on only for documents that draw with it (charts).
+                'javascript' => env('DOC_CHROME_JAVASCRIPT', false),
                 'timeout' => 60,
             ],
 
