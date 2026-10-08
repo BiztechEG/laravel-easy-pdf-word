@@ -1,0 +1,7 @@
+# For `composer preview`: serves the template preview page at
+# http://127.0.0.1:8000/doc-preview while developing the package.
+providers:
+  - BiztechEG\EasyPdfWord\EasyPdfWordServiceProvider
+env:
+  - DOC_PREVIEW=true
+  - APP_KEY=base64:a2tra2tra2tra2tra2tra2tra2tra2tra2tra2tra2s=
