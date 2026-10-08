@@ -25,7 +25,7 @@ class DocContext
         private readonly array $translations = [],
         private readonly array $fallbackTranslations = [],
         private readonly ?array $imagePaths = null,
-        private readonly bool $remoteImages = true,
+        private readonly bool|array $remoteImages = false,
     ) {}
 
     public function isRtl(): bool
@@ -197,7 +197,7 @@ class DocContext
      *
      * Only image files inside the allowed folders (config "images.paths")
      * are read, so a path in user data cannot pull in other files. URLs are
-     * passed on unless "images.remote" is off.
+     * passed on only when "images.remote" allows them (true, or their host).
      */
     public function image(?string $source): ?string
     {
@@ -210,7 +210,7 @@ class DocContext
         }
 
         if (preg_match('#^https?://#i', $source)) {
-            return $this->remoteImages ? $source : null;
+            return $this->allowsRemote($source) ? $source : null;
         }
 
         // Other schemes (phar://, ftp://, php://) and network shares are never read.
@@ -225,6 +225,25 @@ class DocContext
         }
 
         return 'data:'.$mime.';base64,'.base64_encode(file_get_contents($path));
+    }
+
+    private function allowsRemote(string $url): bool
+    {
+        if (! is_array($this->remoteImages)) {
+            return $this->remoteImages;
+        }
+
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+
+        foreach ($this->remoteImages as $allowed) {
+            $allowed = strtolower(trim((string) $allowed));
+
+            if ($host !== '' && ($host === $allowed || (str_starts_with($allowed, '*.') && str_ends_with($host, substr($allowed, 1))))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function isAllowedPath(string $path): bool

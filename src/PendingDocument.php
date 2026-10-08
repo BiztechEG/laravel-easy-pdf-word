@@ -389,8 +389,21 @@ class PendingDocument
             translations: $this->template?->translations($options->locale) ?? [],
             fallbackTranslations: $this->template?->translations('en') ?? [],
             imagePaths: $this->config->get('easy-pdf-word.images.paths'),
-            remoteImages: (bool) $this->config->get('easy-pdf-word.images.remote', true),
+            remoteImages: $this->remoteImages(),
         );
+    }
+
+    /** Config "images.remote": true, false, or hosts as a list or a comma-separated string. */
+    private function remoteImages(): bool|array
+    {
+        $remote = $this->config->get('easy-pdf-word.images.remote', false);
+
+        if (is_array($remote) || is_bool($remote) || $remote === null) {
+            return is_array($remote) ? $remote : (bool) $remote;
+        }
+
+        return filter_var($remote, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE)
+            ?? array_values(array_filter(array_map('trim', explode(',', (string) $remote))));
     }
 
     private function viewData(DocContext $context): array

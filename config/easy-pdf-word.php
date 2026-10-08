@@ -113,7 +113,11 @@ return [
     | Local images (logo, signature, stamp, ...) are read only from these
     | folders, so a file path that arrives in user data cannot embed other
     | files from the server. Set "paths" to null to allow any folder.
-    | "remote" lets image URLs through; the PDF engine downloads them.
+    |
+    | Image URLs are downloaded by the server (the PDF engine or PhpWord), so
+    | they are off by default. "remote" is true for any URL, or the hosts to
+    | allow: ['cdn.example.com', '*.amazonaws.com'], or in .env
+    | DOC_REMOTE_IMAGES=cdn.example.com,*.amazonaws.com
     |
     */
 
@@ -123,7 +127,7 @@ return [
             storage_path('app'),
             resource_path(),
         ],
-        'remote' => env('DOC_REMOTE_IMAGES', true),
+        'remote' => env('DOC_REMOTE_IMAGES', false),
     ],
 
     /*

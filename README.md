@@ -301,7 +301,14 @@ Currencies included: EGP, SAR, AED, QAR, KWD, USD, EUR. Add more in `config/easy
 
 ## Images
 
-Logos, signatures and stamps can be file paths, URLs or data URIs. Local files are read only from `public/`, `storage/app` and `resources/` by default, and only when they are real images, so a path that comes from user input cannot embed other files from the server. Change the folders in `images.paths`, and set `DOC_REMOTE_IMAGES=false` to ignore image URLs.
+Logos, signatures and stamps can be file paths, URLs or data URIs. Local files are read only from `public/`, `storage/app` and `resources/` by default, and only when they are real images, so a path that comes from user input cannot embed other files from the server. Change the folders in `images.paths`.
+
+Image URLs are downloaded by your server (the PDF engine or PhpWord), so they are ignored unless you allow them. Allow the hosts you use, or any URL when image URLs never come from users:
+
+```env
+DOC_REMOTE_IMAGES=cdn.example.com,*.amazonaws.com
+# or: DOC_REMOTE_IMAGES=true
+```
 
 ## Fonts
 

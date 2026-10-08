@@ -71,7 +71,38 @@ class SecurityTest extends TestCase
         $this->assertNull($this->context(imagePaths: null)->image($source));
     }
 
-    private function context(?array $imagePaths = [], bool $remoteImages = false): DocContext
+    public function test_image_urls_are_ignored_unless_allowed(): void
+    {
+        $this->assertNull($this->context()->image('https://example.com/logo.png'));
+        $this->assertStringNotContainsString('169.254.169.254', Doc::make()->image('http://169.254.169.254/x.png')->toHtml());
+
+        $this->assertSame('https://example.com/logo.png', $this->context(remoteImages: true)->image('https://example.com/logo.png'));
+    }
+
+    public function test_image_urls_can_be_allowed_for_some_hosts(): void
+    {
+        $doc = $this->context(remoteImages: ['cdn.example.com', '*.example.org']);
+
+        $this->assertNotNull($doc->image('https://cdn.example.com/logo.png'));
+        $this->assertNotNull($doc->image('https://images.example.org/logo.png'));
+        $this->assertNotNull($doc->image('HTTPS://CDN.EXAMPLE.COM/logo.png'));
+        $this->assertNull($doc->image('https://example.org/logo.png'));
+        $this->assertNull($doc->image('https://cdn.example.com.evil.test/logo.png'));
+        $this->assertNull($doc->image('https://cdn.example.com@evil.test/logo.png'));
+        $this->assertNull($doc->image('http://localhost/logo.png'));
+    }
+
+    public function test_image_hosts_can_come_from_the_environment(): void
+    {
+        $this->app['config']->set('easy-pdf-word.images.remote', 'cdn.example.com, *.example.org');
+
+        $html = Doc::make()->image('https://cdn.example.com/a.png')->image('https://evil.test/b.png')->toHtml();
+
+        $this->assertStringContainsString('https://cdn.example.com/a.png', $html);
+        $this->assertStringNotContainsString('evil.test', $html);
+    }
+
+    private function context(?array $imagePaths = [], bool|array $remoteImages = false): DocContext
     {
         return new DocContext('en', 'ltr', 'cairo', [], 'latin', '', imagePaths: $imagePaths, remoteImages: $remoteImages);
     }
