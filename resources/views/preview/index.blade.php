@@ -24,7 +24,7 @@
         .actions { margin-left: auto; display: flex; gap: 8px; }
         .button { font-size: 13px; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--primary); color: var(--primary); text-decoration: none; background: #fff; }
         .button.primary { background: var(--primary); color: #fff; }
-        iframe { flex: 1; width: 100%; border: 0; background: #525659; }
+        iframe { flex: 1; width: 100%; border: 0; background: #fff; }
         .empty { padding: 32px; color: var(--muted); }
         @media (max-width: 760px) { body { flex-direction: column; height: auto; } aside { width: 100%; max-height: 40vh; } iframe { height: 80vh; } }
     </style>
