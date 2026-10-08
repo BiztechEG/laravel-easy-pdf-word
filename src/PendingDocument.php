@@ -11,6 +11,7 @@ use BiztechEG\EasyPdfWord\Exceptions\WordNotSupported;
 use BiztechEG\EasyPdfWord\Fonts\FontRegistry;
 use BiztechEG\EasyPdfWord\Pdf\PdfManager;
 use BiztechEG\EasyPdfWord\Pdf\PdfOptions;
+use BiztechEG\EasyPdfWord\Support\Color;
 use BiztechEG\EasyPdfWord\Support\DocContext;
 use BiztechEG\EasyPdfWord\Support\Locale;
 use BiztechEG\EasyPdfWord\Templates\Template;
@@ -68,6 +69,8 @@ class PendingDocument
     private ?string $title = null;
 
     private bool $validate = true;
+
+    private const THEME_COLORS = ['primary' => '#0F766E', 'text' => '#1F2937', 'muted' => '#6B7280', 'border' => '#E5E7EB'];
 
     /** Validated and prepared template data, kept until the data or theme changes. */
     private ?array $prepared = null;
@@ -468,10 +471,17 @@ class PendingDocument
 
     private function resolvedTheme(): array
     {
-        return array_replace_recursive(
+        $theme = array_replace_recursive(
             (array) $this->config->get('easy-pdf-word.theme', []),
             $this->template?->theme() ?? [],
             $this->theme,
         );
+
+        // Theme colours go into the templates' CSS, so only real colours pass.
+        foreach (self::THEME_COLORS as $key => $default) {
+            $theme[$key] = Color::css($theme[$key] ?? null, $default);
+        }
+
+        return $theme;
     }
 }

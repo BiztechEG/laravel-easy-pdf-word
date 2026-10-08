@@ -116,6 +116,17 @@ class SecurityTest extends TestCase
         $this->assertStringContainsString('color: rgb(10, 20, 30)', Doc::make()->paragraph('x', ['color' => 'rgb(10, 20, 30)'])->toHtml());
     }
 
+    public function test_theme_colours_cannot_add_css(): void
+    {
+        $html = Doc::template('letter', Doc::templates()->get('letter')->sample())
+            ->theme(['text' => 'red; } body { background: url(http://evil.test/) } p {', 'primary' => 'blue'])
+            ->toHtml();
+
+        $this->assertStringNotContainsString('evil.test', $html);
+        $this->assertStringContainsString('color: #1F2937', $html);
+        $this->assertStringContainsString('blue', $html);
+    }
+
     private function context(?array $imagePaths = [], bool|array $remoteImages = false): DocContext
     {
         return new DocContext('en', 'ltr', 'cairo', [], 'latin', '', imagePaths: $imagePaths, remoteImages: $remoteImages);
