@@ -63,6 +63,26 @@ class DriversTest extends TestCase
         Doc::html('<p>x</p>')->driver('broken')->pdf()->content();
     }
 
+    public function test_a_missing_fallback_engine_does_not_hide_the_real_error(): void
+    {
+        config(['easy-pdf-word.pdf.fallback' => 'missing']);
+        Doc::extend('broken', fn () => new FakeDriver(fail: true));
+        Doc::extend('missing', fn () => new FakeDriver(available: false));
+
+        $this->expectExceptionMessage('Engine crashed');
+
+        Doc::html('<p>x</p>')->driver('broken')->pdf()->content();
+    }
+
+    public function test_a_missing_engine_says_what_to_install(): void
+    {
+        config(['easy-pdf-word.pdf.fallback' => null, 'easy-pdf-word.pdf.drivers.gotenberg.url' => '']);
+
+        $this->expectExceptionMessage('DOC_GOTENBERG_URL');
+
+        Doc::html('<p>x</p>')->driver('gotenberg')->pdf()->content();
+    }
+
     public function test_css_font_engines_get_embedded_fonts(): void
     {
         $driver = new FakeDriver(cssFonts: true);
