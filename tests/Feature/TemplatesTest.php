@@ -430,6 +430,21 @@ class TemplatesTest extends TestCase
         $this->assertStringNotContainsString('12 party', $html);
     }
 
+    public function test_certificates_need_more_than_zero_hours_and_letter_copies_are_text(): void
+    {
+        $certificate = Doc::templates()->get('certificate')->sample();
+        $letter = Doc::templates()->get('letter')->sample();
+
+        foreach ([['certificate', ['hours' => 0] + $certificate, 'hours'], ['letter', ['cc' => [['x']]] + $letter, 'cc.0']] as [$name, $data, $field]) {
+            try {
+                Doc::template($name, $data)->toHtml();
+                $this->fail("{$name} accepted an invalid {$field}.");
+            } catch (ValidationException $e) {
+                $this->assertArrayHasKey($field, $e->errors());
+            }
+        }
+    }
+
     public function test_certificates_take_at_most_three_signatures(): void
     {
         $data = Doc::templates()->get('certificate')->sample();
