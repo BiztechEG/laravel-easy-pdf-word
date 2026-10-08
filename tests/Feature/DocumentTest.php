@@ -47,6 +47,8 @@ class DocumentTest extends TestCase
         $this->assertSame('1,250.50', $doc->numberText('1,250.5'));
         $this->assertSame('1,250.50', (string) $doc->number('١٬٢٥٠٫٥'));
         $this->assertSame('one thousand two hundred fifty EGP and 50/100 only', $doc->inWords('1,250.50', 'EGP'));
+        $this->assertSame('1500', $doc->rate('1,500'));
+        $this->assertSame('2.5', $doc->rate('٢٫٥'));
     }
 
     public function test_a_data_key_named_doc_does_not_replace_the_context(): void
