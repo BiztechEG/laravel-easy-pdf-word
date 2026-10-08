@@ -216,6 +216,18 @@ class DriversTest extends TestCase
         $this->assertStringContainsString('الله', \Normalizer::normalize($text, \Normalizer::FORM_KC));
     }
 
+    public function test_chromium_gets_the_fonts_named_in_the_css(): void
+    {
+        $driver = new FakeDriver(cssFonts: true);
+        Doc::extend('css', fn () => $driver);
+
+        Doc::html('<p style="font-family: \'naskh\', serif">نص</p>')->locale('ar')->driver('css')->pdf()->content();
+
+        $this->assertStringContainsString("@font-face{font-family:'cairo'", $driver->html);
+        $this->assertStringContainsString("@font-face{font-family:'naskh'", $driver->html);
+        $this->assertStringNotContainsString("@font-face{font-family:'tajawal'", $driver->html);
+    }
+
     public function test_a_paper_size_in_mm_needs_two_positive_numbers(): void
     {
         $this->expectException(\InvalidArgumentException::class);

@@ -502,6 +502,10 @@ class PendingDocument
             $html = preg_replace('/<\/head>/i', '<style>'.$context->fontCss.'</style></head>', $html, 1) ?? $html;
         }
 
+        if ($context->usesCssFonts()) {
+            $html = $this->withNamedFonts($html, $options->font);
+        }
+
         return $context->numerals === Numerals::ARABIC
             ? Numerals::convertHtml($html, Numerals::ARABIC, $this->fonts->hasArabicSeparators($context->font))
             : $html;
@@ -725,6 +729,23 @@ class PendingDocument
         return $this->title !== null || trim($match[1]) === ''
             ? (preg_replace('/<title\b[^>]*>.*?<\/title>/is', addcslashes($tag, '\\$'), $html, 1) ?? $html)
             : $html;
+    }
+
+    /**
+     * Chrome only knows the fonts it is given: a registered font named in the
+     * page's CSS (font-family: 'naskh') gets its @font-face, as mPDF would find it.
+     */
+    private function withNamedFonts(string $html, string $documentFont): string
+    {
+        $named = array_filter(array_keys($this->fonts->all()), fn (string $name) => $name !== strtolower($documentFont)
+            && ! str_contains($html, "@font-face{font-family:'{$name}'")
+            && preg_match('/font-family\s*:[^;}<>]*?\b'.preg_quote($name, '/').'\b/i', $html) === 1);
+
+        if ($named === []) {
+            return $html;
+        }
+
+        return preg_replace('/<\/head>/i', '<style>'.addcslashes($this->fonts->cssFontFaces($named), '\\$').'</style></head>', $html, 1) ?? $html;
     }
 
     private function wrapHtml(string $html, array $data): string
