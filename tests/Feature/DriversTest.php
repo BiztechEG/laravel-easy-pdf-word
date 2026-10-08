@@ -156,6 +156,26 @@ class DriversTest extends TestCase
         }
     }
 
+    public function test_mpdf_keeps_the_right_and_left_margins_in_arabic_documents(): void
+    {
+        if (! is_executable('/usr/bin/pdftotext')) {
+            $this->markTestSkipped('pdftotext is not installed.');
+        }
+
+        foreach (['ar' => 'كلمة عربية ', 'en' => 'word text '] as $locale => $words) {
+            $file = tempnam(sys_get_temp_dir(), 'pdf');
+            file_put_contents($file, Doc::html('<p>'.str_repeat($words, 80).'</p>')->locale($locale)->margins(10, 10, 10, 50)->pdf()->content());
+            preg_match_all('/xMin="([\d.]+)" yMin="[\d.]+" xMax="([\d.]+)"/', (string) shell_exec('/usr/bin/pdftotext -bbox '.escapeshellarg($file).' -'), $x);
+            @unlink($file);
+
+            // Lines start at the margin of their side: 10 mm from the right of
+            // an A4 page (566.9 pt) in Arabic, 50 mm from the left (141.7 pt) in English.
+            $locale === 'ar'
+                ? $this->assertEqualsWithDelta(566.9, max(array_map('floatval', $x[2])), 2)
+                : $this->assertEqualsWithDelta(141.7, min(array_map('floatval', $x[1])), 2);
+        }
+    }
+
     public function test_a_paper_size_in_mm_needs_two_positive_numbers(): void
     {
         $this->expectException(\InvalidArgumentException::class);
