@@ -40,6 +40,14 @@ class DocumentTest extends TestCase
         $this->assertStringContainsString('١,٢٥٠.٥٠', $html('tajawal'));
     }
 
+    public function test_label_placeholders_that_share_a_prefix_are_replaced_whole(): void
+    {
+        $doc = new \BiztechEG\EasyPdfWord\Support\DocContext('ar', 'rtl', 'cairo', [], 'latin', '', translations: ['page' => 'صفحة :page من :pages']);
+
+        $this->assertSame('صفحة 3 من 5', $doc->t('page', ['page' => 3, 'pages' => 5]));
+        $this->assertSame('صفحة 3 من 5', $doc->t('page', ['pages' => 5, 'page' => 3]));
+    }
+
     public function test_formatted_numbers_are_read_whole(): void
     {
         $doc = new \BiztechEG\EasyPdfWord\Support\DocContext('en', 'ltr', 'cairo', [], 'latin', '');

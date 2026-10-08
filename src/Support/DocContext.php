@@ -55,11 +55,8 @@ class DocContext
     {
         $line = Arr::get($this->translations, $key) ?? Arr::get($this->fallbackTranslations, $key) ?? $key;
 
-        foreach ($replace as $name => $value) {
-            $line = str_replace(':'.$name, (string) $value, $line);
-        }
-
-        return $line;
+        // strtr() tries the longest name first, so :page does not eat the start of :pages.
+        return strtr($line, collect($replace)->mapWithKeys(fn ($value, $name) => [':'.$name => (string) $value])->all());
     }
 
     /** All labels for the document's language, falling back to English. */
