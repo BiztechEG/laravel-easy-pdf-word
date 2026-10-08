@@ -31,14 +31,7 @@
         "php": "^8.2",
         "ext-mbstring": "*",
         "ext-gd": "*",
-        "illuminate/support": "^12.0|^13.0",
-        "illuminate/view": "^12.0|^13.0",
-        "illuminate/console": "^12.0|^13.0",
-        "illuminate/filesystem": "^12.0|^13.0",
-        "illuminate/http": "^12.0|^13.0",
-        "illuminate/validation": "^12.0|^13.0",
-        "illuminate/bus": "^12.0|^13.0",
-        "illuminate/queue": "^12.0|^13.0",
+        "laravel/framework": "^12.0|^13.0",
         "chillerlan/php-qrcode": "^5.0"
     },
     "require-dev": {
@@ -54,6 +47,11 @@
         "phpoffice/phpword": "Word (.docx) output: Arabic right-to-left documents and Word-designed templates.",
         "ext-intl": "Required for Hijri dates and locale-aware number formatting.",
         "ext-zip": "Required for Doc::zip()."
+    },
+    "conflict": {
+        "mpdf/mpdf": "<8.2",
+        "phpoffice/phpword": "<1.4",
+        "spatie/browsershot": "<5.4"
     },
     "autoload": {
         "psr-4": {
