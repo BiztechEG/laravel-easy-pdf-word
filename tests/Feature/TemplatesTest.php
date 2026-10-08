@@ -480,6 +480,29 @@ class TemplatesTest extends TestCase
         $this->assertStringContainsString('Clause 2: Price', $html);
     }
 
+    public function test_docx_templates_fill_rows_whatever_their_keys(): void
+    {
+        $dir = config('easy-pdf-word.templates.paths')[0].'/rows';
+        (new \Illuminate\Filesystem\Filesystem)->deleteDirectory($dir);
+        mkdir($dir, 0775, true);
+        $word = new \PhpOffice\PhpWord\PhpWord;
+        $table = $word->addSection()->addTable();
+        $table->addRow();
+        $table->addCell(800)->addText('${items.row_number}');
+        $table->addCell(4000)->addText('${items.name}');
+        \PhpOffice\PhpWord\IOFactory::createWriter($word, 'Word2007')->save($dir.'/word.docx');
+
+        try {
+            $xml = $this->zipEntry(Doc::template('rows', ['items' => [3 => ['name' => 'first'], 7 => ['name' => 'second']]])->word()->content(), 'word/document.xml');
+        } finally {
+            (new \Illuminate\Filesystem\Filesystem)->deleteDirectory($dir);
+        }
+
+        $this->assertStringContainsString('first', $xml);
+        $this->assertStringContainsString('second', $xml);
+        $this->assertStringContainsString('<w:t xml:space="preserve">2</w:t>', $xml);
+    }
+
     private function zipEntry(string $docx, string $entry): string
     {
         $file = tempnam(sys_get_temp_dir(), 'docx-test');
