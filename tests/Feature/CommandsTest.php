@@ -58,13 +58,24 @@ class CommandsTest extends TestCase
 
     public function test_make_a_new_template(): void
     {
-        $this->artisan('doc:make-template', ['name' => 'delivery-note'])->assertSuccessful();
+        $this->artisan('doc:make-template', ['name' => 'packing-list'])
+            ->doesntExpectOutputToContain('replaces the bundled')
+            ->assertSuccessful();
 
-        $pdf = Doc::template('delivery-note', ['title' => 'إذن تسليم'])->locale('ar')->pdf();
+        $pdf = Doc::template('packing-list', ['title' => 'قائمة التعبئة'])->locale('ar')->pdf();
 
         $this->assertStringStartsWith('%PDF', $pdf->content());
-        $this->assertStringStartsWith('PK', Doc::template('delivery-note', ['title' => 'إذن تسليم'])->locale('ar')->word()->content());
-        $this->artisan('doc:make-template', ['name' => 'delivery-note'])->assertFailed();
+        $this->assertStringStartsWith('PK', Doc::template('packing-list', ['title' => 'قائمة التعبئة'])->locale('ar')->word()->content());
+        $this->artisan('doc:make-template', ['name' => 'packing-list'])->assertFailed();
+    }
+
+    public function test_a_new_template_named_like_a_bundled_one_warns_that_it_replaces_it(): void
+    {
+        $this->artisan('doc:make-template', ['name' => 'delivery-note'])
+            ->expectsOutputToContain('replaces the bundled [delivery-note] template')
+            ->assertSuccessful();
+
+        $this->assertFalse(Doc::templates()->isBundled('delivery-note'));
     }
 
     public function test_template_names_cannot_leave_the_templates_folder(): void
