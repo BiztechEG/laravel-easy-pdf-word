@@ -9,6 +9,7 @@ use BiztechEG\EasyPdfWord\Builder\HtmlRenderer;
 use BiztechEG\EasyPdfWord\Contracts\PdfDriver;
 use BiztechEG\EasyPdfWord\Exceptions\WordNotSupported;
 use BiztechEG\EasyPdfWord\Fonts\FontRegistry;
+use BiztechEG\EasyPdfWord\Jobs\SaveDocument;
 use BiztechEG\EasyPdfWord\Pdf\PdfManager;
 use BiztechEG\EasyPdfWord\Pdf\PdfOptions;
 use BiztechEG\EasyPdfWord\Support\Color;
@@ -24,6 +25,7 @@ use BadMethodCallException;
 use Illuminate\Contracts\Config\Repository as Config;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\View\Factory as ViewFactory;
+use Illuminate\Foundation\Bus\PendingDispatch;
 use Illuminate\Support\Facades\Validator;
 use InvalidArgumentException;
 use LogicException;
@@ -82,6 +84,9 @@ class PendingDocument
     public const PERMISSIONS = ['print', 'print-highres', 'copy', 'modify', 'annot-forms', 'fill-forms', 'extract', 'assemble'];
 
     private const THEME_COLORS = ['primary' => '#0F766E', 'text' => '#1F2937', 'muted' => '#6B7280', 'border' => '#E5E7EB'];
+
+    /** Properties a queued job does not carry: services, the source and caches. */
+    private const NOT_QUEUED = ['pdf', 'fonts', 'views', 'config', 'template', 'view', 'html', 'builder', 'prepared', 'fake'];
 
     /** Validated and prepared template data, kept until the data or theme changes. */
     private ?array $prepared = null;
@@ -343,9 +348,7 @@ class PendingDocument
      */
     public function word(?string $filename = null): WordDocument
     {
-        if ($this->builder === null && ($this->template === null || ! $this->template->supportsWord())) {
-            throw $this->template ? WordNotSupported::forTemplate($this->template->name) : WordNotSupported::forSource();
-        }
+        $this->ensureWordSupported();
 
         // A file the caller believes is locked must not go out open.
         if ($this->protection !== null) {
@@ -365,6 +368,79 @@ class PendingDocument
         }
 
         return new WordDocument(fn () => $document->renderWord(), $filename);
+    }
+
+    /**
+     * Render and save the file on a queue worker instead of now. The format
+     * comes from the extension: ".pdf" or ".docx". Returns Laravel's
+     * PendingDispatch, so ->onQueue(), ->delay() and ->chain() work.
+     *
+     *   Doc::template('invoice', $data)->locale('ar')->queue('invoices/1024.pdf', 's3')->onQueue('documents');
+     */
+    public function queue(string $path, ?string $disk = null): PendingDispatch
+    {
+        $format = match (strtolower(pathinfo($path, PATHINFO_EXTENSION))) {
+            'pdf' => 'pdf',
+            'docx' => 'word',
+            default => throw new InvalidArgumentException('Cannot tell the format of ['.mb_substr($path, -60).']: end the path with ".pdf" or ".docx".'),
+        };
+
+        // Invalid data, or a template without a Word layout, fails now rather than on the worker.
+        if ($format === 'word') {
+            $this->ensureWordSupported();
+        }
+
+        $this->templateData();
+
+        return new PendingDispatch(new SaveDocument($this->toQueue(), $format, $path, $disk));
+    }
+
+    /**
+     * @internal What SaveDocument needs to build this document again on a worker.
+     */
+    public function toQueue(): array
+    {
+        $settings = array_diff_key(get_object_vars($this), array_flip(self::NOT_QUEUED));
+
+        // Template data ends up as arrays anyway; models and collections are not stored whole.
+        if ($this->template !== null) {
+            $settings['data'] = $this->toArrays($this->data);
+        }
+
+        return [
+            'template' => $this->template?->name,
+            'view' => $this->view,
+            'html' => $this->html,
+            'builder' => $this->builder ? clone $this->builder : null,
+            'settings' => $settings,
+        ];
+    }
+
+    /**
+     * @internal Build a document from toQueue(). Through the factory, so a
+     * worker running under Doc::fake() records the file.
+     */
+    public static function fromQueue(array $queued, DocFactory $factory): self
+    {
+        $document = match (true) {
+            isset($queued['template']) => $factory->template($queued['template']),
+            isset($queued['view']) => $factory->view($queued['view']),
+            isset($queued['builder']) => $factory->make(),
+            default => $factory->html((string) ($queued['html'] ?? '')),
+        };
+
+        if (isset($queued['builder'])) {
+            $document->builder = $queued['builder'];
+        }
+
+        // Settings this version does not know (queued by another version) are skipped.
+        foreach ($queued['settings'] ?? [] as $key => $value) {
+            if (property_exists($document, $key) && ! in_array($key, self::NOT_QUEUED, true)) {
+                $document->{$key} = $value;
+            }
+        }
+
+        return $document;
     }
 
     /**
@@ -455,6 +531,13 @@ class PendingDocument
         $this->builder->{$method}(...$arguments);
 
         return $this;
+    }
+
+    private function ensureWordSupported(): void
+    {
+        if ($this->builder === null && ($this->template === null || ! $this->template->supportsWord())) {
+            throw $this->template ? WordNotSupported::forTemplate($this->template->name) : WordNotSupported::forSource();
+        }
     }
 
     /** What Doc::fake() records for a ->pdf() or ->word() file. */

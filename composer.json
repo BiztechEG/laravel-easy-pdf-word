@@ -37,6 +37,8 @@
         "illuminate/filesystem": "^12.0|^13.0",
         "illuminate/http": "^12.0|^13.0",
         "illuminate/validation": "^12.0|^13.0",
+        "illuminate/bus": "^12.0|^13.0",
+        "illuminate/queue": "^12.0|^13.0",
         "chillerlan/php-qrcode": "^5.0"
     },
     "require-dev": {
@@ -50,7 +52,8 @@
         "mpdf/mpdf": "Default PDF engine: pure PHP, native Arabic shaping and bidi (GPL-2.0).",
         "spatie/browsershot": "Chromium PDF engine via Puppeteer, highest rendering quality.",
         "phpoffice/phpword": "Word (.docx) output: Arabic right-to-left documents and Word-designed templates.",
-        "ext-intl": "Required for Hijri dates and locale-aware number formatting."
+        "ext-intl": "Required for Hijri dates and locale-aware number formatting.",
+        "ext-zip": "Required for Doc::zip()."
     },
     "autoload": {
         "psr-4": {
