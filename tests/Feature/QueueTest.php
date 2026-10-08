@@ -24,6 +24,8 @@ class QueueTest extends TestCase
 
         // As in a Laravel app's phpunit.xml: jobs run as soon as they are dispatched.
         $app['config']->set('queue.default', 'sync');
+        // The job is encrypted, and every Laravel app has a key.
+        $app['config']->set('app.key', 'base64:'.base64_encode(str_repeat('k', 32)));
     }
 
     private function invoice(): array
