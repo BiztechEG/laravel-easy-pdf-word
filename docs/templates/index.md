@@ -17,7 +17,7 @@ The package ships twelve ready-made templates, each in Arabic and English, as a 
   <a href="/templates/report"><img src="/previews/report-en.png" alt="Table report preview"><strong>Table report</strong><span>Any rows, totals, header on every page</span></a>
 </div>
 
-Each picture is the first page of the template's sample data in English. Click one to open its page, where the Arabic version is shown too.
+Each picture is the first page of the template's sample data in English, with a company name and logo set in the theme. Click one to open its page, where the Arabic version is shown too.
 
 ## All templates at a glance {#at-a-glance}
 
