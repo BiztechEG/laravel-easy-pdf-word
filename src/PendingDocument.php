@@ -172,8 +172,13 @@ class PendingDocument
         return $this;
     }
 
+    /** A font name from config "fonts": cairo, tajawal, naskh or one you registered. */
     public function font(string $font): static
     {
+        if (! preg_match('/^[A-Za-z0-9][A-Za-z0-9 _-]{0,63}\z/', $font)) {
+            throw new InvalidArgumentException('Invalid font name ['.substr($font, 0, 40).'].');
+        }
+
         $this->font = strtolower($font);
 
         return $this;

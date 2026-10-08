@@ -43,6 +43,15 @@ class SecurityTest extends TestCase
         }
     }
 
+    public function test_font_names_cannot_carry_markup_or_css(): void
+    {
+        $this->assertStringContainsString("font-family: 'naskh'", Doc::html('<p>x</p>')->font('naskh')->toHtml());
+
+        $this->expectException(InvalidArgumentException::class);
+
+        Doc::html('<p>x</p>')->font('cairo;"><script>alert(1)</script>');
+    }
+
     public function test_translations_are_only_read_for_language_codes(): void
     {
         $template = Doc::templates()->get('letter');
