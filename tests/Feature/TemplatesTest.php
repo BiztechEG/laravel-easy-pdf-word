@@ -460,6 +460,19 @@ class TemplatesTest extends TestCase
         $this->assertStringContainsString('<bdo dir="ltr">-250.50</bdo>', $html);
     }
 
+    public function test_report_totals_read_formatted_numbers_like_the_cells(): void
+    {
+        $html = Doc::template('report', [
+            'title' => 'Sales',
+            'columns' => [['key' => 'orders', 'label' => 'Orders', 'format' => 'number', 'decimals' => 0], ['key' => 'revenue', 'label' => 'Revenue', 'format' => 'money']],
+            'rows' => [['orders' => '1,240', 'revenue' => '486,500.75'], ['orders' => '٩٨٠', 'revenue' => '371,200.00']],
+            'sum' => ['orders', 'revenue'],
+        ])->locale('en')->toHtml();
+
+        $this->assertStringContainsString('2,220', $html);
+        $this->assertStringContainsString('857,700.75', $html);
+    }
+
     public function test_rows_are_numbered_from_one_whatever_their_keys(): void
     {
         // As left by ->filter()->all(): keys 0 and 2.
