@@ -26,6 +26,8 @@ class GeneratedDocument
 
     /**
      * @param  string  $format  "pdf" or "word"
+     * @param  string|null  $watermark  the PDF's watermark text
+     * @param  bool  $protected  whether the PDF has a password
      * @param  Closure(): array  $data
      * @param  Closure(): string  $html
      */
@@ -39,6 +41,8 @@ class GeneratedDocument
         public readonly ?string $driver,
         private Closure $data,
         private Closure $html,
+        public readonly ?string $watermark = null,
+        public readonly bool $protected = false,
     ) {}
 
     /** @internal */

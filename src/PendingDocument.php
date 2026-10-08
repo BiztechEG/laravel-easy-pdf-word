@@ -470,6 +470,8 @@ class PendingDocument
             driver: $this->driver,
             data: fn () => $this->templateData(),
             html: fn () => $this->toHtml(new FakePdfDriver, $options),
+            watermark: $format === 'pdf' ? $options->watermark['text'] ?? null : null,
+            protected: $format === 'pdf' && $options->protection !== null,
         );
     }
 

@@ -425,7 +425,7 @@ Doc::assertDownloaded('فاتورة-1024.pdf');
 | `assertDownloaded($name or fn)` | A file was sent as a download |
 | `assertStreamed($name or fn)` | A file was shown in the browser, or returned from a controller |
 
-Each `GeneratedDocument` has `format` (`pdf` or `word`), `template`, `view`, `locale`, `direction`, `numerals`, `driver`, `filename()`, `data($key)` with the prepared data, and for PDFs `html()` and `contains($text)`. With Arabic digits, `contains()` needs the text in Arabic digits too. `Doc::generated()` returns them all.
+Each `GeneratedDocument` has `format` (`pdf` or `word`), `template`, `view`, `locale`, `direction`, `numerals`, `driver`, `watermark`, `protected`, `filename()`, `data($key)` with the prepared data, and for PDFs `html()` and `contains($text)`. With Arabic digits, `contains()` needs the text in Arabic digits too. `Doc::generated()` returns them all.
 
 ## Running the package's tests
 
