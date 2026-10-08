@@ -71,6 +71,42 @@ class SecurityTest extends TestCase
         $this->assertNull($this->context(imagePaths: null)->image($source));
     }
 
+    public static function svgsThatReachOutside(): array
+    {
+        return [
+            'image link' => ['<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><image xlink:href="http://127.0.0.1/x.png" width="9" height="9"/></svg>'],
+            'local file' => ['<svg xmlns="http://www.w3.org/2000/svg"><image href="/etc/hosts"/></svg>'],
+            'css url' => ['<svg xmlns="http://www.w3.org/2000/svg"><rect style="fill: url(http://127.0.0.1/a)"/></svg>'],
+            'use another file' => ['<svg xmlns="http://www.w3.org/2000/svg"><use href="other.svg#a"/></svg>'],
+            'entity' => ['<!DOCTYPE svg [<!ENTITY x SYSTEM "file:///etc/passwd">]><svg xmlns="http://www.w3.org/2000/svg"><text>&x;</text></svg>'],
+        ];
+    }
+
+    #[DataProvider('svgsThatReachOutside')]
+    public function test_svgs_that_point_outside_themselves_are_refused(string $svg): void
+    {
+        $doc = $this->context(imagePaths: [sys_get_temp_dir()]);
+        $file = sys_get_temp_dir().'/easy-pdf-word-test.svg';
+        file_put_contents($file, $svg);
+
+        try {
+            $this->assertNull($doc->image('data:image/svg+xml;base64,'.base64_encode($svg)));
+            $this->assertNull($doc->image('data:image/svg+xml;utf8,'.$svg));
+            $this->assertNull($doc->image('data:image/svg+xml,'.rawurlencode($svg)));
+            $this->assertNull($doc->image($file));
+        } finally {
+            @unlink($file);
+        }
+    }
+
+    public function test_self_contained_svgs_are_kept(): void
+    {
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><linearGradient id="g"/></defs>'
+            .'<rect id="r" width="9" height="9" fill="url(#g)"/><use xlink:href="#r" x="10"/></svg>';
+
+        $this->assertNotNull($this->context()->image('data:image/svg+xml;base64,'.base64_encode($svg)));
+    }
+
     public function test_image_urls_are_ignored_unless_allowed(): void
     {
         $this->assertNull($this->context()->image('https://example.com/logo.png'));
