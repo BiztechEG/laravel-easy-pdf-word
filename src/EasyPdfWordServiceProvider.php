@@ -6,6 +6,7 @@ use BiztechEG\EasyPdfWord\Arabic\Tafqeet;
 use BiztechEG\EasyPdfWord\Console\CopyTemplateCommand;
 use BiztechEG\EasyPdfWord\Console\ListTemplatesCommand;
 use BiztechEG\EasyPdfWord\Console\MakeTemplateCommand;
+use BiztechEG\EasyPdfWord\Console\SampleCommand;
 use BiztechEG\EasyPdfWord\Fonts\FontRegistry;
 use BiztechEG\EasyPdfWord\Pdf\PdfManager;
 use BiztechEG\EasyPdfWord\Templates\TemplateRegistry;
@@ -56,6 +57,7 @@ class EasyPdfWordServiceProvider extends ServiceProvider
                 ListTemplatesCommand::class,
                 CopyTemplateCommand::class,
                 MakeTemplateCommand::class,
+                SampleCommand::class,
             ]);
         }
     }
