@@ -271,6 +271,28 @@ class WordTest extends TestCase
         $this->assertStringNotContainsString('data:image', $xml);
     }
 
+    public function test_a_failed_docx_fill_leaves_no_temp_files(): void
+    {
+        $this->makeDocxTemplate('quote');
+        $before = glob(sys_get_temp_dir().'/PhpWord*');
+
+        $template = Doc::templates()->get('quote');
+        $filler = new \BiztechEG\EasyPdfWord\Word\DocxTemplateFiller;
+        $doc = new \BiztechEG\EasyPdfWord\Support\DocContext('ar', 'rtl', 'cairo', [], 'latin', '');
+
+        try {
+            // A QR code cannot hold this much text.
+            $filler->fill($template->wordFile(), ['qr' => str_repeat('x', 5000), 'items' => [['description' => 'x']]], $doc);
+        } catch (\Throwable) {
+        }
+
+        try {
+            $filler->fill($template->wordFile(), ['items' => [['description' => 'x']]], $doc);
+        } finally {
+            $this->assertSame($before, glob(sys_get_temp_dir().'/PhpWord*'));
+        }
+    }
+
     public function test_templates_without_a_word_layout_explain_what_is_missing(): void
     {
         mkdir($this->templates.'/pdf-only', 0775, true);
