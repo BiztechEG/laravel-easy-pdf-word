@@ -21,7 +21,15 @@ class CopyTemplateCommand extends Command
     public function handle(TemplateRegistry $templates, Filesystem $files): int
     {
         $source = $templates->get($this->argument('name'));
-        $target = $this->targetPath($this->option('as') ?: $source->name);
+        $name = $this->option('as') ?: $source->name;
+
+        if (! TemplateRegistry::isValidName($name)) {
+            $this->components->error('Use letters, digits, dots, dashes or underscores for the template name.');
+
+            return self::FAILURE;
+        }
+
+        $target = $this->targetPath($name);
 
         if ($files->isDirectory($target) && ! $this->option('force')) {
             $this->components->error("{$target} already exists. Use --force to overwrite it.");

@@ -66,4 +66,11 @@ class CommandsTest extends TestCase
         $this->assertStringStartsWith('PK', Doc::template('delivery-note', ['title' => 'إذن تسليم'])->locale('ar')->word()->content());
         $this->artisan('doc:make-template', ['name' => 'delivery-note'])->assertFailed();
     }
+
+    public function test_template_names_cannot_leave_the_templates_folder(): void
+    {
+        $this->artisan('doc:template', ['name' => 'invoice', '--as' => '../escaped'])->assertFailed();
+        $this->artisan('doc:make-template', ['name' => '..'])->assertFailed();
+        $this->assertFalse(Doc::templates()->exists('..'));
+    }
 }
