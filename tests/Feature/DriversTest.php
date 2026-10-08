@@ -133,6 +133,37 @@ class DriversTest extends TestCase
         Doc::html('<p>x</p>')->paper('B6');
     }
 
+    public function test_paper_sizes_in_mm_and_with_a_suffix_work_everywhere(): void
+    {
+        $this->assertSame([100.0, 150.0], Doc::html('<p>x</p>')->paper([100, 150])->options()->paperSize());
+
+        config(['easy-pdf-word.pdf.paper' => 'A5-L']);
+        $this->assertSame([210, 148], Doc::html('<p>x</p>')->options()->paperSize());
+
+        $dir = sys_get_temp_dir().'/easy-pdf-word-tests/templates/label';
+        @mkdir($dir, 0775, true);
+        file_put_contents($dir.'/template.php', "<?php return ['title' => 'Label', 'paper' => [80, 200], 'fields' => []];");
+        file_put_contents($dir.'/pdf.blade.php', '<p>label</p>');
+
+        try {
+            $document = Doc::template('label', []);
+
+            $this->assertSame([80.0, 200.0], $document->options()->paperSize());
+            $this->assertSame([200.0, 80.0], $document->landscape()->options()->paperSize());
+            $this->assertStringStartsWith('%PDF', $document->pdf()->content());
+        } finally {
+            (new \Illuminate\Filesystem\Filesystem)->deleteDirectory($dir);
+        }
+    }
+
+    public function test_a_paper_size_in_mm_needs_two_positive_numbers(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('[width, height] in mm');
+
+        Doc::html('<p>x</p>')->paper([100]);
+    }
+
     public function test_template_errors_are_not_hidden_by_the_fallback(): void
     {
         Doc::extend('fake', fn () => new FakeDriver);

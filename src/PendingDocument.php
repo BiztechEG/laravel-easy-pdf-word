@@ -60,7 +60,8 @@ class PendingDocument
 
     private ?string $font = null;
 
-    private ?string $paper = null;
+    /** @var string|array{0: float, 1: float}|null */
+    private string|array|null $paper = null;
 
     private ?string $orientation = null;
 
@@ -203,24 +204,49 @@ class PendingDocument
         return $this;
     }
 
-    public function paper(string $paper, ?string $orientation = null): static
+    /**
+     * @param  string|array{0: float, 1: float}  $paper  "A4", "A4-L" (landscape) or [width, height] in mm
+     */
+    public function paper(string|array $paper, ?string $orientation = null): static
     {
+        [$this->paper, $suffix] = self::splitPaper($paper);
+
+        if ($orientation ??= $suffix) {
+            $this->orientation = $orientation;
+        }
+
+        return $this;
+    }
+
+    /**
+     * A paper name or size checked, and the orientation an "-L" or "-P" suffix asks for.
+     *
+     * @return array{0: string|array{0: float, 1: float}, 1: ?string}
+     */
+    private static function splitPaper(string|array $paper): array
+    {
+        if (is_array($paper)) {
+            $size = array_values($paper);
+
+            if (count($size) !== 2 || ! is_numeric($size[0]) || ! is_numeric($size[1]) || $size[0] <= 0 || $size[1] <= 0) {
+                throw new InvalidArgumentException('A paper size must be [width, height] in mm, for example [100, 150].');
+            }
+
+            return [[(float) $size[0], (float) $size[1]], null];
+        }
+
+        $orientation = null;
+
         // "A4-L" as mPDF writes it: A4, landscape.
         if (preg_match('/^(.+)-([LP])$/i', $paper, $match)) {
-            [$paper, $orientation] = [$match[1], $orientation ?? (strtoupper($match[2]) === 'L' ? 'landscape' : 'portrait')];
+            [$paper, $orientation] = [$match[1], strtoupper($match[2]) === 'L' ? 'landscape' : 'portrait'];
         }
 
         if (! isset(PdfOptions::PAPER_SIZES[strtoupper($paper)])) {
             throw PdfOptions::unknownPaper($paper);
         }
 
-        $this->paper = $paper;
-
-        if ($orientation) {
-            $this->orientation = $orientation;
-        }
-
-        return $this;
+        return [$paper, $orientation];
     }
 
     public function landscape(): static
@@ -502,9 +528,12 @@ class PendingDocument
             return $this->views->file($view, ['doc' => $context] + $data)->render();
         };
 
+        // The template's paper wins over the config's, and its own orientation over a suffix like "-L".
+        [$templatePaper, $templateSuffix] = self::splitPaper($this->template?->paper() ?? $config['pdf']['paper'] ?? 'A4');
+
         return new PdfOptions(
-            paper: $this->paper ?? $this->template?->paper() ?? $config['pdf']['paper'] ?? 'A4',
-            orientation: $this->orientation ?? $this->template?->orientation() ?? $config['pdf']['orientation'] ?? 'portrait',
+            paper: $this->paper ?? $templatePaper,
+            orientation: $this->orientation ?? $this->template?->orientation() ?? $templateSuffix ?? $config['pdf']['orientation'] ?? 'portrait',
             margins: self::expandMargins($this->margins ?? $this->template?->margins() ?? $config['pdf']['margins'] ?? [15, 15, 15, 15]),
             direction: $direction,
             locale: $locale,
