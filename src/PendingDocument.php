@@ -277,8 +277,8 @@ class PendingDocument
 
         $html = match (true) {
             $this->builder !== null => $this->wrapHtml((new HtmlRenderer)->render($this->builder, $context), $data),
-            $this->template !== null && ! $this->template->hasPdfView() && $this->template->supportsWord()
-                => $this->wrapHtml((new HtmlRenderer)->render($this->wordLayout($data, $context), $context), $data),
+            $this->template !== null && ! $this->template->hasPdfView() && $this->template->supportsPdf()
+                => $this->wrapHtml((new HtmlRenderer)->render($this->runLayout($this->template->pdfLayout(), $data, $context), $context), $data),
             $this->template !== null => $this->views->file($this->template->pdfView(), $data)->render(),
             $this->view !== null => $this->views->make($this->view, $data)->render(),
             default => $this->wrapHtml((string) $this->html, $data),
@@ -350,17 +350,17 @@ class PendingDocument
             return [(new DocxTemplateFiller)->fill($file, $data, $context), 'docx-template'];
         }
 
-        $builder = $this->builder ?? $this->wordLayout($data, $context);
+        $builder = $this->builder ?? $this->runLayout($this->template->wordLayout(), $data, $context);
         $renderer = new WordRenderer((array) $this->config->get('easy-pdf-word.word', []));
 
         return [$renderer->render($builder, $context, $options), 'phpword'];
     }
 
-    /** Run the template's word.php layout. */
-    private function wordLayout(array $data, DocContext $context): DocumentBuilder
+    /** Run a template's layout.php or word.php. */
+    private function runLayout(callable $layout, array $data, DocContext $context): DocumentBuilder
     {
         $builder = new DocumentBuilder;
-        ($this->template->wordLayout())($builder, $data, $context);
+        $layout($builder, $data, $context);
 
         return $builder;
     }
