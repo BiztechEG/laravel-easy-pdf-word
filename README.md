@@ -123,6 +123,45 @@ return (new MailMessage)
 
 The file is rendered when the mail is built. For a queued mail, make the file inside `attachments()` or `toMail()` as above, not in the constructor: a file waiting to be rendered cannot be serialized onto the queue.
 
+### ZIP files
+
+`Doc::zip()` puts several files in one archive, which has the same `download`, `stream`, `save` and `content` methods and can be attached to mail:
+
+```php
+$invoice = Doc::template('invoice', $data)->locale('ar');
+
+return Doc::zip([
+    $invoice->pdf('فاتورة-1024.pdf'),
+    $invoice->word('فاتورة-1024.docx'),
+    'receipt.pdf' => Doc::template('receipt', $receipt)->pdf(),
+], 'order-1024.zip')->download();
+```
+
+Each file keeps its own name unless a key gives another. A name used twice becomes `name (2).pdf`. ZIP files need the PHP `zip` extension.
+
+### Queued saving
+
+A worker can render and save the file instead of the request:
+
+```php
+Doc::template('invoice', $data)->locale('ar')->queue('invoices/1024.pdf', disk: 's3');
+
+Doc::make()->heading('تقرير المبيعات')->table($rows)->locale('ar')
+    ->queue('reports/sales.docx', disk: 's3')
+    ->onQueue('documents')
+    ->chain([new SendReportReady($user)]);
+```
+
+The extension picks the format: `.pdf` or `.docx`. `->queue()` returns Laravel's pending dispatch, so `->onQueue()`, `->onConnection()`, `->delay()` and `->chain()` work. Template data is validated before anything is queued, so a mistake shows up in the request, not as a failed job.
+
+The job, `BiztechEG\EasyPdfWord\Jobs\SaveDocument`, carries the document's settings and data, and Laravel encrypts it with the app key. Template data is stored as plain arrays; data for your own Blade views is serialized as it is, so it cannot hold closures. A worker on another server saves to its own local disk, so use a shared disk such as `s3` there.
+
+In tests, the `sync` queue runs the job at once and `Doc::fake()` records the save, so `Doc::assertSaved('invoices/1024.pdf', disk: 's3')` works. Under `Queue::fake()`, check the job instead:
+
+```php
+Queue::assertPushed(SaveDocument::class, fn (SaveDocument $job) => $job->path === 'invoices/1024.pdf' && $job->disk === 's3');
+```
+
 ### Page settings
 
 ```php
@@ -518,6 +557,24 @@ public function attachments(): array
     return [Doc::template('invoice', $this->data)->locale('ar')->pdf('فاتورة-1024.pdf')];
 }
 ```
+
+### ملفات ZIP
+
+```php
+$invoice = Doc::template('invoice', $data)->locale('ar');
+
+return Doc::zip([$invoice->pdf('فاتورة-1024.pdf'), $invoice->word('فاتورة-1024.docx')], 'طلب-1024.zip')->download();
+```
+
+ملف الـ ZIP ليه نفس `download` و `save` و `content`، وينفع يترفق في إيميل. محتاج إضافة `zip` في PHP.
+
+### التوليد في الـ queue
+
+```php
+Doc::template('invoice', $data)->locale('ar')->queue('invoices/1024.pdf', disk: 's3')->onQueue('documents');
+```
+
+الملف بيتولّد ويتحفظ في الـ worker بدل الـ request. الامتداد هو اللي بيحدد النوع (`.pdf` أو `.docx`). بيانات القالب بتتراجع قبل ما الـ job يتبعت، فالغلط بيظهر في الـ request نفسه، والـ job بيتشفّر بالـ APP_KEY. لو الـ worker على سيرفر تاني استخدم disk مشترك زي `s3`.
 
 ### الاختبارات في مشروعك
 
