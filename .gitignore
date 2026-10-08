@@ -5,3 +5,6 @@ composer.lock
 /tests/output/
 /build/
 .DS_Store
+/node_modules/
+package-lock.json
+package.json
