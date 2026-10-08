@@ -110,6 +110,9 @@ class DocumentTest extends TestCase
         $this->assertSame('application/pdf', $download->headers->get('Content-Type'));
         $this->assertStringContainsString('attachment', $download->headers->get('Content-Disposition'));
         $this->assertStringContainsString("filename*=utf-8''", $download->headers->get('Content-Disposition'));
+        $this->assertStringContainsString('filename=fator-1024.pdf', $download->headers->get('Content-Disposition'));
+        $this->assertStringContainsString('filename=2026.pdf', $pdf->download('٢٠٢٦.pdf')->headers->get('Content-Disposition'));
+        $this->assertStringContainsString('filename=document.pdf', $pdf->download('📄.pdf')->headers->get('Content-Disposition'));
 
         $this->assertStringContainsString('inline', $pdf->stream('invoice')->headers->get('Content-Disposition'));
     }

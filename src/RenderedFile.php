@@ -8,6 +8,7 @@ use Illuminate\Contracts\Mail\Attachable;
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Mail\Attachment;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\Response;
@@ -138,8 +139,13 @@ abstract class RenderedFile implements Attachable, Responsable
     {
         $filename = $this->cleanFilename($filename ?? $this->filename);
         $this->fake?->recordResponse($filename, $disposition);
-        // "%" is not allowed in the ASCII fallback name.
-        $fallback = preg_replace('/[^\x20-\x24\x26-\x7E]/', '_', $filename);
+        // Browsers use the UTF-8 name; old clients get it in Latin letters, like
+        // Laravel's own downloads ("%" is not allowed in this fallback name).
+        $fallback = preg_replace('/[^\x20-\x24\x26-\x7E]/', '_', Str::ascii($filename));
+
+        if (trim(pathinfo($fallback, PATHINFO_FILENAME), ' _-.') === '') {
+            $fallback = 'document'.(pathinfo($filename, PATHINFO_EXTENSION) !== '' ? '.'.pathinfo($filename, PATHINFO_EXTENSION) : '');
+        }
 
         return new Response($this->content(), 200, [
             'Content-Type' => $this->mimeType(),
