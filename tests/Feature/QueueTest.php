@@ -118,6 +118,22 @@ class QueueTest extends TestCase
             && $doc->data('number') === 'R-77');
     }
 
+    public function test_the_request_locale_reaches_the_worker(): void
+    {
+        Queue::fake()->serializeAndRestore();
+        Doc::fake();
+
+        // Set by a middleware for this request, not with ->locale().
+        app()->setLocale('ar');
+        Doc::template('receipt', Doc::templates()->get('receipt')->sample())->queue('receipts/77.pdf');
+
+        // The worker runs with the app's default locale.
+        app()->setLocale('en');
+        Queue::pushedJobs()[SaveDocument::class][0]['job']->handle(app(\BiztechEG\EasyPdfWord\DocFactory::class));
+
+        Doc::assertSaved(fn (GeneratedDocument $doc) => $doc->locale === 'ar' && $doc->direction === 'rtl');
+    }
+
     public function test_html_and_blocks_reach_the_worker(): void
     {
         Doc::fake();

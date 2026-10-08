@@ -232,6 +232,18 @@ class WordTest extends TestCase
         $this->assertStringNotContainsString('${', $xml);
     }
 
+    public function test_docx_amounts_keep_the_decimals_of_their_currency(): void
+    {
+        $this->makeDocxTemplate('quote');
+
+        $xml = $this->documentXml(Doc::template('quote', [
+            'currency' => 'KWD',
+            'items' => [['description' => 'x', 'price' => 10.125]],
+        ])->locale('ar')->word()->content());
+
+        $this->assertStringContainsString('10.125', $xml);
+    }
+
     public function test_values_cannot_add_placeholders_to_docx_templates(): void
     {
         $this->makeDocxTemplate('quote');
@@ -269,6 +281,87 @@ class WordTest extends TestCase
         ])->locale('ar')->word()->content());
 
         $this->assertStringNotContainsString('data:image', $xml);
+    }
+
+    public function test_a_failed_docx_fill_leaves_no_temp_files(): void
+    {
+        $this->makeDocxTemplate('quote');
+        $before = glob(sys_get_temp_dir().'/PhpWord*');
+
+        $template = Doc::templates()->get('quote');
+        $filler = new \BiztechEG\EasyPdfWord\Word\DocxTemplateFiller;
+        $doc = new \BiztechEG\EasyPdfWord\Support\DocContext('ar', 'rtl', 'cairo', [], 'latin', '');
+
+        try {
+            // A QR code cannot hold this much text.
+            $filler->fill($template->wordFile(), ['qr' => str_repeat('x', 5000), 'items' => [['description' => 'x']]], $doc);
+        } catch (\Throwable) {
+        }
+
+        try {
+            $filler->fill($template->wordFile(), ['items' => [['description' => 'x']]], $doc);
+        } finally {
+            $this->assertSame($before, glob(sys_get_temp_dir().'/PhpWord*'));
+        }
+    }
+
+    public function test_word_files_take_webp_and_bmp_images_and_leave_out_svg(): void
+    {
+        // Different sizes, so Word does not store them as one picture.
+        $encode = function (string $function, int $size): string {
+            ob_start();
+            $function(imagecreatetruecolor($size, $size));
+
+            return base64_encode(ob_get_clean());
+        };
+        $svg = 'data:image/svg+xml;base64,'.base64_encode('<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4"><rect width="4" height="4"/></svg>');
+
+        $docx = Doc::make()
+            ->image('data:image/webp;base64,'.$encode('imagewebp', 4))
+            ->image('data:image/bmp;base64,'.$encode('imagebmp', 5))
+            ->image($svg)
+            ->paragraph('x')
+            ->word()->content();
+
+        $this->assertCount(2, array_filter($this->zipNames($docx), fn ($name) => str_starts_with($name, 'word/media/')));
+
+        // An SVG logo in a bundled template, which the PDF shows.
+        $invoice = Doc::template('invoice', Doc::templates()->get('invoice')->sample())->theme(['logo' => $svg]);
+        $this->assertStringStartsWith('PK', $invoice->word()->content());
+        $this->assertStringStartsWith('%PDF', $invoice->pdf()->content());
+    }
+
+    public function test_docx_image_placeholders_word_cannot_show_stay_empty(): void
+    {
+        $this->makeDocxTemplate('quote');
+        $svg = 'data:image/svg+xml;base64,'.base64_encode('<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4"><rect width="4" height="4"/></svg>');
+        $file = sys_get_temp_dir().'/easy-pdf-word-tests/logo.svg';
+        file_put_contents($file, base64_decode(substr($svg, strpos($svg, ',') + 1)));
+        config(['easy-pdf-word.images.paths' => [dirname($file)]]);
+
+        $xml = $this->documentXml(Doc::template('quote', ['customer' => ['name' => $file]])->locale('ar')->word()->content());
+
+        $this->assertStringNotContainsString('logo.svg', $xml);
+    }
+
+    public function test_styles_in_a_footer_are_not_printed_in_word(): void
+    {
+        $docx = Doc::make()->paragraph('x')->footer('<style>.a{color:red}</style><p class="a">Page {page} of {pages}</p>')->word()->content();
+        $footer = $this->zipEntry($docx, 'word/footer1.xml');
+
+        $this->assertStringNotContainsString('color:red', $footer);
+        $this->assertStringContainsString('Page', $footer);
+    }
+
+    public function test_left_to_right_paragraphs_and_headings_in_the_pdf_too(): void
+    {
+        $html = Doc::make()
+            ->heading('INV-2026-1024', 2, ['ltr' => true])
+            ->paragraph('هاتف: +20 100 000 0000', ['ltr' => true])
+            ->locale('ar')->toHtml();
+
+        $this->assertStringContainsString('<bdo dir="ltr">INV-2026-1024</bdo>', $html);
+        $this->assertStringContainsString('<bdo dir="ltr">هاتف: +20 100 000 0000</bdo>', $html);
     }
 
     public function test_templates_without_a_word_layout_explain_what_is_missing(): void
@@ -369,6 +462,20 @@ class WordTest extends TestCase
         $table->addCell(4000)->addText('${items.description}');
         $table->addCell(2000)->addText('${items.price}');
         IOFactory::createWriter($word, 'Word2007')->save($dir.'/word.docx');
+    }
+
+    /** @return list<string> */
+    private function zipNames(string $docx): array
+    {
+        $file = tempnam(sys_get_temp_dir(), 'docx-test');
+        file_put_contents($file, $docx);
+        $zip = new ZipArchive;
+        $zip->open($file);
+        $names = array_map(fn ($i) => $zip->getNameIndex($i), range(0, $zip->numFiles - 1));
+        $zip->close();
+        @unlink($file);
+
+        return $names;
     }
 
     private function documentXml(string $docx): string

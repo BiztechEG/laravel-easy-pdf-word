@@ -205,6 +205,15 @@ class PendingDocument
 
     public function paper(string $paper, ?string $orientation = null): static
     {
+        // "A4-L" as mPDF writes it: A4, landscape.
+        if (preg_match('/^(.+)-([LP])$/i', $paper, $match)) {
+            [$paper, $orientation] = [$match[1], $orientation ?? (strtoupper($match[2]) === 'L' ? 'landscape' : 'portrait')];
+        }
+
+        if (! isset(PdfOptions::PAPER_SIZES[strtoupper($paper)])) {
+            throw PdfOptions::unknownPaper($paper);
+        }
+
         $this->paper = $paper;
 
         if ($orientation) {
@@ -397,6 +406,10 @@ class PendingDocument
     {
         $settings = array_diff_key(get_object_vars($this), array_flip(self::NOT_QUEUED));
 
+        // The locale a middleware set for this request is not the worker's.
+        $settings['locale'] = $this->resolvedLocale();
+        $settings['numerals'] = $this->resolvedNumerals();
+
         // Template data ends up as arrays anyway; models and collections are not stored whole.
         if ($this->template !== null) {
             $settings['data'] = $this->toArrays($this->data);
@@ -474,28 +487,30 @@ class PendingDocument
         $data = $this->templateData();
         $numerals = $this->resolvedNumerals();
 
-        $partial = function (?string $view) use ($data, $locale, $direction, $numerals) {
+        // Headers and footers, given or from the template, in the document's digits.
+        $digits = fn (?string $html) => $html !== null && $numerals === Numerals::ARABIC
+            ? Numerals::convertHtml($html, Numerals::ARABIC, $this->fonts->hasArabicSeparators($this->resolvedFont($direction)))
+            : $html;
+
+        $partial = function (?string $view) use ($data, $locale, $direction) {
             if ($view === null) {
                 return null;
             }
 
             $context = $this->context(new PdfOptions(locale: $locale, direction: $direction, font: $this->resolvedFont($direction)), null);
-            $html = $this->views->file($view, ['doc' => $context] + $data)->render();
 
-            return $numerals === Numerals::ARABIC
-                ? Numerals::convertHtml($html, Numerals::ARABIC, $this->fonts->hasArabicSeparators($this->resolvedFont($direction)))
-                : $html;
+            return $this->views->file($view, ['doc' => $context] + $data)->render();
         };
 
         return new PdfOptions(
             paper: $this->paper ?? $this->template?->paper() ?? $config['pdf']['paper'] ?? 'A4',
             orientation: $this->orientation ?? $this->template?->orientation() ?? $config['pdf']['orientation'] ?? 'portrait',
-            margins: $this->margins ?? $this->template?->margins() ?? $config['pdf']['margins'] ?? [15, 15, 15, 15],
+            margins: self::expandMargins($this->margins ?? $this->template?->margins() ?? $config['pdf']['margins'] ?? [15, 15, 15, 15]),
             direction: $direction,
             locale: $locale,
             font: $this->resolvedFont($direction),
-            header: $this->header ?? $partial($this->template?->headerView()),
-            footer: $this->footer ?? $partial($this->template?->footerView()),
+            header: $digits($this->header ?? $partial($this->template?->headerView())),
+            footer: $digits($this->footer ?? $partial($this->template?->footerView())),
             title: $this->title ?? $this->template?->title(),
             author: $this->resolvedTheme()['company']['name'] ?? null,
             numerals: $numerals,
@@ -504,6 +519,15 @@ class PendingDocument
             ] + $this->watermark,
             protection: $this->protection,
         );
+    }
+
+    /** [10, 20] in a config or template.php means what ->margins(10, 20) means. */
+    private static function expandMargins(array $margins): array
+    {
+        $margins = array_map('floatval', array_values($margins)) ?: [15.0];
+        [$top, $right, $bottom, $left] = $margins + [null, null, null, null];
+
+        return [$top, $right ?? $top, $bottom ?? $top, $left ?? $right ?? $top];
     }
 
     public function __clone()

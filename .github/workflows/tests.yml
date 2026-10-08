@@ -15,7 +15,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: ['8.2', '8.3', '8.4']
+        php: ['8.2', '8.3', '8.4', '8.5']
         laravel: ['12.*', '13.*']
         dependencies: ['highest']
         include:
@@ -47,13 +47,52 @@ jobs:
 
       - name: Install dependencies
         run: |
-          composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --dev --no-update --no-interaction
+          composer require "laravel/framework:${{ matrix.laravel }}" --no-update --no-interaction
+          composer require "orchestra/testbench:${{ matrix.testbench }}" --dev --no-update --no-interaction
           composer update --prefer-dist --no-interaction --no-progress ${{ matrix.dependencies == 'lowest' && '--prefer-lowest --prefer-stable' || '' }}
 
-      # The lowest versions are only there to prove they still work.
+      # The lowest versions are only there to prove they still work. The
+      # engines are dev dependencies here but run in every app, so they are
+      # audited too.
       - name: Check dependencies for security advisories
         if: matrix.dependencies != 'lowest'
-        run: composer audit --no-dev
+        run: composer audit
 
       - name: Run tests
         run: vendor/bin/phpunit
+
+  # The Chromium tests skip themselves without Chrome; here they must run.
+  chromium:
+    runs-on: ubuntu-latest
+
+    name: Chromium engine
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, gd, intl, zip
+          coverage: none
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Puppeteer and Poppler
+        run: |
+          npm install --global puppeteer
+          sudo apt-get update
+          sudo apt-get install -y poppler-utils
+        env:
+          # The runner already has Chrome.
+          PUPPETEER_SKIP_DOWNLOAD: 'true'
+
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-interaction --no-progress
+
+      - name: Run the Chromium tests
+        run: vendor/bin/phpunit tests/Feature/ChromiumTest.php --fail-on-skipped
+        env:
+          DOC_CHROME_PATH: /usr/bin/google-chrome

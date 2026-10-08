@@ -141,6 +141,15 @@ class TemplatesTest extends TestCase
         $this->assertStringStartsWith('https://invoicing.eta.gov.eg/documents/R6ZQ4SB1ZWP2XKCV2G0AYXHG10/share/', $prepared['qr']);
     }
 
+    public function test_egyptian_e_invoice_prints_the_eta_utc_time_in_the_app_time_zone(): void
+    {
+        config(['app.timezone' => 'Africa/Cairo']);
+        $data = Doc::templates()->get('eg-invoice')->sample();
+        $data['document']['issued_at'] = '2026-10-08T23:30:00Z';
+
+        $this->assertStringContainsString('2026/10/09 02:30', Doc::template('eg-invoice', $data)->locale('en')->toHtml());
+    }
+
     public function test_egyptian_e_invoice_tax_bases_follow_eta(): void
     {
         $line = fn (array $taxes, array $extra = []) => ['description' => 'x', 'quantity' => 1, 'unit_price' => 1000, 'taxes' => $taxes] + $extra;
@@ -376,6 +385,8 @@ class TemplatesTest extends TestCase
         $this->assertStringContainsString('بعدد ساعتين تدريبيتين', $hours(2));
         $this->assertStringContainsString('بعدد 5 ساعات تدريبية', $hours(5));
         $this->assertStringContainsString('بعدد 7.5 ساعة تدريبية', $hours(7.5));
+        $this->assertStringContainsString('بعدد 103 ساعات تدريبية', $hours(103));
+        $this->assertStringContainsString('بعدد 140 ساعة تدريبية', $hours(140));
         $this->assertStringContainsString('لإتمامه بنجاح', $hours(12));
 
         // A one-day event.
@@ -400,6 +411,14 @@ class TemplatesTest extends TestCase
 
         $this->expectException(ValidationException::class);
         Doc::template('certificate', $data)->toHtml();
+    }
+
+    public function test_receipt_signatures_print_custom_roles_as_written(): void
+    {
+        $html = Doc::template('receipt', ['signatures' => ['payer', 'الشاهد']] + Doc::templates()->get('receipt')->sample())->locale('ar')->toHtml();
+
+        $this->assertStringContainsString('الشاهد', $html);
+        $this->assertStringNotContainsString('signature_labels.', $html);
     }
 
     public function test_receipt_and_quotation_amounts_in_words(): void
@@ -427,6 +446,21 @@ class TemplatesTest extends TestCase
 
         $word = Doc::template('quotation', Doc::templates()->get('quotation')->sample())->locale('ar')->numerals('arabic')->word()->content();
         $this->assertStringContainsString("\u{202D}QT-٢٠٢٦-٠٠٨٨\u{202C}", $this->zipEntry($word, 'word/footer1.xml'));
+    }
+
+    public function test_a_discount_cannot_exceed_its_line(): void
+    {
+        foreach (['invoice' => 'items', 'quotation' => 'items', 'purchase-order' => 'items', 'credit-note' => 'items', 'eg-invoice' => 'lines'] as $name => $key) {
+            $data = Doc::templates()->get($name)->sample();
+            $data[$key] = [array_merge($data[$key][0], ['quantity' => 1, 'unit_price' => 100, 'discount' => 150])];
+
+            try {
+                Doc::template($name, $data)->toHtml();
+                $this->fail("{$name} accepted a discount larger than its line.");
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $this->assertArrayHasKey("{$key}.0.discount", $e->errors(), $name);
+            }
+        }
     }
 
     public function test_template_data_is_validated(): void
@@ -458,6 +492,70 @@ class TemplatesTest extends TestCase
 
         $this->assertStringContainsString('749.50', $html);
         $this->assertStringContainsString('<bdo dir="ltr">-250.50</bdo>', $html);
+    }
+
+    public function test_report_columns_without_a_label_show_their_key(): void
+    {
+        $data = ['title' => 'Sales', 'columns' => [['key' => 'branch'], ['key' => 'revenue', 'format' => 'number']], 'rows' => [['branch' => 'Cairo', 'revenue' => 10]]];
+
+        $this->assertStringContainsString('>branch</th>', Doc::template('report', $data)->locale('en')->toHtml());
+        $this->assertStringStartsWith('PK', Doc::template('report', $data)->locale('en')->word()->content());
+    }
+
+    public function test_report_totals_read_formatted_numbers_like_the_cells(): void
+    {
+        $html = Doc::template('report', [
+            'title' => 'Sales',
+            'columns' => [['key' => 'orders', 'label' => 'Orders', 'format' => 'number', 'decimals' => 0], ['key' => 'revenue', 'label' => 'Revenue', 'format' => 'money']],
+            'rows' => [['orders' => '1,240', 'revenue' => '486,500.75'], ['orders' => '٩٨٠', 'revenue' => '371,200.00']],
+            'sum' => ['orders', 'revenue'],
+        ])->locale('en')->toHtml();
+
+        $this->assertStringContainsString('2,220', $html);
+        $this->assertStringContainsString('857,700.75', $html);
+    }
+
+    public function test_rows_are_numbered_from_one_whatever_their_keys(): void
+    {
+        // As left by ->filter()->all(): keys 0 and 2.
+        foreach (['invoice' => 'items', 'quotation' => 'items', 'purchase-order' => 'items', 'credit-note' => 'items', 'delivery-note' => 'items', 'eg-invoice' => 'lines'] as $name => $key) {
+            $data = Doc::templates()->get($name)->sample();
+            $data[$key] = [0 => $data[$key][0], 2 => $data[$key][1] ?? $data[$key][0]];
+            $template = Doc::templates()->get($name);
+
+            $this->assertSame([0, 1], array_keys($template->prepare($data, ['company' => ['name' => 'X']])[$key]), $name);
+            $this->assertStringStartsWith('PK', Doc::template($name, $data)->locale('en')->word()->content(), $name);
+        }
+
+        $data = Doc::templates()->get('contract')->sample();
+        $data['clauses'] = [1 => ['title' => 'Subject', 'text' => 'One'], 'second' => ['title' => 'Price', 'text' => 'Two']];
+        $html = Doc::template('contract', $data)->locale('en')->toHtml();
+
+        $this->assertStringContainsString('Clause 1: Subject', $html);
+        $this->assertStringContainsString('Clause 2: Price', $html);
+    }
+
+    public function test_docx_templates_fill_rows_whatever_their_keys(): void
+    {
+        $dir = config('easy-pdf-word.templates.paths')[0].'/rows';
+        (new \Illuminate\Filesystem\Filesystem)->deleteDirectory($dir);
+        mkdir($dir, 0775, true);
+        $word = new \PhpOffice\PhpWord\PhpWord;
+        $table = $word->addSection()->addTable();
+        $table->addRow();
+        $table->addCell(800)->addText('${items.row_number}');
+        $table->addCell(4000)->addText('${items.name}');
+        \PhpOffice\PhpWord\IOFactory::createWriter($word, 'Word2007')->save($dir.'/word.docx');
+
+        try {
+            $xml = $this->zipEntry(Doc::template('rows', ['items' => [3 => ['name' => 'first'], 7 => ['name' => 'second']]])->word()->content(), 'word/document.xml');
+        } finally {
+            (new \Illuminate\Filesystem\Filesystem)->deleteDirectory($dir);
+        }
+
+        $this->assertStringContainsString('first', $xml);
+        $this->assertStringContainsString('second', $xml);
+        $this->assertStringContainsString('<w:t xml:space="preserve">2</w:t>', $xml);
     }
 
     private function zipEntry(string $docx, string $entry): string

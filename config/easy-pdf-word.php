@@ -59,7 +59,7 @@ return [
         'drivers' => [
 
             'mpdf' => [
-                'temp_dir' => null, // null = system temp dir
+                'temp_dir' => null, // null = a folder per system user in the system temp dir
                 'use_kashida' => 75,
                 // Pick fonts per script automatically, for documents that mix
                 // Arabic with Chinese, Hindi, etc. Ignores font-family in CSS.
@@ -69,6 +69,8 @@ return [
             'browsershot' => [
                 'node_binary' => env('DOC_NODE_BINARY'),
                 'npm_binary' => env('DOC_NPM_BINARY'),
+                // The global node_modules folder (npm root -g); found on every render when empty.
+                'node_modules_path' => env('DOC_NODE_MODULES_PATH'),
                 'chrome_path' => env('DOC_CHROME_PATH'),
                 'no_sandbox' => env('DOC_CHROME_NO_SANDBOX', false),
                 // Templates need no JavaScript; turn it on only for documents that draw with it (charts).
@@ -78,6 +80,8 @@ return [
 
             'gotenberg' => [
                 'url' => env('DOC_GOTENBERG_URL', 'http://localhost:3000'),
+                // Same as Browsershot: off unless documents draw with it (charts).
+                'javascript' => env('DOC_CHROME_JAVASCRIPT', false),
                 'timeout' => 60,
             ],
 

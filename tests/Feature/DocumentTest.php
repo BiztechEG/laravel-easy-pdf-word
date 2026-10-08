@@ -47,6 +47,11 @@ class DocumentTest extends TestCase
         $this->assertSame('1,250.50', $doc->numberText('1,250.5'));
         $this->assertSame('1,250.50', (string) $doc->number('١٬٢٥٠٫٥'));
         $this->assertSame('one thousand two hundred fifty EGP and 50/100 only', $doc->inWords('1,250.50', 'EGP'));
+        $this->assertSame('minus zero GBP and 50/100 only', $doc->inWords(-0.5, 'GBP'));
+        $this->assertSame('minus one GBP and 50/100 only', $doc->inWords(-1.5, 'GBP'));
+        $this->assertSame('فقط سالب صفر GBP و50/100 لا غير', $doc->tafqeet(-0.5, 'GBP'));
+        $this->assertSame('1500', $doc->rate('1,500'));
+        $this->assertSame('2.5', $doc->rate('٢٫٥'));
     }
 
     public function test_a_data_key_named_doc_does_not_replace_the_context(): void
@@ -91,6 +96,24 @@ class DocumentTest extends TestCase
         Doc::html('<p>مرحبا</p>')->locale('ar')->pdf()->save('docs/hello.pdf', 'local');
 
         Storage::disk('local')->assertExists('docs/hello.pdf');
+    }
+
+    public function test_a_failed_save_is_an_error(): void
+    {
+        // A full or read-only disk: put() returns false, as disks do not throw by default.
+        $disk = \Mockery::mock(\Illuminate\Contracts\Filesystem\Filesystem::class);
+        $disk->shouldReceive('put')->andReturn(false);
+        Storage::set('broken', $disk);
+
+        try {
+            Doc::html('<p>x</p>')->pdf()->save('docs/hello.pdf', 'broken');
+            $this->fail('The save should fail.');
+        } catch (\RuntimeException $e) {
+            $this->assertStringContainsString('[docs/hello.pdf] to the [broken] disk', $e->getMessage());
+        }
+
+        $this->expectExceptionMessage('Could not create the folder [/dev/null/docs]');
+        Doc::html('<p>x</p>')->pdf()->save('/dev/null/docs/hello.pdf');
     }
 
     public function test_blade_directives_and_helpers(): void

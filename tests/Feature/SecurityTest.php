@@ -179,8 +179,72 @@ class SecurityTest extends TestCase
         $this->assertStringContainsString('blue', $html);
     }
 
+    public function test_report_decimals_from_data_cannot_build_huge_numbers(): void
+    {
+        $data = [
+            'title' => 'x',
+            'columns' => [['key' => 'amount', 'label' => 'Amount', 'format' => 'number', 'decimals' => 100000000]],
+            'rows' => [['amount' => 1.5]],
+        ];
+
+        $this->assertLessThan(20000, strlen(Doc::template('report', $data)->locale('en')->toHtml()));
+        $this->assertSame('1.5000000000', $this->context()->numberText(1.5, 1000));
+        $this->assertSame('2', $this->context()->numberText(1.5, -3));
+    }
+
+    public function test_word_images_from_allowed_hosts_do_not_follow_redirects(): void
+    {
+        $host = $this->imageHost();
+        $this->app['config']->set('easy-pdf-word.images.remote', ['127.0.0.1']);
+
+        $word = fn (string $path) => $this->docxMedia(Doc::make()->image("http://{$host}{$path}")->word()->content());
+
+        $this->assertCount(1, $word('/logo.png'));
+        // A redirect could lead past the allowed hosts, so it is not followed.
+        $this->assertCount(0, $word('/moved'));
+    }
+
     private function context(?array $imagePaths = [], bool|array $remoteImages = false): DocContext
     {
         return new DocContext('en', 'ltr', 'cairo', [], 'latin', '', imagePaths: $imagePaths, remoteImages: $remoteImages);
+    }
+
+    /** Starts PHP's built-in server with tests/fixtures/server/router.php and returns "127.0.0.1:port". */
+    private function imageHost(): string
+    {
+        $socket = stream_socket_server('tcp://127.0.0.1:0');
+        $address = stream_socket_get_name($socket, false);
+        fclose($socket);
+
+        $router = __DIR__.'/../fixtures/server/router.php';
+        $process = proc_open([PHP_BINARY, '-S', $address, $router], [1 => ['file', '/dev/null', 'w'], 2 => ['file', '/dev/null', 'w']], $pipes);
+        $this->beforeApplicationDestroyed(fn () => proc_terminate($process));
+
+        for ($i = 0; $i < 50 && ! @fsockopen('127.0.0.1', (int) substr(strrchr($address, ':'), 1)); $i++) {
+            usleep(100_000);
+        }
+
+        return $address;
+    }
+
+    /** @return list<string> the image files inside a .docx */
+    private function docxMedia(string $docx): array
+    {
+        $file = tempnam(sys_get_temp_dir(), 'docx');
+        file_put_contents($file, $docx);
+        $zip = new \ZipArchive;
+        $zip->open($file);
+        $media = [];
+
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            if (str_starts_with($zip->getNameIndex($i), 'word/media/')) {
+                $media[] = $zip->getNameIndex($i);
+            }
+        }
+
+        $zip->close();
+        unlink($file);
+
+        return $media;
     }
 }

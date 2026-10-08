@@ -156,6 +156,8 @@ The extension picks the format: `.pdf` or `.docx`. `->queue()` returns Laravel's
 
 The job, `BiztechEG\EasyPdfWord\Jobs\SaveDocument`, carries the document's settings and data, and Laravel encrypts it with the app key. Template data is stored as plain arrays; data for your own Blade views is serialized as it is, so it cannot hold closures. A worker on another server saves to its own local disk, so use a shared disk such as `s3` there.
 
+The job carries the data, so a report with thousands of rows makes a large job (SQS takes up to 1 MB, Beanstalkd 64 KB by default). For such reports, queue a job of your own with the IDs and build the document there. A worker's `--timeout` (60 seconds by default) should cover the engine's timeout plus a render by the fallback engine.
+
 In tests, the `sync` queue runs the job at once and `Doc::fake()` records the save, so `Doc::assertSaved('invoices/1024.pdf', disk: 's3')` works. Under `Queue::fake()`, check the job instead:
 
 ```php
@@ -171,6 +173,8 @@ Doc::template('report', $data)
     ->footer('<div style="text-align:center">{page} / {pages}</div>')
     ->pdf();
 ```
+
+Paper sizes: `A2` to `A6`, `B4`, `B5`, `Letter`, `Legal`, `Tabloid` and `Executive`; `A4-L` is A4 landscape. The config and `template.php` also take `[width, height]` in mm. Margins in the config and `template.php` can be shortened the same way: `[15, 12]`.
 
 ### Watermark and password
 
@@ -275,7 +279,11 @@ Doc::template('invoice', $data)->driver('chromium')->pdf();
 
 If the chosen engine is not installed or fails, the document is rendered with the fallback engine and a warning is logged. `->pdf()->engine()` tells you which engine was used. Set `DOC_PDF_FALLBACK=null` to turn this off.
 
-The bundled templates use CSS that both engines understand, so they look the same on either.
+The bundled templates use CSS that both engines understand, so they look the same on either. One difference: Chromium writes `{page}` and `{pages}` in headers and footers in Latin digits, even with `->numerals('arabic')`.
+
+Large documents: mPDF keeps a whole table in memory while it lays it out, about 85 KB per row. A report of 1,000 rows needs more than PHP's default 128 MB (`memory_limit`), and running out ends the request with no fallback. For reports beyond a few hundred rows, raise `memory_limit` for the job that renders them, or use Chromium, which renders 2,000 rows in about 55 MB.
+
+Chromium runs `npm root -g` for every document to find Puppeteer; set `DOC_NODE_MODULES_PATH` to that folder to skip it.
 
 Your own engine:
 
@@ -399,6 +407,8 @@ DOC_REMOTE_IMAGES=cdn.example.com,*.amazonaws.com
 
 SVG images are used only when they are self-contained: an SVG that links to other files or URLs is ignored, because the PDF engine would load them.
 
+Word files take JPEG, PNG and GIF; WebP and BMP images are turned into PNG. SVG images are left out of Word files, as PHP cannot draw them; use a PNG logo when you make Word files.
+
 ## Security
 
 The package treats the data you pass to a template as untrusted:
@@ -406,7 +416,7 @@ The package treats the data you pass to a template as untrusted:
 - Text is escaped in Blade templates, `Doc::make()` blocks and Word files. `${...}` in a value stays text in `word.docx` templates.
 - Images follow the rules in [Images](#images); colours must be real colours (`#0F766E`, `rgb(...)`, `red`), so they cannot add CSS.
 - `->locale()` and `->font()` accept plain names only (`ar`, `ar_EG`, `cairo`).
-- Chromium renders with JavaScript off (`DOC_CHROME_JAVASCRIPT=true` turns it on).
+- Chromium (Browsershot and Gotenberg) renders with JavaScript off (`DOC_CHROME_JAVASCRIPT=true` turns it on). Allowed remote images are fetched without following redirects.
 - The preview page is local only unless you enable it and define the `viewDocPreview` gate.
 
 HTML you write yourself is trusted as is: never pass user input to `Doc::html()` or print it with `{!! !!}` in a view.
@@ -551,6 +561,8 @@ DOC_PDF_DRIVER=mpdf
 ```php
 Doc::template('invoice', $data)->driver('chromium')->pdf();
 ```
+
+التقارير الكبيرة: mPDF بيحتاج حوالي 85 KB ذاكرة لكل صف في الجدول، فتقرير 1000 صف محتاج أكتر من الـ 128 MB الافتراضية. للتقارير الكبيرة زوّد `memory_limit` أو استخدم Chromium.
 
 ### القوالب
 
