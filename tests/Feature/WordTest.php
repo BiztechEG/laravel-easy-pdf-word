@@ -142,6 +142,20 @@ class WordTest extends TestCase
         $this->assertSame(1, substr_count($xml, '<w:color '));
     }
 
+    public function test_rgb_hsl_and_transparent_colours_reach_word(): void
+    {
+        $xml = $this->documentXml(Doc::make()
+            ->paragraph('rgb', ['color' => 'rgb(29, 78, 216)'])
+            ->paragraph('hsl', ['color' => 'hsl(0, 100%, 50%)'])
+            ->paragraph('alpha', ['color' => '#0F766E80'])
+            ->word()
+            ->content());
+
+        $this->assertStringContainsString('<w:color w:val="1D4ED8"/>', $xml);
+        $this->assertStringContainsString('<w:color w:val="FF0000"/>', $xml);
+        $this->assertStringContainsString('<w:color w:val="0F766E"/>', $xml);
+    }
+
     public function test_page_settings_and_footer_page_numbers(): void
     {
         $content = Doc::make()
