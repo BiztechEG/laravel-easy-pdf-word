@@ -126,6 +126,27 @@ class TemplatesTest extends TestCase
         $this->assertStringStartsWith('https://invoicing.eta.gov.eg/documents/R6ZQ4SB1ZWP2XKCV2G0AYXHG10/share/', $prepared['qr']);
     }
 
+    public function test_egyptian_e_invoice_tax_bases_follow_eta(): void
+    {
+        $line = fn (array $taxes, array $extra = []) => ['description' => 'x', 'quantity' => 1, 'unit_price' => 1000, 'taxes' => $taxes] + $extra;
+        $prepare = fn (array ...$lines) => Doc::templates()->get('eg-invoice')->prepare(
+            ['document' => ['type' => 'I', 'currency' => 'EGP'], 'lines' => $lines, 'extra_discount' => 0]
+        );
+
+        // Table tax (T2) on net + fixed table tax (T3); VAT on net + T2 + T3.
+        $taxes = $prepare($line([['type' => 'T1', 'rate' => 14], ['type' => 'T2', 'rate' => 10], ['type' => 'T3', 'amount' => 50]]))['lines'][0]['taxes'];
+        $this->assertSame(['T1' => 161.7, 'T2' => 105.0, 'T3' => 50.0], array_column($taxes, 'amount', 'type'));
+
+        // Taxable fees (T5-T12) join the VAT base; non-taxable fees (T13-T20) only the total.
+        $prepared = $prepare($line([['type' => 'T1', 'rate' => 14], ['type' => 'T8', 'rate' => 2], ['type' => 'T13', 'rate' => 1]]));
+        $this->assertSame(['T1' => 142.8, 'T8' => 20.0, 'T13' => 10.0], array_column($prepared['lines'][0]['taxes'], 'amount', 'type'));
+        $this->assertSame(1172.8, $prepared['lines'][0]['total']);
+
+        // Computed amounts win over keys passed with the line.
+        $prepared = $prepare($line([['type' => 'T1', 'rate' => 14]], ['total' => 1, 'net' => 2, 'sales' => 3]));
+        $this->assertSame([1000.0, 1000.0, 1140.0], [$prepared['lines'][0]['sales'], $prepared['lines'][0]['net'], $prepared['lines'][0]['total']]);
+    }
+
     public function test_receipt_and_quotation_amounts_in_words(): void
     {
         $receipt = Doc::template('receipt', Doc::templates()->get('receipt')->sample());
