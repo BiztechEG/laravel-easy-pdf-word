@@ -353,6 +353,17 @@ class WordTest extends TestCase
         $this->assertStringContainsString('Page', $footer);
     }
 
+    public function test_left_to_right_paragraphs_and_headings_in_the_pdf_too(): void
+    {
+        $html = Doc::make()
+            ->heading('INV-2026-1024', 2, ['ltr' => true])
+            ->paragraph('هاتف: +20 100 000 0000', ['ltr' => true])
+            ->locale('ar')->toHtml();
+
+        $this->assertStringContainsString('<bdo dir="ltr">INV-2026-1024</bdo>', $html);
+        $this->assertStringContainsString('<bdo dir="ltr">هاتف: +20 100 000 0000</bdo>', $html);
+    }
+
     public function test_templates_without_a_word_layout_explain_what_is_missing(): void
     {
         mkdir($this->templates.'/pdf-only', 0775, true);
