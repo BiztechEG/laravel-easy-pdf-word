@@ -186,6 +186,21 @@ class DriversTest extends TestCase
         Doc::html('<p>x</p>')->driver('chromuim')->pdf()->content();
     }
 
+    public function test_the_word_allah_can_be_copied_from_a_cairo_pdf(): void
+    {
+        if (! is_executable('/usr/bin/pdftotext')) {
+            $this->markTestSkipped('pdftotext is not installed.');
+        }
+
+        $file = tempnam(sys_get_temp_dir(), 'pdf');
+        file_put_contents($file, Doc::html('<p>عبد الله</p>')->locale('ar')->pdf()->content());
+        $text = (string) shell_exec('/usr/bin/pdftotext '.escapeshellarg($file).' -');
+        @unlink($file);
+
+        // The ligature is copied as ﷲ, which search and Normalizer read as الله.
+        $this->assertStringContainsString('الله', \Normalizer::normalize($text, \Normalizer::FORM_KC));
+    }
+
     public function test_a_paper_size_in_mm_needs_two_positive_numbers(): void
     {
         $this->expectException(\InvalidArgumentException::class);
