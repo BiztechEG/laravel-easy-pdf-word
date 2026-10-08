@@ -256,7 +256,11 @@ class WordRenderer
                 continue;
             }
 
-            $runs = is_array($line) ? [$line] : [['text' => (string) $line]];
+            $runs = match (true) {
+                is_array($line) && array_is_list($line) => array_map(fn ($run) => is_array($run) ? $run : ['text' => (string) $run], $line),
+                is_array($line) => [$line],
+                default => [['text' => (string) $line]],
+            };
             $this->paragraph($cell, $runs, isset($line['align']) ? ['align' => $line['align']] + $paragraphStyle : $paragraphStyle);
         }
     }
