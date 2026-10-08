@@ -1,0 +1,127 @@
+@font-face {
+  font-family: 'Cairo';
+  src: url('/fonts/Cairo-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Cairo';
+  src: url('/fonts/Cairo-Bold.ttf') format('truetype');
+  font-weight: 600 700;
+  font-display: swap;
+}
+
+:root {
+  --vp-c-brand-1: #0f766e;
+  --vp-c-brand-2: #0d9488;
+  --vp-c-brand-3: #14b8a6;
+  --vp-c-brand-soft: rgba(20, 184, 166, 0.14);
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: linear-gradient(120deg, #0f766e 30%, #1d4ed8);
+  --vp-home-hero-image-background-image: linear-gradient(-45deg, rgba(20, 184, 166, 0.35) 50%, rgba(29, 78, 216, 0.35) 50%);
+  --vp-home-hero-image-filter: blur(56px);
+}
+
+.dark {
+  --vp-c-brand-1: #2dd4bf;
+  --vp-c-brand-2: #14b8a6;
+  --vp-c-brand-3: #0d9488;
+}
+
+/* Arabic pages use Cairo, the package's default font. */
+html[lang='ar'] {
+  --vp-font-family-base: 'Cairo', 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+
+html[lang='ar'] .vp-doc p,
+html[lang='ar'] .vp-doc li {
+  line-height: 1.9;
+}
+
+/* Code reads left to right, also on right-to-left pages. */
+html[dir='rtl'] .vp-doc div[class*='language-'],
+html[dir='rtl'] .vp-doc pre,
+html[dir='rtl'] .vp-doc code {
+  direction: ltr;
+  text-align: left;
+  unicode-bidi: isolate;
+}
+
+html[dir='rtl'] .vp-doc div[class*='language-'] > span.lang {
+  right: auto;
+  left: 12px;
+}
+
+html[dir='rtl'] .vp-doc div[class*='language-'] > button.copy {
+  right: auto;
+  left: 12px;
+}
+
+/* Template previews: a page of paper on the documentation page. */
+.vp-doc .preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.vp-doc .preview figure {
+  margin: 0;
+  text-align: center;
+}
+
+.vp-doc .preview img {
+  width: 100%;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 6px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+  background: #fff;
+}
+
+.vp-doc .preview figcaption {
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--vp-c-text-2);
+}
+
+/* The gallery of all templates. */
+.vp-doc .gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 18px;
+  margin: 24px 0;
+}
+
+.vp-doc .gallery a {
+  display: block;
+  padding: 10px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--vp-c-text-1);
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.vp-doc .gallery a:hover {
+  border-color: var(--vp-c-brand-1);
+  transform: translateY(-2px);
+}
+
+.vp-doc .gallery img {
+  width: 100%;
+  aspect-ratio: 662 / 936;
+  object-fit: contain;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.vp-doc .gallery strong {
+  display: block;
+  margin-top: 8px;
+}
+
+.vp-doc .gallery span {
+  font-size: 13px;
+  color: var(--vp-c-text-2);
+}
