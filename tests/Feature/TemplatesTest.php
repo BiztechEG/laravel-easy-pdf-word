@@ -53,6 +53,54 @@ class TemplatesTest extends TestCase
         $this->assertStringContainsString('data:image/png;base64,', $html);
     }
 
+    public function test_zatca_qr_uses_the_company_from_the_theme(): void
+    {
+        $this->app['config']->set('easy-pdf-word.theme.company', ['name' => 'شركة المثال', 'tax_number' => '300000000000003']);
+        $data = Doc::templates()->get('invoice')->sample();
+        unset($data['seller']);
+        $data['qr'] = 'zatca';
+
+        $prepared = Doc::templates()->get('invoice')->prepare($data, config('easy-pdf-word.theme'));
+        $fields = \BiztechEG\EasyPdfWord\Zatca\ZatcaQr::decode($prepared['qr']);
+
+        $this->assertSame('شركة المثال', $fields[1]);
+        $this->assertSame('300000000000003', $fields[2]);
+        $this->assertStringContainsString('شركة المثال', Doc::template('invoice', $data)->locale('ar')->toHtml());
+    }
+
+    public function test_invoices_in_unknown_currencies_render_in_arabic(): void
+    {
+        $data = Doc::templates()->get('invoice')->sample();
+        $data['invoice']['currency'] = 'GBP';
+
+        $html = Doc::template('invoice', $data)->locale('ar')->toHtml();
+
+        $this->assertStringContainsString('فقط تسعة وثلاثون ألفاً وثلاثمائة وثلاثون GBP لا غير', $html);
+        $this->assertStringStartsWith('PK', Doc::template('invoice', $data)->locale('ar')->word()->content());
+    }
+
+    public function test_report_cells_with_arrays_and_dates(): void
+    {
+        $data = [
+            'title' => 'تقرير',
+            'columns' => ['name' => 'الاسم', 'tags' => 'الوسوم', 'joined' => 'التاريخ'],
+            'rows' => [['name' => 'سارة', 'tags' => ['أ', 'ب'], 'joined' => now()->setDate(2026, 10, 8)]],
+        ];
+
+        $html = Doc::template('report', $data)->locale('ar')->toHtml();
+
+        $this->assertStringContainsString('2026/10/08', $html);
+        $this->assertStringStartsWith('PK', Doc::template('report', $data)->locale('ar')->word()->content());
+    }
+
+    public function test_collections_are_accepted_as_template_data(): void
+    {
+        $data = Doc::templates()->get('invoice')->sample();
+        $data['items'] = collect($data['items']);
+
+        $this->assertStringContainsString('39,330.00', Doc::template('invoice', $data)->locale('ar')->toHtml());
+    }
+
     public function test_template_data_is_validated(): void
     {
         $this->expectException(ValidationException::class);

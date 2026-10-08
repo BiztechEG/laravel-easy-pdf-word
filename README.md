@@ -262,6 +262,10 @@ Also available as global helpers `tafqeet()`, `hijri_date()`, `arabic_numerals()
 
 Currencies included: EGP, SAR, AED, QAR, KWD, USD, EUR. Add more in `config/easy-pdf-word.php` under `currencies`.
 
+## Images
+
+Logos, signatures and stamps can be file paths, URLs or data URIs. Local files are read only from `public/`, `storage/app` and `resources/` by default, and only when they are real images, so a path that comes from user input cannot embed other files from the server. Change the folders in `images.paths`, and set `DOC_REMOTE_IMAGES=false` to ignore image URLs.
+
 ## Fonts
 
 Cairo (default), Tajawal and Noto Naskh Arabic are bundled under the SIL Open Font License. Use one with `->font('tajawal')` or `font-family: 'naskh'` in CSS.

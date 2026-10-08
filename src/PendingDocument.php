@@ -17,6 +17,7 @@ use BiztechEG\EasyPdfWord\Word\DocxTemplateFiller;
 use BiztechEG\EasyPdfWord\Word\WordRenderer;
 use BadMethodCallException;
 use Illuminate\Contracts\Config\Repository as Config;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Support\Facades\Validator;
 
@@ -66,6 +67,9 @@ class PendingDocument
 
     private bool $validate = true;
 
+    /** Validated and prepared template data, kept until the data or theme changes. */
+    private ?array $prepared = null;
+
     private function __construct(
         private PdfManager $pdf,
         private FontRegistry $fonts,
@@ -97,9 +101,14 @@ class PendingDocument
         return new self($pdf, $fonts, $views, $config, builder: $builder);
     }
 
+    /**
+     * Data for the template or view. Each call replaces top-level keys:
+     * ->data(['invoice' => [...]]) replaces the whole "invoice" array.
+     */
     public function data(array $data): static
     {
         $this->data = array_replace($this->data, $data);
+        $this->prepared = null;
 
         return $this;
     }
@@ -146,6 +155,7 @@ class PendingDocument
     public function theme(array $theme): static
     {
         $this->theme = array_replace_recursive($this->theme, $theme);
+        $this->prepared = null;
 
         return $this;
     }
@@ -224,6 +234,7 @@ class PendingDocument
     public function withoutValidation(): static
     {
         $this->validate = false;
+        $this->prepared = null;
 
         return $this;
     }
@@ -368,6 +379,8 @@ class PendingDocument
             fontCss: $usesCss ? $this->fonts->cssFontFaces([$options->font]) : '',
             translations: $this->template?->translations($options->locale) ?? [],
             fallbackTranslations: $this->template?->translations('en') ?? [],
+            imagePaths: $this->config->get('easy-pdf-word.images.paths'),
+            remoteImages: (bool) $this->config->get('easy-pdf-word.images.remote', true),
         );
     }
 
@@ -382,13 +395,27 @@ class PendingDocument
             return $this->data;
         }
 
-        $data = array_replace_recursive($this->template->defaults(), $this->data);
+        if ($this->prepared !== null) {
+            return $this->prepared;
+        }
+
+        // Collections and models become arrays, so rules like "array" pass.
+        $data = array_replace_recursive($this->template->defaults(), $this->toArrays($this->data));
 
         if ($this->validate && $this->template->rules() !== []) {
             Validator::make($data, $this->template->rules())->validate();
         }
 
-        return $this->template->prepare($data);
+        return $this->prepared = $this->template->prepare($data, $this->resolvedTheme());
+    }
+
+    private function toArrays(array $data): array
+    {
+        return array_map(fn ($value) => match (true) {
+            $value instanceof Arrayable => $this->toArrays($value->toArray()),
+            is_array($value) => $this->toArrays($value),
+            default => $value,
+        }, $data);
     }
 
     private function wrapHtml(string $html, array $data): string

@@ -2,6 +2,7 @@
 
 namespace BiztechEG\EasyPdfWord\Console;
 
+use BiztechEG\EasyPdfWord\Templates\TemplateRegistry;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 
@@ -18,7 +19,7 @@ class MakeTemplateCommand extends Command
     {
         $name = $this->argument('name');
 
-        if (! preg_match('/^[A-Za-z0-9._-]+$/', $name)) {
+        if (! TemplateRegistry::isValidName($name)) {
             $this->components->error('Use letters, digits, dots, dashes or underscores for the template name.');
 
             return self::FAILURE;

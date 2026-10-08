@@ -6,6 +6,7 @@ use BiztechEG\EasyPdfWord\Contracts\PdfDriver;
 use BiztechEG\EasyPdfWord\Facades\Doc;
 use BiztechEG\EasyPdfWord\Pdf\PdfOptions;
 use BiztechEG\EasyPdfWord\Tests\TestCase;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 class DriversTest extends TestCase
@@ -80,6 +81,27 @@ class DriversTest extends TestCase
         $this->assertSame([210, 148], $driver->options->paperSize());
         $this->assertSame([10.0, 5.0, 10.0, 5.0], $driver->options->margins);
         $this->assertSame('{page}/{pages}', $driver->options->footer);
+    }
+
+    public function test_template_errors_are_not_hidden_by_the_fallback(): void
+    {
+        Doc::extend('fake', fn () => new FakeDriver);
+        $this->app['view']->addNamespace('tests', __DIR__.'/../fixtures');
+
+        $this->expectException(\Throwable::class);
+        $this->expectExceptionMessageMatches('/missing/i');
+
+        Log::shouldReceive('warning')->never();
+
+        Doc::view('tests::broken')->driver('fake')->pdf()->content();
+    }
+
+    public function test_mpdf_renders_landscape_pages(): void
+    {
+        $pdf = Doc::html('<p>x</p>')->landscape()->pdf()->content();
+
+        // A4 landscape is 842 x 595 points.
+        $this->assertMatchesRegularExpression('/\/MediaBox \[0 0 841\.8\d* 595\.2\d*\]/', $pdf);
     }
 }
 
