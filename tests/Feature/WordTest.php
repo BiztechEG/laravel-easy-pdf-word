@@ -319,6 +319,19 @@ class WordTest extends TestCase
         $this->assertStringStartsWith('%PDF', $invoice->pdf()->content());
     }
 
+    public function test_docx_image_placeholders_word_cannot_show_stay_empty(): void
+    {
+        $this->makeDocxTemplate('quote');
+        $svg = 'data:image/svg+xml;base64,'.base64_encode('<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4"><rect width="4" height="4"/></svg>');
+        $file = sys_get_temp_dir().'/easy-pdf-word-tests/logo.svg';
+        file_put_contents($file, base64_decode(substr($svg, strpos($svg, ',') + 1)));
+        config(['easy-pdf-word.images.paths' => [dirname($file)]]);
+
+        $xml = $this->documentXml(Doc::template('quote', ['customer' => ['name' => $file]])->locale('ar')->word()->content());
+
+        $this->assertStringNotContainsString('logo.svg', $xml);
+    }
+
     public function test_templates_without_a_word_layout_explain_what_is_missing(): void
     {
         mkdir($this->templates.'/pdf-only', 0775, true);
