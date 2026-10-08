@@ -78,6 +78,8 @@ return [
 
             'gotenberg' => [
                 'url' => env('DOC_GOTENBERG_URL', 'http://localhost:3000'),
+                // Same as Browsershot: off unless documents draw with it (charts).
+                'javascript' => env('DOC_CHROME_JAVASCRIPT', false),
                 'timeout' => 60,
             ],
 

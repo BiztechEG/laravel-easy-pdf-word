@@ -406,7 +406,7 @@ The package treats the data you pass to a template as untrusted:
 - Text is escaped in Blade templates, `Doc::make()` blocks and Word files. `${...}` in a value stays text in `word.docx` templates.
 - Images follow the rules in [Images](#images); colours must be real colours (`#0F766E`, `rgb(...)`, `red`), so they cannot add CSS.
 - `->locale()` and `->font()` accept plain names only (`ar`, `ar_EG`, `cairo`).
-- Chromium renders with JavaScript off (`DOC_CHROME_JAVASCRIPT=true` turns it on).
+- Chromium (Browsershot and Gotenberg) renders with JavaScript off (`DOC_CHROME_JAVASCRIPT=true` turns it on). Allowed remote images are fetched without following redirects.
 - The preview page is local only unless you enable it and define the `viewDocPreview` gate.
 
 HTML you write yourself is trusted as is: never pass user input to `Doc::html()` or print it with `{!! !!}` in a view.

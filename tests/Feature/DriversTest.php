@@ -8,6 +8,8 @@ use BiztechEG\EasyPdfWord\Pdf\Drivers\MpdfDriver;
 use BiztechEG\EasyPdfWord\Pdf\PdfManager;
 use BiztechEG\EasyPdfWord\Pdf\PdfOptions;
 use BiztechEG\EasyPdfWord\Tests\TestCase;
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
@@ -118,12 +120,40 @@ class DriversTest extends TestCase
         }
     }
 
+    public function test_gotenberg_pages_run_no_scripts(): void
+    {
+        $this->fakeGotenberg();
+
+        $this->assertSame('gotenberg', Doc::html('<p>x</p>')->driver('gotenberg')->pdf()->engine());
+        Http::assertSent(fn (Request $request) => preg_match('/<head[^>]*><meta http-equiv="Content-Security-Policy" content="script-src \'none\'">/', $this->gotenbergPage($request)) === 1);
+    }
+
+    public function test_gotenberg_pages_can_run_scripts_when_allowed(): void
+    {
+        $this->fakeGotenberg();
+        config(['easy-pdf-word.pdf.drivers.gotenberg.javascript' => true]);
+
+        Doc::html('<p>x</p>')->driver('gotenberg')->pdf()->content();
+        Http::assertSent(fn (Request $request) => ! str_contains($this->gotenbergPage($request), 'Content-Security-Policy'));
+    }
+
     public function test_mpdf_renders_landscape_pages(): void
     {
         $pdf = Doc::html('<p>x</p>')->landscape()->pdf()->content();
 
         // A4 landscape is 842 x 595 points.
         $this->assertMatchesRegularExpression('/\/MediaBox \[0 0 841\.8\d* 595\.2\d*\]/', $pdf);
+    }
+
+    private function fakeGotenberg(string $body = '%PDF-1.7 fake'): void
+    {
+        config(['easy-pdf-word.pdf.fallback' => null, 'easy-pdf-word.pdf.drivers.gotenberg.url' => 'http://gotenberg.test']);
+        Http::fake(['gotenberg.test/*' => Http::response($body)]);
+    }
+
+    private function gotenbergPage(Request $request): string
+    {
+        return collect($request->data())->firstWhere('filename', 'index.html')['contents'];
     }
 }
 
