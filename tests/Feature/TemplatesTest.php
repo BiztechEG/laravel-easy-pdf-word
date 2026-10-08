@@ -460,6 +460,26 @@ class TemplatesTest extends TestCase
         $this->assertStringContainsString('<bdo dir="ltr">-250.50</bdo>', $html);
     }
 
+    public function test_rows_are_numbered_from_one_whatever_their_keys(): void
+    {
+        // As left by ->filter()->all(): keys 0 and 2.
+        foreach (['invoice' => 'items', 'quotation' => 'items', 'purchase-order' => 'items', 'credit-note' => 'items', 'delivery-note' => 'items', 'eg-invoice' => 'lines'] as $name => $key) {
+            $data = Doc::templates()->get($name)->sample();
+            $data[$key] = [0 => $data[$key][0], 2 => $data[$key][1] ?? $data[$key][0]];
+            $template = Doc::templates()->get($name);
+
+            $this->assertSame([0, 1], array_keys($template->prepare($data, ['company' => ['name' => 'X']])[$key]), $name);
+            $this->assertStringStartsWith('PK', Doc::template($name, $data)->locale('en')->word()->content(), $name);
+        }
+
+        $data = Doc::templates()->get('contract')->sample();
+        $data['clauses'] = [1 => ['title' => 'Subject', 'text' => 'One'], 'second' => ['title' => 'Price', 'text' => 'Two']];
+        $html = Doc::template('contract', $data)->locale('en')->toHtml();
+
+        $this->assertStringContainsString('Clause 1: Subject', $html);
+        $this->assertStringContainsString('Clause 2: Price', $html);
+    }
+
     private function zipEntry(string $docx, string $entry): string
     {
         $file = tempnam(sys_get_temp_dir(), 'docx-test');
