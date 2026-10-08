@@ -344,6 +344,15 @@ class WordTest extends TestCase
         $this->assertStringNotContainsString('logo.svg', $xml);
     }
 
+    public function test_styles_in_a_footer_are_not_printed_in_word(): void
+    {
+        $docx = Doc::make()->paragraph('x')->footer('<style>.a{color:red}</style><p class="a">Page {page} of {pages}</p>')->word()->content();
+        $footer = $this->zipEntry($docx, 'word/footer1.xml');
+
+        $this->assertStringNotContainsString('color:red', $footer);
+        $this->assertStringContainsString('Page', $footer);
+    }
+
     public function test_templates_without_a_word_layout_explain_what_is_missing(): void
     {
         mkdir($this->templates.'/pdf-only', 0775, true);
