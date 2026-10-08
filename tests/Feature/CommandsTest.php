@@ -87,5 +87,27 @@ class CommandsTest extends TestCase
 
         $this->artisan('doc:sample', ['name' => 'nope'])->assertFailed();
         $this->artisan('doc:sample', ['name' => 'receipt', '--format' => 'xls'])->assertFailed();
+        $this->artisan('doc:sample', ['name' => 'receipt', '--locale' => '../x'])->assertFailed();
+    }
+
+    public function test_sample_output_paths_are_relative_to_the_current_folder(): void
+    {
+        $dir = sys_get_temp_dir().'/easy-pdf-word-tests/cwd';
+        (new \Illuminate\Filesystem\Filesystem)->deleteDirectory($dir);
+        mkdir($dir, 0775, true);
+        $cwd = getcwd();
+        chdir($dir);
+
+        try {
+            foreach (['pdf', 'html'] as $format) {
+                $this->artisan('doc:sample', ['name' => 'receipt', '--format' => $format, '--output' => "out/receipt.{$format}"])
+                    ->expectsOutputToContain("{$dir}/out/receipt.{$format}")
+                    ->assertSuccessful();
+
+                $this->assertFileExists("{$dir}/out/receipt.{$format}");
+            }
+        } finally {
+            chdir($cwd);
+        }
     }
 }

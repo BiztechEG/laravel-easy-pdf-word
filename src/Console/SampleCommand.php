@@ -5,6 +5,7 @@ namespace BiztechEG\EasyPdfWord\Console;
 use BiztechEG\EasyPdfWord\DocFactory;
 use BiztechEG\EasyPdfWord\Templates\TemplateRegistry;
 use Illuminate\Console\Command;
+use InvalidArgumentException;
 
 /**
  * Render a template with its sample data to a file, to see it without
@@ -40,15 +41,27 @@ class SampleCommand extends Command
         }
 
         $locale = $this->option('locale');
-        $document = $docs->template($name, $templates->get($name)->sample())
-            ->locale($locale)
-            ->numerals($this->option('numerals'));
+
+        try {
+            $document = $docs->template($name, $templates->get($name)->sample())
+                ->locale($locale)
+                ->numerals($this->option('numerals'));
+        } catch (InvalidArgumentException $e) {
+            $this->components->error($e->getMessage());
+
+            return self::FAILURE;
+        }
 
         if ($this->option('driver')) {
             $document->driver($this->option('driver'));
         }
 
         $path = $this->option('output') ?: storage_path("app/doc-samples/{$name}-{$locale}.{$format}");
+
+        // A relative --output is relative to where the command runs, not to a storage disk.
+        if (! preg_match('#^(/|\\\\|[A-Za-z]:[\\\\/])#', $path)) {
+            $path = getcwd().DIRECTORY_SEPARATOR.$path;
+        }
 
         if (! is_dir(dirname($path))) {
             mkdir(dirname($path), 0775, true);
