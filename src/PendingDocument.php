@@ -12,6 +12,7 @@ use BiztechEG\EasyPdfWord\Fonts\FontRegistry;
 use BiztechEG\EasyPdfWord\Pdf\PdfManager;
 use BiztechEG\EasyPdfWord\Pdf\PdfOptions;
 use BiztechEG\EasyPdfWord\Support\DocContext;
+use BiztechEG\EasyPdfWord\Support\Locale;
 use BiztechEG\EasyPdfWord\Templates\Template;
 use BiztechEG\EasyPdfWord\Word\DocxTemplateFiller;
 use BiztechEG\EasyPdfWord\Word\WordRenderer;
@@ -20,6 +21,7 @@ use Illuminate\Contracts\Config\Repository as Config;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Support\Facades\Validator;
+use InvalidArgumentException;
 
 /**
  * A document being configured. Every setter returns $this; ->pdf() and
@@ -118,9 +120,16 @@ class PendingDocument
         return $this->data(is_array($key) ? $key : [$key => $value]);
     }
 
-    /** Sets language and, unless ->direction() is called, the direction (ar => rtl). */
+    /**
+     * Sets language and, unless ->direction() is called, the direction (ar => rtl).
+     * Takes a locale name such as "ar", "en" or "ar_EG".
+     */
     public function locale(string $locale): static
     {
+        if (! Locale::isValid($locale)) {
+            throw new InvalidArgumentException('Invalid locale ['.substr($locale, 0, 40).'], expected a name such as "ar", "en" or "ar_EG".');
+        }
+
         $this->locale = $locale;
 
         return $this;
