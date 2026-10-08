@@ -207,6 +207,31 @@ class WordTest extends TestCase
         $this->assertStringContainsString("\u{2060}{customer.name}", $xml);
     }
 
+    public function test_docx_image_values_are_not_looked_up_through_stream_wrappers(): void
+    {
+        $this->makeDocxTemplate('quote');
+        stream_wrapper_register('probe', ProbeStream::class);
+
+        try {
+            Doc::template('quote', ['customer' => ['name' => 'probe://server/logo.png']])->locale('ar')->word()->content();
+        } finally {
+            stream_wrapper_unregister('probe');
+        }
+
+        $this->assertSame([], ProbeStream::$calls);
+    }
+
+    public function test_docx_images_that_cannot_be_used_leave_the_placeholder_empty(): void
+    {
+        $this->makeDocxTemplate('quote');
+
+        $xml = $this->documentXml(Doc::template('quote', [
+            'customer' => ['name' => 'data:image/svg+xml;base64,'.base64_encode('<svg xmlns="http://www.w3.org/2000/svg"/>')],
+        ])->locale('ar')->word()->content());
+
+        $this->assertStringNotContainsString('data:image', $xml);
+    }
+
     public function test_templates_without_a_word_layout_explain_what_is_missing(): void
     {
         mkdir($this->templates.'/pdf-only', 0775, true);
@@ -297,5 +322,27 @@ class WordTest extends TestCase
         @unlink($file);
 
         return $content;
+    }
+}
+
+/** Records every use of the probe:// stream wrapper. */
+class ProbeStream
+{
+    public static array $calls = [];
+
+    public $context;
+
+    public function url_stat(string $path, int $flags): array|false
+    {
+        self::$calls[] = $path;
+
+        return false;
+    }
+
+    public function stream_open(string $path, string $mode, int $options, ?string &$opened): bool
+    {
+        self::$calls[] = $path;
+
+        return false;
     }
 }
