@@ -6,6 +6,49 @@ All notable changes to this package are listed here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Paper sizes `A2`, `B4`, `B5`, `Tabloid` and `Executive`, and `A4-L` for A4 landscape.
+- `node_modules_path` (`DOC_NODE_MODULES_PATH`) for Browsershot, which saves running `npm root -g` for every document.
+- Word files take WebP and BMP images, turned into PNG.
+
+### Changed
+
+- The package requires `laravel/framework` instead of single `illuminate/*` packages, as it already needed the framework. Apps with mPDF older than 8.2, PhpWord older than 1.4 or Browsershot older than 5.4 now get a Composer conflict instead of a runtime error.
+- mPDF works in a private folder per system user (`/tmp/easy-pdf-word-{uid}`), so the web server and a queue worker running as different users no longer lock each other out.
+- Unknown paper names, a line discount larger than the line amount, and custom fonts whose files share a name now fail with a clear message instead of rendering something wrong.
+
+### Fixed
+
+- mPDF failed on HTML over 1 MB (`pcre.backtrack_limit`): a report of about 1,650 rows, or an invoice with a large logo.
+- Saving to a disk that refused the write looked successful, and a queued save finished without a file.
+- Queued documents without `->locale()` rendered in the worker's locale instead of the request's.
+- When the fallback engine was not installed, the real engine error was replaced by "needs mpdf/mpdf".
+- A Gotenberg answer that was not a PDF (a sign-in page) was saved as the PDF.
+- Chromium headers and footers used a system font instead of the document font.
+- Word files: SVG, WebP and BMP images made `->word()` throw; footers printed `<style>` contents; `word.docx` templates printed SVG paths, rounded KWD amounts to 2 decimals and left tables empty for lists with gaps in their keys.
+- Items, lines and contract clauses were numbered from their array keys, and clauses not keyed from 0 crashed the contract.
+- Report totals read `1,240` as 1, and report columns without a label crashed.
+- The ZATCA QR showed the day before for a date without a time east of UTC, and read `'1,150.00'` as 1.
+- Amounts between -1 and 0 lost their minus in words, and `-0` read as "سالب صفر".
+- `rate('1,500')` printed 1.
+- Arabic digits broke links containing `&amp;` and attributes containing `>`.
+- Custom headers and footers ignored `->numerals('arabic')`.
+- `ltr` on a whole paragraph or heading worked in Word only.
+- Margins with fewer than four values in the config or `template.php` crashed.
+- Engine names given to `Doc::extend()` in mixed case were never found.
+- `doc:template NAME --force` did not restore the bundled template over a project copy.
+- The e-invoice printed ETA's UTC issue time as local time.
+- Receipt signature roles without a label printed their translation key, and the receipt took two pages with Chromium.
+- Certificates said "103 ساعة" instead of "103 ساعات".
+- Browsershot temp pages and PhpWord template copies were left in the temp folder when a render failed.
+
+### Security
+
+- A report column's `decimals` from data could build a huge string; decimals are capped at 10.
+- Word images from allowed hosts were fetched by PhpWord, which followed redirects past the allowed hosts. They are now fetched without redirects and with a 10 second limit, as mPDF's remote images also are.
+- Gotenberg ran JavaScript in every page; it is now off unless `DOC_CHROME_JAVASCRIPT` is on, as with Browsershot.
+
 ## [1.2.0] - 2026-10-08
 
 ### Added
