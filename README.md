@@ -466,6 +466,8 @@ Doc::assertDownloaded('فاتورة-1024.pdf');
 
 Each `GeneratedDocument` has `format` (`pdf` or `word`), `template`, `view`, `locale`, `direction`, `numerals`, `driver`, `watermark`, `protected`, `filename()`, `data($key)` with the prepared data, and for PDFs `html()` and `contains($text)`. With Arabic digits, `contains()` needs the text in Arabic digits too. `Doc::generated()` returns them all.
 
+An archive from `Doc::zip()` is still built from the placeholder files and saved or sent as usual, so check it with `Storage::fake()` or the response.
+
 ## Running the package's tests
 
 ```bash

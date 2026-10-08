@@ -350,11 +350,6 @@ class PendingDocument
     {
         $this->ensureWordSupported();
 
-        // A file the caller believes is locked must not go out open.
-        if ($this->protection !== null) {
-            throw new LogicException('Word files cannot take a password; ->password() works for PDF files only.');
-        }
-
         $document = clone $this;
         $filename ??= ($this->template?->name ?? 'document').'.docx';
 
@@ -537,6 +532,11 @@ class PendingDocument
     {
         if ($this->builder === null && ($this->template === null || ! $this->template->supportsWord())) {
             throw $this->template ? WordNotSupported::forTemplate($this->template->name) : WordNotSupported::forSource();
+        }
+
+        // A file the caller believes is locked must not go out open.
+        if ($this->protection !== null) {
+            throw new LogicException('Word files cannot take a password; ->password() works for PDF files only.');
         }
     }
 

@@ -126,6 +126,22 @@ class FakeTest extends TestCase
         Doc::assertGenerated(fn (GeneratedDocument $doc) => $doc->isWord() && $doc->watermark === null && ! $doc->protected);
     }
 
+    public function test_zip_archives_are_built_from_placeholders(): void
+    {
+        Storage::fake('local');
+        Doc::fake();
+
+        $invoice = Doc::template('invoice', $this->invoice());
+        Doc::zip([$invoice->pdf('invoice.pdf'), $invoice->word('invoice.docx')], 'order.zip')->save('exports/order.zip', 'local');
+
+        Doc::assertGeneratedCount(2);
+        $zip = new \ZipArchive;
+        $this->assertTrue($zip->open(Storage::disk('local')->path('exports/order.zip')) === true);
+        $this->assertStringStartsWith('%PDF', $zip->getFromName('invoice.pdf'));
+        $this->assertStringStartsWith('PK', $zip->getFromName('invoice.docx'));
+        $zip->close();
+    }
+
     public function test_word_files_have_no_html(): void
     {
         Doc::fake();
