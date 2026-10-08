@@ -4,6 +4,8 @@ namespace BiztechEG\EasyPdfWord\Tests\Feature;
 
 use BiztechEG\EasyPdfWord\Contracts\PdfDriver;
 use BiztechEG\EasyPdfWord\Facades\Doc;
+use BiztechEG\EasyPdfWord\Pdf\Drivers\MpdfDriver;
+use BiztechEG\EasyPdfWord\Pdf\PdfManager;
 use BiztechEG\EasyPdfWord\Pdf\PdfOptions;
 use BiztechEG\EasyPdfWord\Tests\TestCase;
 use Illuminate\Support\Facades\Log;
@@ -94,6 +96,26 @@ class DriversTest extends TestCase
         Log::shouldReceive('warning')->never();
 
         Doc::view('tests::broken')->driver('fake')->pdf()->content();
+    }
+
+    public function test_mpdf_page_numbers_follow_the_digits(): void
+    {
+        $document = Doc::html('<p>مرحبا</p>')->locale('ar')->numerals('arabic')->footer('<div>صفحة {page} من {pages}</div>');
+        $options = $document->options();
+        $config = (new \ReflectionMethod(MpdfDriver::class, 'mpdfConfig'))->invoke(app(PdfManager::class)->driver('mpdf'), $options);
+
+        $this->assertSame('arabic', $options->numerals);
+        $this->assertSame('arabic-indic', $config['defaultPageNumStyle']);
+
+        if (is_executable('/usr/bin/pdftotext')) {
+            $file = tempnam(sys_get_temp_dir(), 'pdf');
+            file_put_contents($file, $document->pdf()->content());
+            $text = (string) shell_exec('/usr/bin/pdftotext '.escapeshellarg($file).' -');
+            @unlink($file);
+
+            $this->assertStringContainsString('١', $text);
+            $this->assertStringNotContainsString('1', $text);
+        }
     }
 
     public function test_mpdf_renders_landscape_pages(): void

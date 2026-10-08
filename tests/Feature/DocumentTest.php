@@ -31,6 +31,31 @@ class DocumentTest extends TestCase
         $this->assertStringContainsString('font-size: 12pt', $html);
     }
 
+    public function test_arabic_separators_only_with_fonts_that_have_them(): void
+    {
+        $html = fn (string $font) => Doc::html('<p>1,250.50</p>')->locale('ar')->numerals('arabic')->font($font)->toHtml();
+
+        $this->assertStringContainsString('١٬٢٥٠٫٥٠', $html('naskh'));
+        $this->assertStringContainsString('١,٢٥٠.٥٠', $html('cairo'));
+        $this->assertStringContainsString('١,٢٥٠.٥٠', $html('tajawal'));
+    }
+
+    public function test_formatted_numbers_are_read_whole(): void
+    {
+        $doc = new \BiztechEG\EasyPdfWord\Support\DocContext('en', 'ltr', 'cairo', [], 'latin', '');
+
+        $this->assertSame('1,250.50', $doc->numberText('1,250.5'));
+        $this->assertSame('1,250.50', (string) $doc->number('١٬٢٥٠٫٥'));
+        $this->assertSame('one thousand two hundred fifty EGP and 50/100 only', $doc->inWords('1,250.50', 'EGP'));
+    }
+
+    public function test_a_data_key_named_doc_does_not_replace_the_context(): void
+    {
+        $html = Doc::template('letter', ['doc' => ['x' => 1]] + Doc::templates()->get('letter')->sample())->locale('ar')->toHtml();
+
+        $this->assertStringContainsString('dir="rtl"', $html);
+    }
+
     public function test_full_html_documents_are_not_wrapped(): void
     {
         $html = Doc::html('<html><body>raw</body></html>')->toHtml();

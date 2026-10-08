@@ -11,7 +11,9 @@ use BiztechEG\EasyPdfWord\Exceptions\WordNotSupported;
 use BiztechEG\EasyPdfWord\Fonts\FontRegistry;
 use BiztechEG\EasyPdfWord\Pdf\PdfManager;
 use BiztechEG\EasyPdfWord\Pdf\PdfOptions;
+use BiztechEG\EasyPdfWord\Support\Color;
 use BiztechEG\EasyPdfWord\Support\DocContext;
+use BiztechEG\EasyPdfWord\Support\Locale;
 use BiztechEG\EasyPdfWord\Templates\Template;
 use BiztechEG\EasyPdfWord\Word\DocxTemplateFiller;
 use BiztechEG\EasyPdfWord\Word\WordRenderer;
@@ -20,6 +22,7 @@ use Illuminate\Contracts\Config\Repository as Config;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Support\Facades\Validator;
+use InvalidArgumentException;
 
 /**
  * A document being configured. Every setter returns $this; ->pdf() and
@@ -66,6 +69,8 @@ class PendingDocument
     private ?string $title = null;
 
     private bool $validate = true;
+
+    private const THEME_COLORS = ['primary' => '#0F766E', 'text' => '#1F2937', 'muted' => '#6B7280', 'border' => '#E5E7EB'];
 
     /** Validated and prepared template data, kept until the data or theme changes. */
     private ?array $prepared = null;
@@ -118,9 +123,16 @@ class PendingDocument
         return $this->data(is_array($key) ? $key : [$key => $value]);
     }
 
-    /** Sets language and, unless ->direction() is called, the direction (ar => rtl). */
+    /**
+     * Sets language and, unless ->direction() is called, the direction (ar => rtl).
+     * Takes a locale name such as "ar", "en" or "ar_EG".
+     */
     public function locale(string $locale): static
     {
+        if (! Locale::isValid($locale)) {
+            throw new InvalidArgumentException('Invalid locale ['.substr($locale, 0, 40).'], expected a name such as "ar", "en" or "ar_EG".');
+        }
+
         $this->locale = $locale;
 
         return $this;
@@ -160,8 +172,13 @@ class PendingDocument
         return $this;
     }
 
+    /** A font name from config "fonts": cairo, tajawal, naskh or one you registered. */
     public function font(string $font): static
     {
+        if (! preg_match('/^[A-Za-z0-9][A-Za-z0-9 _-]{0,63}\z/', $font)) {
+            throw new InvalidArgumentException('Invalid font name ['.substr($font, 0, 40).'].');
+        }
+
         $this->font = strtolower($font);
 
         return $this;
@@ -241,10 +258,12 @@ class PendingDocument
 
     public function pdf(?string $filename = null): PdfDocument
     {
-        $options = $this->options();
+        // A copy, so changes made to this document afterwards do not reach the file.
+        $document = clone $this;
+        $options = $document->options();
 
         return new PdfDocument(
-            fn () => $this->pdf->render('', $options, $this->driver, fn (PdfDriver $engine) => $this->toHtml($engine, $options)),
+            fn () => $document->pdf->render('', $options, $document->driver, fn (PdfDriver $engine) => $document->toHtml($engine, $options)),
             $filename ?? ($this->template?->name ?? 'document').'.pdf',
         );
     }
@@ -259,8 +278,10 @@ class PendingDocument
             throw $this->template ? WordNotSupported::forTemplate($this->template->name) : WordNotSupported::forSource();
         }
 
+        $document = clone $this;
+
         return new WordDocument(
-            fn () => $this->renderWord(),
+            fn () => $document->renderWord(),
             $filename ?? ($this->template?->name ?? 'document').'.docx',
         );
     }
@@ -277,8 +298,8 @@ class PendingDocument
 
         $html = match (true) {
             $this->builder !== null => $this->wrapHtml((new HtmlRenderer)->render($this->builder, $context), $data),
-            $this->template !== null && ! $this->template->hasPdfView() && $this->template->supportsWord()
-                => $this->wrapHtml((new HtmlRenderer)->render($this->wordLayout($data, $context), $context), $data),
+            $this->template !== null && ! $this->template->hasPdfView() && $this->template->supportsPdf()
+                => $this->wrapHtml((new HtmlRenderer)->render($this->runLayout($this->template->pdfLayout(), $data, $context), $context), $data),
             $this->template !== null => $this->views->file($this->template->pdfView(), $data)->render(),
             $this->view !== null => $this->views->make($this->view, $data)->render(),
             default => $this->wrapHtml((string) $this->html, $data),
@@ -288,7 +309,9 @@ class PendingDocument
             $html = preg_replace('/<\/head>/i', '<style>'.$context->fontCss.'</style></head>', $html, 1) ?? $html;
         }
 
-        return $context->numerals === Numerals::ARABIC ? Numerals::convertHtml($html, Numerals::ARABIC) : $html;
+        return $context->numerals === Numerals::ARABIC
+            ? Numerals::convertHtml($html, Numerals::ARABIC, $this->fonts->hasArabicSeparators($context->font))
+            : $html;
     }
 
     public function options(): PdfOptions
@@ -305,9 +328,11 @@ class PendingDocument
             }
 
             $context = $this->context(new PdfOptions(locale: $locale, direction: $direction, font: $this->resolvedFont($direction)), null);
-            $html = $this->views->file($view, $data + ['doc' => $context])->render();
+            $html = $this->views->file($view, ['doc' => $context] + $data)->render();
 
-            return $numerals === Numerals::ARABIC ? Numerals::convertHtml($html, Numerals::ARABIC) : $html;
+            return $numerals === Numerals::ARABIC
+                ? Numerals::convertHtml($html, Numerals::ARABIC, $this->fonts->hasArabicSeparators($this->resolvedFont($direction)))
+                : $html;
         };
 
         return new PdfOptions(
@@ -321,7 +346,15 @@ class PendingDocument
             footer: $this->footer ?? $partial($this->template?->footerView()),
             title: $this->title ?? $this->template?->title(),
             author: $this->resolvedTheme()['company']['name'] ?? null,
+            numerals: $numerals,
         );
+    }
+
+    public function __clone()
+    {
+        if ($this->builder !== null) {
+            $this->builder = clone $this->builder;
+        }
     }
 
     /**
@@ -330,7 +363,7 @@ class PendingDocument
      */
     public function __call(string $method, array $arguments): static
     {
-        if ($this->builder === null || ! method_exists($this->builder, $method) || in_array($method, ['blocks', 'isEmpty'], true)) {
+        if ($this->builder === null || ! is_callable([$this->builder, $method]) || in_array($method, ['blocks', 'isEmpty'], true)) {
             throw new BadMethodCallException(sprintf('Method %s::%s does not exist.', static::class, $method));
         }
 
@@ -350,17 +383,17 @@ class PendingDocument
             return [(new DocxTemplateFiller)->fill($file, $data, $context), 'docx-template'];
         }
 
-        $builder = $this->builder ?? $this->wordLayout($data, $context);
+        $builder = $this->builder ?? $this->runLayout($this->template->wordLayout(), $data, $context);
         $renderer = new WordRenderer((array) $this->config->get('easy-pdf-word.word', []));
 
         return [$renderer->render($builder, $context, $options), 'phpword'];
     }
 
-    /** Run the template's word.php layout. */
-    private function wordLayout(array $data, DocContext $context): DocumentBuilder
+    /** Run a template's layout.php or word.php. */
+    private function runLayout(callable $layout, array $data, DocContext $context): DocumentBuilder
     {
         $builder = new DocumentBuilder;
-        ($this->template->wordLayout())($builder, $data, $context);
+        $layout($builder, $data, $context);
 
         return $builder;
     }
@@ -380,13 +413,27 @@ class PendingDocument
             translations: $this->template?->translations($options->locale) ?? [],
             fallbackTranslations: $this->template?->translations('en') ?? [],
             imagePaths: $this->config->get('easy-pdf-word.images.paths'),
-            remoteImages: (bool) $this->config->get('easy-pdf-word.images.remote', true),
+            remoteImages: $this->remoteImages(),
         );
+    }
+
+    /** Config "images.remote": true, false, or hosts as a list or a comma-separated string. */
+    private function remoteImages(): bool|array
+    {
+        $remote = $this->config->get('easy-pdf-word.images.remote', false);
+
+        if (is_array($remote) || is_bool($remote) || $remote === null) {
+            return is_array($remote) ? $remote : (bool) $remote;
+        }
+
+        return filter_var($remote, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE)
+            ?? array_values(array_filter(array_map('trim', explode(',', (string) $remote))));
     }
 
     private function viewData(DocContext $context): array
     {
-        return $this->templateData() + ['doc' => $context];
+        // $doc is always the context; a data key named "doc" does not replace it.
+        return ['doc' => $context] + $this->templateData();
     }
 
     private function templateData(): array
@@ -446,10 +493,17 @@ class PendingDocument
 
     private function resolvedTheme(): array
     {
-        return array_replace_recursive(
+        $theme = array_replace_recursive(
             (array) $this->config->get('easy-pdf-word.theme', []),
             $this->template?->theme() ?? [],
             $this->theme,
         );
+
+        // Theme colours go into the templates' CSS, so only real colours pass.
+        foreach (self::THEME_COLORS as $key => $default) {
+            $theme[$key] = Color::css($theme[$key] ?? null, $default);
+        }
+
+        return $theme;
     }
 }

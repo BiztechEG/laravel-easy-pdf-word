@@ -83,9 +83,33 @@ class WordTest extends TestCase
             ->word()
             ->content());
 
+        // A left-to-right override: Arabic-Indic digits are "Arabic numbers" to the
+        // bidi algorithm, so an embedding alone still swaps the groups of +20 100.
         $this->assertStringContainsString('فاتورة ١٠٢٤', $xml);
-        $this->assertStringContainsString("\u{202A}+٢٠ ١٠٠\u{202C}", $xml);
-        $this->assertStringContainsString("\u{202A}-٢.٥\u{202C}", $xml);
+        $this->assertStringContainsString("\u{202D}+٢٠ ١٠٠\u{202C}", $xml);
+        $this->assertStringContainsString("\u{202D}-٢.٥\u{202C}", $xml);
+    }
+
+    public function test_ranges_are_not_read_as_negative_numbers(): void
+    {
+        $document = Doc::make()->paragraph('الفترة 2020 - 2021، الرصيد - 50')->locale('ar');
+
+        $html = $document->toHtml();
+        $this->assertStringContainsString('2020 - 2021', $html);
+        $this->assertStringContainsString('<bdo dir="ltr">- 50</bdo>', $html);
+
+        $xml = $this->documentXml($document->word()->content());
+        $this->assertStringContainsString('2020 - 2021', $xml);
+        $this->assertStringContainsString("\u{202D}- 50\u{202C}", $xml);
+    }
+
+    public function test_invoice_tax_numbers_keep_their_order_in_word(): void
+    {
+        $sample = Doc::templates()->get('invoice')->sample();
+        $xml = $this->documentXml(Doc::template('invoice', $sample)->locale('ar')->numerals('arabic')->word()->content());
+
+        $this->assertStringContainsString("\u{202D}١٢٣-٤٥٦-٧٨٩\u{202C}", $xml);
+        $this->assertStringContainsString("\u{202D}٩٨٧-٦٥٤-٣٢١\u{202C}", $xml);
     }
 
     public function test_special_characters_are_escaped(): void
@@ -103,6 +127,19 @@ class WordTest extends TestCase
         $this->assertNotFalse(simplexml_load_string($this->zipEntry($content, 'word/footer1.xml')));
         $this->assertStringContainsString('Smith &amp; Co &lt;Ltd&gt;', $xml);
         $this->assertStringContainsString('R&amp;D', $this->zipEntry($content, 'word/footer1.xml'));
+    }
+
+    public function test_colours_are_written_as_hex_values(): void
+    {
+        $xml = $this->documentXml(Doc::make()
+            ->paragraph('short', ['color' => '#abc'])
+            ->paragraph('named', ['color' => 'red'])
+            ->paragraph('broken', ['color' => '"><x'])
+            ->word()
+            ->content());
+
+        $this->assertStringContainsString('<w:color w:val="AABBCC"/>', $xml);
+        $this->assertSame(1, substr_count($xml, '<w:color '));
     }
 
     public function test_page_settings_and_footer_page_numbers(): void
@@ -180,6 +217,45 @@ class WordTest extends TestCase
         $this->assertStringNotContainsString('${', $xml);
     }
 
+    public function test_values_cannot_add_placeholders_to_docx_templates(): void
+    {
+        $this->makeDocxTemplate('quote');
+
+        $xml = $this->documentXml(Doc::template('quote', [
+            'customer' => ['name' => '${t.title} ${items.price}'],
+            'items' => [['description' => '${customer.name}', 'price' => 10]],
+        ])->locale('ar')->word()->content());
+
+        $this->assertSame(1, substr_count($xml, 'عرض سعر'));
+        $this->assertStringContainsString("\u{2060}{t.title}", $xml);
+        $this->assertStringContainsString("\u{2060}{customer.name}", $xml);
+    }
+
+    public function test_docx_image_values_are_not_looked_up_through_stream_wrappers(): void
+    {
+        $this->makeDocxTemplate('quote');
+        stream_wrapper_register('probe', ProbeStream::class);
+
+        try {
+            Doc::template('quote', ['customer' => ['name' => 'probe://server/logo.png']])->locale('ar')->word()->content();
+        } finally {
+            stream_wrapper_unregister('probe');
+        }
+
+        $this->assertSame([], ProbeStream::$calls);
+    }
+
+    public function test_docx_images_that_cannot_be_used_leave_the_placeholder_empty(): void
+    {
+        $this->makeDocxTemplate('quote');
+
+        $xml = $this->documentXml(Doc::template('quote', [
+            'customer' => ['name' => 'data:image/svg+xml;base64,'.base64_encode('<svg xmlns="http://www.w3.org/2000/svg"/>')],
+        ])->locale('ar')->word()->content());
+
+        $this->assertStringNotContainsString('data:image', $xml);
+    }
+
     public function test_templates_without_a_word_layout_explain_what_is_missing(): void
     {
         mkdir($this->templates.'/pdf-only', 0775, true);
@@ -212,6 +288,47 @@ class WordTest extends TestCase
         $this->assertStringContainsString('مذكرة داخلية', $document->toHtml());
         $this->assertStringStartsWith('%PDF', $document->pdf()->content());
         $this->assertStringContainsString('نص المذكرة', $this->documentXml($document->word()->content()));
+    }
+
+    public function test_layout_php_serves_both_formats_and_word_php_wins_for_word(): void
+    {
+        mkdir($this->templates.'/memo', 0775, true);
+        file_put_contents($this->templates.'/memo/layout.php', '<?php return fn ($b, $data) => $b->paragraph("shared layout");');
+
+        $memo = Doc::template('memo')->locale('ar');
+        $this->assertStringContainsString('shared layout', $memo->toHtml());
+        $this->assertStringContainsString('shared layout', $this->documentXml($memo->word()->content()));
+
+        file_put_contents($this->templates.'/memo/word.php', '<?php return fn ($b, $data) => $b->paragraph("word layout");');
+
+        $this->assertStringContainsString('shared layout', Doc::template('memo')->toHtml());
+        $this->assertStringContainsString('word layout', $this->documentXml(Doc::template('memo')->word()->content()));
+    }
+
+    public function test_files_keep_the_document_as_it_was_when_requested(): void
+    {
+        $document = Doc::make()->heading('الأول')->locale('ar');
+        $word = $document->word();
+        $pdf = $document->pdf();
+        $document->heading('Second')->locale('en')->numerals('arabic');
+
+        $xml = $this->documentXml($word->content());
+        $this->assertStringContainsString('الأول', $xml);
+        $this->assertStringNotContainsString('Second', $xml);
+        $this->assertStringContainsString('<w:bidi/>', $xml);
+        $this->assertStringStartsWith('%PDF', $pdf->content());
+
+        $letter = Doc::template('letter', Doc::templates()->get('letter')->sample())->locale('ar');
+        $arabic = $letter->word();
+        $letter->locale('en');
+        $this->assertStringContainsString('<w:bidi/>', $this->documentXml($arabic->content()));
+    }
+
+    public function test_private_builder_methods_are_not_reachable(): void
+    {
+        $this->expectException(\BadMethodCallException::class);
+
+        Doc::make()->push('heading', ['text' => 'x']);
     }
 
     public function test_builder_methods_are_only_available_on_make(): void
@@ -255,5 +372,27 @@ class WordTest extends TestCase
         @unlink($file);
 
         return $content;
+    }
+}
+
+/** Records every use of the probe:// stream wrapper. */
+class ProbeStream
+{
+    public static array $calls = [];
+
+    public $context;
+
+    public function url_stat(string $path, int $flags): array|false
+    {
+        self::$calls[] = $path;
+
+        return false;
+    }
+
+    public function stream_open(string $path, string $mode, int $options, ?string &$opened): bool
+    {
+        self::$calls[] = $path;
+
+        return false;
     }
 }
