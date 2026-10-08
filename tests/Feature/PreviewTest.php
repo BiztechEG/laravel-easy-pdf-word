@@ -69,6 +69,17 @@ class PreviewTest extends TestCase
         $this->assertStringContainsString('attachment', $word->headers->get('Content-Disposition'));
     }
 
+    public function test_unexpected_query_values_fall_back_to_the_defaults(): void
+    {
+        $html = $this->get('/doc-preview/letter?format=html&locale=../../../../tests/fixtures/probe&numerals[]=x&engine=evil')
+            ->assertOk()
+            ->assertHeader('Content-Type', 'text/html; charset=UTF-8');
+
+        $this->assertStringContainsString('<html lang="ar" dir="rtl">', $html->getContent());
+        $this->get('/doc-preview/letter?format=html&locale[]=ar&numerals=klingon')->assertOk();
+        $this->get('/doc-preview/letter?format=html&locale=fr')->assertOk()->assertSee('<html lang="ar"', false);
+    }
+
     public function test_unknown_templates_are_not_found(): void
     {
         $this->get('/doc-preview/nope')->assertNotFound();

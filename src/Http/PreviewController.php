@@ -14,6 +14,10 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class PreviewController
 {
+    private const ENGINES = ['mpdf', 'chromium', 'gotenberg'];
+
+    private const NUMERALS = ['latin', 'arabic'];
+
     public function __construct(
         private DocFactory $docs,
         private TemplateRegistry $templates,
@@ -37,7 +41,7 @@ class PreviewController
         return response($views->make('easy-pdf-word::preview.index', [
             'templates' => $templates,
             'selected' => $request->query('template', array_key_first($templates)),
-            'engines' => ['mpdf', 'chromium', 'gotenberg'],
+            'engines' => self::ENGINES,
             'base' => rtrim($request->url(), '/'),
         ])->render());
     }
@@ -47,18 +51,27 @@ class PreviewController
         abort_unless(TemplateRegistry::isValidName($template) && $this->templates->exists($template), 404);
 
         $definition = $this->templates->get($template);
+        $locales = $definition->locales() ?: ['ar'];
         $document = $this->docs->template($template, $definition->sample())
-            ->locale($request->query('locale', $definition->locales()[0] ?? 'ar'))
-            ->numerals($request->query('numerals', 'latin'));
+            ->locale($this->choice($request, 'locale', $locales))
+            ->numerals($this->choice($request, 'numerals', self::NUMERALS));
 
-        if ($request->filled('engine')) {
-            $document->driver((string) $request->query('engine'));
+        if ($engine = $this->choice($request, 'engine', [null, ...self::ENGINES])) {
+            $document->driver($engine);
         }
 
-        return match ($request->query('format', 'pdf')) {
+        return match ($request->query('format')) {
             'html' => response($document->toHtml()),
             'docx', 'word' => $document->word()->download($template.'.docx'),
             default => $document->pdf()->stream($template.'.pdf'),
         };
+    }
+
+    /** The query value when it is one of $allowed, else the first of them. */
+    private function choice(Request $request, string $key, array $allowed): ?string
+    {
+        $value = $request->query($key);
+
+        return in_array($value, $allowed, true) ? $value : $allowed[0];
     }
 }
