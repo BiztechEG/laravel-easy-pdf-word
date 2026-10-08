@@ -162,6 +162,25 @@ class DriversTest extends TestCase
         $this->assertStringStartsWith('%PDF', $pdf);
     }
 
+    public function test_mpdf_works_in_a_private_folder_per_system_user(): void
+    {
+        $dir = MpdfDriver::tempDir();
+
+        $this->assertStringStartsWith(sys_get_temp_dir().'/easy-pdf-word-', $dir);
+        $this->assertSame(0700, fileperms($dir) & 0777);
+        $this->assertSame(sys_get_temp_dir().'/easy-pdf-word-tests/mpdf', MpdfDriver::tempDir(sys_get_temp_dir().'/easy-pdf-word-tests/mpdf'));
+    }
+
+    public function test_an_unusable_mpdf_folder_names_the_setting(): void
+    {
+        config(['easy-pdf-word.pdf.fallback' => null, 'easy-pdf-word.pdf.drivers.mpdf.temp_dir' => '/dev/null/mpdf']);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('easy-pdf-word.pdf.drivers.mpdf.temp_dir');
+
+        Doc::html('<p>x</p>')->pdf()->content();
+    }
+
     public function test_mpdf_renders_landscape_pages(): void
     {
         $pdf = Doc::html('<p>x</p>')->landscape()->pdf()->content();

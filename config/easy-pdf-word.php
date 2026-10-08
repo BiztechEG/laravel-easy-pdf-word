@@ -59,7 +59,7 @@ return [
         'drivers' => [
 
             'mpdf' => [
-                'temp_dir' => null, // null = system temp dir
+                'temp_dir' => null, // null = a folder per system user in the system temp dir
                 'use_kashida' => 75,
                 // Pick fonts per script automatically, for documents that mix
                 // Arabic with Chinese, Hindi, etc. Ignores font-family in CSS.
