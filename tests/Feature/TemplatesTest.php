@@ -419,6 +419,17 @@ class TemplatesTest extends TestCase
         $this->assertStringContainsString('تقديراً لجهودها المتميزة في', $html);
     }
 
+    public function test_contract_names_up_to_twenty_parties_in_english(): void
+    {
+        $data = Doc::templates()->get('contract')->sample();
+        $data['parties'] = array_map(fn ($n) => ['name' => 'Party '.$n], range(1, 12));
+
+        $html = Doc::template('contract', $data)->locale('en')->toHtml();
+
+        $this->assertStringContainsString('Twelfth party', $html);
+        $this->assertStringNotContainsString('12 party', $html);
+    }
+
     public function test_certificates_take_at_most_three_signatures(): void
     {
         $data = Doc::templates()->get('certificate')->sample();
