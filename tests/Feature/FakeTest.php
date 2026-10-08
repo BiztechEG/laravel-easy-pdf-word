@@ -28,6 +28,7 @@ class FakeTest extends TestCase
         $pdf = Doc::template('invoice', $this->invoice())->locale('ar')->numerals('arabic')->pdf('فاتورة.pdf');
 
         $this->assertInstanceOf(DocFake::class, $fake);
+        $this->assertTrue(Doc::isFake());
         $this->assertStringStartsWith('%PDF', $pdf->content());
         $this->assertSame('fake', $pdf->engine());
 

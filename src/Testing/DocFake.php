@@ -5,6 +5,7 @@ namespace BiztechEG\EasyPdfWord\Testing;
 use BiztechEG\EasyPdfWord\DocFactory;
 use BiztechEG\EasyPdfWord\PendingDocument;
 use Closure;
+use Illuminate\Support\Testing\Fakes\Fake;
 use PHPUnit\Framework\Assert as PHPUnit;
 
 /**
@@ -12,7 +13,7 @@ use PHPUnit\Framework\Assert as PHPUnit;
  * their data checked as usual, but no PDF or Word file is rendered, saved
  * or sent. The assertions below check what the code asked for.
  */
-class DocFake extends DocFactory
+class DocFake extends DocFactory implements Fake
 {
     /** @var list<GeneratedDocument> */
     private array $documents = [];
