@@ -141,6 +141,15 @@ class TemplatesTest extends TestCase
         $this->assertStringStartsWith('https://invoicing.eta.gov.eg/documents/R6ZQ4SB1ZWP2XKCV2G0AYXHG10/share/', $prepared['qr']);
     }
 
+    public function test_egyptian_e_invoice_prints_the_eta_utc_time_in_the_app_time_zone(): void
+    {
+        config(['app.timezone' => 'Africa/Cairo']);
+        $data = Doc::templates()->get('eg-invoice')->sample();
+        $data['document']['issued_at'] = '2026-10-08T23:30:00Z';
+
+        $this->assertStringContainsString('2026/10/09 02:30', Doc::template('eg-invoice', $data)->locale('en')->toHtml());
+    }
+
     public function test_egyptian_e_invoice_tax_bases_follow_eta(): void
     {
         $line = fn (array $taxes, array $extra = []) => ['description' => 'x', 'quantity' => 1, 'unit_price' => 1000, 'taxes' => $taxes] + $extra;
