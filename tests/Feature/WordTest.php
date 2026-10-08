@@ -283,6 +283,18 @@ class WordTest extends TestCase
         $this->assertStringNotContainsString('data:image', $xml);
     }
 
+    public function test_docx_image_paths_that_cannot_be_read_are_not_printed(): void
+    {
+        $this->makeDocxTemplate('quote');
+
+        $xml = $this->documentXml(Doc::template('quote', [
+            'customer' => ['name' => '/etc/secret/logo.png'],
+            'items' => [['description' => 'x', 'price' => 1.5]],
+        ])->locale('ar')->word()->content());
+
+        $this->assertStringNotContainsString('logo.png', $xml);
+    }
+
     public function test_a_failed_docx_fill_leaves_no_temp_files(): void
     {
         $this->makeDocxTemplate('quote');

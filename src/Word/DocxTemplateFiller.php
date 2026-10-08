@@ -71,9 +71,9 @@ class DocxTemplateFiller
                     continue;
                 }
 
-                // An image Word cannot show (SVG) or may not read leaves the
-                // placeholder empty rather than printing a data URI or a path.
-                $processor->setValue($variable, $source !== null || (is_string($value) && str_starts_with($value, 'data:')) ? '' : $this->text($value, $doc));
+                // An image Word cannot show (SVG), may not read or cannot find leaves
+                // the placeholder empty rather than printing a data URI or a path.
+                $processor->setValue($variable, $this->isImage($value) || (is_string($value) && str_starts_with($value, 'data:')) ? '' : $this->text($value, $doc));
             }
 
             $file = $this->temporary[] = tempnam(sys_get_temp_dir(), 'easy-docx');
