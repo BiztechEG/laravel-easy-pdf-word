@@ -328,7 +328,7 @@ class PendingDocument
             }
 
             $context = $this->context(new PdfOptions(locale: $locale, direction: $direction, font: $this->resolvedFont($direction)), null);
-            $html = $this->views->file($view, $data + ['doc' => $context])->render();
+            $html = $this->views->file($view, ['doc' => $context] + $data)->render();
 
             return $numerals === Numerals::ARABIC
                 ? Numerals::convertHtml($html, Numerals::ARABIC, $this->fonts->hasArabicSeparators($this->resolvedFont($direction)))
@@ -432,7 +432,8 @@ class PendingDocument
 
     private function viewData(DocContext $context): array
     {
-        return $this->templateData() + ['doc' => $context];
+        // $doc is always the context; a data key named "doc" does not replace it.
+        return ['doc' => $context] + $this->templateData();
     }
 
     private function templateData(): array

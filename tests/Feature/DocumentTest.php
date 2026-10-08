@@ -49,6 +49,13 @@ class DocumentTest extends TestCase
         $this->assertSame('one thousand two hundred fifty EGP and 50/100 only', $doc->inWords('1,250.50', 'EGP'));
     }
 
+    public function test_a_data_key_named_doc_does_not_replace_the_context(): void
+    {
+        $html = Doc::template('letter', ['doc' => ['x' => 1]] + Doc::templates()->get('letter')->sample())->locale('ar')->toHtml();
+
+        $this->assertStringContainsString('dir="rtl"', $html);
+    }
+
     public function test_full_html_documents_are_not_wrapped(): void
     {
         $html = Doc::html('<html><body>raw</body></html>')->toHtml();
