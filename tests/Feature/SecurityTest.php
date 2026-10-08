@@ -102,6 +102,13 @@ class SecurityTest extends TestCase
         $this->assertStringNotContainsString('evil.test', $html);
     }
 
+    public function test_images_that_cannot_be_used_are_left_out_of_table_cells(): void
+    {
+        $html = Doc::make()->table([[['lines' => ['x', ['image' => '/etc/passwd.png']]], ['image' => 'https://evil.test/a.png']]])->toHtml();
+
+        $this->assertStringNotContainsString('<img', $html);
+    }
+
     public function test_builder_colours_cannot_add_css(): void
     {
         $html = Doc::make()
