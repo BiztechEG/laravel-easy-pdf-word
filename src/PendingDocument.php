@@ -9,6 +9,7 @@ use BiztechEG\EasyPdfWord\Builder\HtmlRenderer;
 use BiztechEG\EasyPdfWord\Contracts\PdfDriver;
 use BiztechEG\EasyPdfWord\Exceptions\WordNotSupported;
 use BiztechEG\EasyPdfWord\Fonts\FontRegistry;
+use BiztechEG\EasyPdfWord\Jobs\SaveDocument;
 use BiztechEG\EasyPdfWord\Pdf\PdfManager;
 use BiztechEG\EasyPdfWord\Pdf\PdfOptions;
 use BiztechEG\EasyPdfWord\Support\Color;
@@ -24,6 +25,7 @@ use BadMethodCallException;
 use Illuminate\Contracts\Config\Repository as Config;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\View\Factory as ViewFactory;
+use Illuminate\Foundation\Bus\PendingDispatch;
 use Illuminate\Support\Facades\Validator;
 use InvalidArgumentException;
 
@@ -301,9 +303,7 @@ class PendingDocument
      */
     public function word(?string $filename = null): WordDocument
     {
-        if ($this->builder === null && ($this->template === null || ! $this->template->supportsWord())) {
-            throw $this->template ? WordNotSupported::forTemplate($this->template->name) : WordNotSupported::forSource();
-        }
+        $this->ensureWordSupported();
 
         $document = clone $this;
         $filename ??= ($this->template?->name ?? 'document').'.docx';
@@ -318,6 +318,31 @@ class PendingDocument
         }
 
         return new WordDocument(fn () => $document->renderWord(), $filename);
+    }
+
+    /**
+     * Render and save the file on a queue worker instead of now. The format
+     * comes from the extension: ".pdf" or ".docx". Returns Laravel's
+     * PendingDispatch, so ->onQueue(), ->delay() and ->chain() work.
+     *
+     *   Doc::template('invoice', $data)->locale('ar')->queue('invoices/1024.pdf', 's3')->onQueue('documents');
+     */
+    public function queue(string $path, ?string $disk = null): PendingDispatch
+    {
+        $format = match (strtolower(pathinfo($path, PATHINFO_EXTENSION))) {
+            'pdf' => 'pdf',
+            'docx' => 'word',
+            default => throw new InvalidArgumentException('Cannot tell the format of ['.mb_substr($path, -60).']: end the path with ".pdf" or ".docx".'),
+        };
+
+        // Invalid data, or a template without a Word layout, fails now rather than on the worker.
+        if ($format === 'word') {
+            $this->ensureWordSupported();
+        }
+
+        $this->templateData();
+
+        return new PendingDispatch(new SaveDocument($this->toQueue(), $format, $path, $disk));
     }
 
     /**
@@ -452,6 +477,13 @@ class PendingDocument
         $this->builder->{$method}(...$arguments);
 
         return $this;
+    }
+
+    private function ensureWordSupported(): void
+    {
+        if ($this->builder === null && ($this->template === null || ! $this->template->supportsWord())) {
+            throw $this->template ? WordNotSupported::forTemplate($this->template->name) : WordNotSupported::forSource();
+        }
     }
 
     /** What Doc::fake() records for a ->pdf() or ->word() file. */
