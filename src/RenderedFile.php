@@ -2,6 +2,7 @@
 
 namespace BiztechEG\EasyPdfWord;
 
+use BiztechEG\EasyPdfWord\Testing\GeneratedDocument;
 use Closure;
 use Illuminate\Contracts\Mail\Attachable;
 use Illuminate\Contracts\Support\Responsable;
@@ -22,10 +23,12 @@ abstract class RenderedFile implements Attachable, Responsable
 
     /**
      * @param  Closure(): array{0: string, 1: string}  $renderer  returns [bytes, engine name]
+     * @param  GeneratedDocument|null  $fake  set under Doc::fake(): saves and responses are recorded there
      */
     public function __construct(
         private Closure $renderer,
         private string $filename = 'document',
+        private ?GeneratedDocument $fake = null,
     ) {}
 
     abstract public function mimeType(): string;
@@ -81,6 +84,13 @@ abstract class RenderedFile implements Attachable, Responsable
      */
     public function save(string $path, ?string $disk = null): string
     {
+        if ($this->fake !== null) {
+            $this->content();
+            $this->fake->recordSave($path, $disk);
+
+            return $path;
+        }
+
         if ($disk === null && $this->isAbsolute($path)) {
             if (! is_dir(dirname($path))) {
                 mkdir(dirname($path), 0775, true);
@@ -119,6 +129,7 @@ abstract class RenderedFile implements Attachable, Responsable
     private function response(?string $filename, string $disposition): Response
     {
         $filename = $this->cleanFilename($filename ?? $this->filename);
+        $this->fake?->recordResponse($filename, $disposition);
         // "%" is not allowed in the ASCII fallback name.
         $fallback = preg_replace('/[^\x20-\x24\x26-\x7E]/', '_', $filename);
 
