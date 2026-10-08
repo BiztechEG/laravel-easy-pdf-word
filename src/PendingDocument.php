@@ -368,6 +368,8 @@ class PendingDocument
             fontCss: $usesCss ? $this->fonts->cssFontFaces([$options->font]) : '',
             translations: $this->template?->translations($options->locale) ?? [],
             fallbackTranslations: $this->template?->translations('en') ?? [],
+            imagePaths: $this->config->get('easy-pdf-word.images.paths'),
+            remoteImages: (bool) $this->config->get('easy-pdf-word.images.remote', true),
         );
     }
 

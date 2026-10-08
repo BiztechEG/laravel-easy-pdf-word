@@ -75,4 +75,25 @@ class DocumentTest extends TestCase
         $compiled = $this->app['blade.compiler']->compileString("@tafqeet(5, 'EGP')");
         $this->assertStringContainsString('Arabic::tafqeet(5, \'EGP\')', $compiled);
     }
+
+    public function test_images_are_only_read_from_allowed_folders(): void
+    {
+        $this->app['view']->addNamespace('tests', __DIR__.'/../fixtures');
+        $this->app['config']->set('easy-pdf-word.images.paths', [__DIR__.'/../../resources']);
+        $png = imagecreatetruecolor(2, 2);
+        $outside = tempnam(sys_get_temp_dir(), 'img').'.png';
+        imagepng($png, $outside);
+
+        $html = Doc::view('tests::image', ['src' => $outside])->toHtml();
+        $this->assertStringNotContainsString('data:image/png', $html);
+
+        $html = Doc::view('tests::image', ['src' => __FILE__])->toHtml();
+        $this->assertStringNotContainsString('data:', $html);
+
+        $this->app['config']->set('easy-pdf-word.images.paths', [dirname($outside)]);
+        $html = Doc::view('tests::image', ['src' => $outside])->toHtml();
+        $this->assertStringContainsString('data:image/png;base64,', $html);
+
+        @unlink($outside);
+    }
 }

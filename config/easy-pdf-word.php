@@ -107,6 +107,27 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Images
+    |--------------------------------------------------------------------------
+    |
+    | Local images (logo, signature, stamp, ...) are read only from these
+    | folders, so a file path that arrives in user data cannot embed other
+    | files from the server. Set "paths" to null to allow any folder.
+    | "remote" lets image URLs through; the PDF engine downloads them.
+    |
+    */
+
+    'images' => [
+        'paths' => [
+            public_path(),
+            storage_path('app'),
+            resource_path(),
+        ],
+        'remote' => env('DOC_REMOTE_IMAGES', true),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Word
     |--------------------------------------------------------------------------
     |
