@@ -99,22 +99,31 @@ abstract class RenderedFile implements Responsable
         return $this->stream();
     }
 
+    /** The file name used for downloads and mail attachments, with its extension. */
+    public function filename(): string
+    {
+        return $this->cleanFilename($this->filename);
+    }
+
     private function response(?string $filename, string $disposition): Response
     {
-        // Slashes are not allowed in a download name; "%" not in its ASCII fallback.
-        $filename = str_replace(['/', '\\'], '-', $filename ?? $this->filename);
-        $extension = '.'.$this->extension();
-
-        if (! str_ends_with(strtolower($filename), $extension)) {
-            $filename .= $extension;
-        }
-
+        $filename = $this->cleanFilename($filename ?? $this->filename);
+        // "%" is not allowed in the ASCII fallback name.
         $fallback = preg_replace('/[^\x20-\x24\x26-\x7E]/', '_', $filename);
 
         return new Response($this->content(), 200, [
             'Content-Type' => $this->mimeType(),
             'Content-Disposition' => HeaderUtils::makeDisposition($disposition, $filename, $fallback),
         ]);
+    }
+
+    private function cleanFilename(string $filename): string
+    {
+        // Slashes are not allowed in a file name.
+        $filename = str_replace(['/', '\\'], '-', $filename);
+        $extension = '.'.$this->extension();
+
+        return str_ends_with(strtolower($filename), $extension) ? $filename : $filename.$extension;
     }
 
     private function isAbsolute(string $path): bool
