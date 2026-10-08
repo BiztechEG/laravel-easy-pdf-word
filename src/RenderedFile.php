@@ -8,6 +8,7 @@ use Illuminate\Contracts\Mail\Attachable;
 use Illuminate\Contracts\Support\Responsable;
 use Illuminate\Mail\Attachment;
 use Illuminate\Support\Facades\Storage;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -92,16 +93,23 @@ abstract class RenderedFile implements Attachable, Responsable
         }
 
         if ($disk === null && $this->isAbsolute($path)) {
-            if (! is_dir(dirname($path))) {
-                mkdir(dirname($path), 0775, true);
+            // Another worker may create the folder at the same moment.
+            if (! is_dir(dirname($path)) && ! @mkdir(dirname($path), 0775, true) && ! is_dir(dirname($path))) {
+                throw new RuntimeException('Could not create the folder ['.dirname($path).'].');
             }
 
-            file_put_contents($path, $this->content());
+            if (@file_put_contents($path, $this->content()) === false) {
+                throw new RuntimeException("Could not write [{$path}].");
+            }
 
             return $path;
         }
 
-        Storage::disk($disk)->put($path, $this->content());
+        // Disks do not throw by default; a failed write must not look saved
+        // (a queued save would otherwise finish without a file).
+        if (! Storage::disk($disk)->put($path, $this->content())) {
+            throw new RuntimeException("Could not write [{$path}] to the [".($disk ?? config('filesystems.default')).'] disk.');
+        }
 
         return $path;
     }

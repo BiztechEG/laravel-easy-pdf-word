@@ -93,6 +93,24 @@ class DocumentTest extends TestCase
         Storage::disk('local')->assertExists('docs/hello.pdf');
     }
 
+    public function test_a_failed_save_is_an_error(): void
+    {
+        // A full or read-only disk: put() returns false, as disks do not throw by default.
+        $disk = \Mockery::mock(\Illuminate\Contracts\Filesystem\Filesystem::class);
+        $disk->shouldReceive('put')->andReturn(false);
+        Storage::set('broken', $disk);
+
+        try {
+            Doc::html('<p>x</p>')->pdf()->save('docs/hello.pdf', 'broken');
+            $this->fail('The save should fail.');
+        } catch (\RuntimeException $e) {
+            $this->assertStringContainsString('[docs/hello.pdf] to the [broken] disk', $e->getMessage());
+        }
+
+        $this->expectExceptionMessage('Could not create the folder [/dev/null/docs]');
+        Doc::html('<p>x</p>')->pdf()->save('/dev/null/docs/hello.pdf');
+    }
+
     public function test_blade_directives_and_helpers(): void
     {
         $this->assertSame('ألف ومائتان وخمسون جنيهاً وخمسون قرشاً', tafqeet(1250.5, 'EGP'));
