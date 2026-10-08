@@ -3,7 +3,9 @@
 namespace BiztechEG\EasyPdfWord;
 
 use Closure;
+use Illuminate\Contracts\Mail\Attachable;
 use Illuminate\Contracts\Support\Responsable;
+use Illuminate\Mail\Attachment;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\Response;
@@ -12,7 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
  * A rendered (or about to be rendered) file. Rendering happens once, on the
  * first call that needs the bytes.
  */
-abstract class RenderedFile implements Responsable
+abstract class RenderedFile implements Attachable, Responsable
 {
     private ?string $content = null;
 
@@ -97,6 +99,15 @@ abstract class RenderedFile implements Responsable
     public function toResponse($request): Response
     {
         return $this->stream();
+    }
+
+    /**
+     * Attach the file to a mail: return it from a Mailable's attachments(),
+     * or pass it to ->attach() on a notification's MailMessage.
+     */
+    public function toMailAttachment(): Attachment
+    {
+        return Attachment::fromData(fn () => $this->content(), $this->filename())->withMime($this->mimeType());
     }
 
     /** The file name used for downloads and mail attachments, with its extension. */
