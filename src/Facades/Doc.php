@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static \BiztechEG\EasyPdfWord\PendingDocument view(string $view, array $data = [])
  * @method static \BiztechEG\EasyPdfWord\PendingDocument html(string $html)
  * @method static \BiztechEG\EasyPdfWord\PendingDocument make()
+ * @method static \BiztechEG\EasyPdfWord\ZipFile zip(array $files, string $filename = 'documents.zip')
  * @method static \BiztechEG\EasyPdfWord\Templates\TemplateRegistry templates()
  * @method static \BiztechEG\EasyPdfWord\Fonts\FontRegistry fonts()
  * @method static \BiztechEG\EasyPdfWord\Pdf\PdfManager pdfManager()

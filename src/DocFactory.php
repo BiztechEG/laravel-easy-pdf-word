@@ -51,6 +51,17 @@ class DocFactory
         return PendingDocument::forBuilder(new DocumentBuilder, $this->pdf, $this->fonts, $this->views, $this->config);
     }
 
+    /**
+     * Several files in one .zip: Doc::zip([$invoice->pdf(), $invoice->word()])
+     * or Doc::zip(['فاتورة.pdf' => $pdf]), then ->download() or ->save().
+     *
+     * @param  array<int|string, RenderedFile>  $files
+     */
+    public function zip(array $files, string $filename = 'documents.zip'): ZipFile
+    {
+        return ZipFile::make($files, $filename);
+    }
+
     public function templates(): TemplateRegistry
     {
         return $this->templates;
