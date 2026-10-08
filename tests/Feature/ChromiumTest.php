@@ -54,6 +54,16 @@ class ChromiumTest extends TestCase
         $this->assertStringContainsString('scripted', $this->text(Doc::html($html)->driver('chromium')->pdf()->content()));
     }
 
+    public function test_watermark_and_password_with_chromium(): void
+    {
+        $pdf = Doc::template('invoice', Doc::templates()->get('invoice')->sample())->locale('ar')->driver('chromium')
+            ->watermark('مسودة', color: '#B91C1C')->password('1234')->pdf();
+
+        $this->assertSame('browsershot', $pdf->engine());
+        $this->assertStringContainsString('/Encrypt', $pdf->content());
+        $this->keep('invoice-ar-chromium-watermark-password', $pdf->content());
+    }
+
     private function text(string $pdf): string
     {
         $file = tempnam(sys_get_temp_dir(), 'pdf');
