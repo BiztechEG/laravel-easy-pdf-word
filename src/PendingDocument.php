@@ -363,7 +363,7 @@ class PendingDocument
      */
     public function __call(string $method, array $arguments): static
     {
-        if ($this->builder === null || ! method_exists($this->builder, $method) || in_array($method, ['blocks', 'isEmpty'], true)) {
+        if ($this->builder === null || ! is_callable([$this->builder, $method]) || in_array($method, ['blocks', 'isEmpty'], true)) {
             throw new BadMethodCallException(sprintf('Method %s::%s does not exist.', static::class, $method));
         }
 

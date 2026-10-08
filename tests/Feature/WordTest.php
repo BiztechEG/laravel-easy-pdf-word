@@ -324,6 +324,13 @@ class WordTest extends TestCase
         $this->assertStringContainsString('<w:bidi/>', $this->documentXml($arabic->content()));
     }
 
+    public function test_private_builder_methods_are_not_reachable(): void
+    {
+        $this->expectException(\BadMethodCallException::class);
+
+        Doc::make()->push('heading', ['text' => 'x']);
+    }
+
     public function test_builder_methods_are_only_available_on_make(): void
     {
         $this->expectException(\BadMethodCallException::class);
