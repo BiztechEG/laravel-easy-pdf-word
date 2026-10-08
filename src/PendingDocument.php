@@ -478,17 +478,19 @@ class PendingDocument
         $data = $this->templateData();
         $numerals = $this->resolvedNumerals();
 
-        $partial = function (?string $view) use ($data, $locale, $direction, $numerals) {
+        // Headers and footers, given or from the template, in the document's digits.
+        $digits = fn (?string $html) => $html !== null && $numerals === Numerals::ARABIC
+            ? Numerals::convertHtml($html, Numerals::ARABIC, $this->fonts->hasArabicSeparators($this->resolvedFont($direction)))
+            : $html;
+
+        $partial = function (?string $view) use ($data, $locale, $direction) {
             if ($view === null) {
                 return null;
             }
 
             $context = $this->context(new PdfOptions(locale: $locale, direction: $direction, font: $this->resolvedFont($direction)), null);
-            $html = $this->views->file($view, ['doc' => $context] + $data)->render();
 
-            return $numerals === Numerals::ARABIC
-                ? Numerals::convertHtml($html, Numerals::ARABIC, $this->fonts->hasArabicSeparators($this->resolvedFont($direction)))
-                : $html;
+            return $this->views->file($view, ['doc' => $context] + $data)->render();
         };
 
         return new PdfOptions(
@@ -498,8 +500,8 @@ class PendingDocument
             direction: $direction,
             locale: $locale,
             font: $this->resolvedFont($direction),
-            header: $this->header ?? $partial($this->template?->headerView()),
-            footer: $this->footer ?? $partial($this->template?->footerView()),
+            header: $digits($this->header ?? $partial($this->template?->headerView())),
+            footer: $digits($this->footer ?? $partial($this->template?->footerView())),
             title: $this->title ?? $this->template?->title(),
             author: $this->resolvedTheme()['company']['name'] ?? null,
             numerals: $numerals,

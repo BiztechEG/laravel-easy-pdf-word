@@ -127,6 +127,13 @@ class DriversTest extends TestCase
         Doc::view('tests::broken')->driver('fake')->pdf()->content();
     }
 
+    public function test_a_given_footer_follows_the_digits(): void
+    {
+        $options = Doc::html('<p>x</p>')->locale('ar')->numerals('arabic')->footer('<div>صفحة {page} من {pages} - نسخة 2</div>')->options();
+
+        $this->assertSame('<div>صفحة {page} من {pages} - نسخة ٢</div>', $options->footer);
+    }
+
     public function test_mpdf_page_numbers_follow_the_digits(): void
     {
         $document = Doc::html('<p>مرحبا</p>')->locale('ar')->numerals('arabic')->footer('<div>صفحة {page} من {pages}</div>');
