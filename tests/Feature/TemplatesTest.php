@@ -147,6 +147,39 @@ class TemplatesTest extends TestCase
         $this->assertSame([1000.0, 1000.0, 1140.0], [$prepared['lines'][0]['sales'], $prepared['lines'][0]['net'], $prepared['lines'][0]['total']]);
     }
 
+    public function test_three_decimal_currencies_keep_their_fils(): void
+    {
+        $receipt = Doc::templates()->get('receipt')->sample();
+        $receipt = ['amount' => 1.125, 'currency' => 'KWD'] + $receipt;
+
+        $html = Doc::template('receipt', $receipt)->locale('ar')->toHtml();
+        $this->assertStringContainsString('1.125', $html);
+        $this->assertStringContainsString('فقط دينار واحد ومائة وخمسة وعشرون فلساً لا غير', $html);
+        $this->assertStringContainsString('one KWD and 125/1000 only', Doc::template('receipt', $receipt)->locale('en')->toHtml());
+
+        $invoice = Doc::templates()->get('invoice')->sample();
+        $invoice['invoice'] = ['currency' => 'KWD', 'tax_rate' => 0] + $invoice['invoice'];
+        $invoice['items'] = [['description' => 'x', 'quantity' => 1, 'unit_price' => 1.125]];
+        $prepared = Doc::templates()->get('invoice')->prepare($invoice);
+        $this->assertSame(1.125, $prepared['totals']['total']);
+        $this->assertStringContainsString('1.125', Doc::template('invoice', $invoice)->locale('ar')->toHtml());
+
+        $context = new \BiztechEG\EasyPdfWord\Support\DocContext('ar', 'rtl', 'cairo', [], 'latin', '');
+        $this->assertStringContainsString('BHD و125/1000', $context->tafqeet('1.125', 'BHD'));
+    }
+
+    public function test_line_totals_add_up_to_the_subtotal(): void
+    {
+        foreach (['invoice', 'quotation'] as $name) {
+            $data = Doc::templates()->get($name)->sample();
+            $data['items'] = array_fill(0, 3, ['description' => 'x', 'quantity' => 1.5, 'unit_price' => 3.33]);
+            $prepared = Doc::templates()->get($name)->prepare($data);
+
+            $this->assertSame(5.0, $prepared['items'][0]['total']);
+            $this->assertSame(15.0, $prepared['totals']['subtotal'], $name);
+        }
+    }
+
     public function test_receipt_and_quotation_amounts_in_words(): void
     {
         $receipt = Doc::template('receipt', Doc::templates()->get('receipt')->sample());
