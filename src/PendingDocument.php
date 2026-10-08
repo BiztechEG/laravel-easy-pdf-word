@@ -346,6 +346,7 @@ class PendingDocument
             footer: $this->footer ?? $partial($this->template?->footerView()),
             title: $this->title ?? $this->template?->title(),
             author: $this->resolvedTheme()['company']['name'] ?? null,
+            numerals: $numerals,
         );
     }
 
