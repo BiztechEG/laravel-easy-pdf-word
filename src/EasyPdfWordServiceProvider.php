@@ -6,6 +6,7 @@ use BiztechEG\EasyPdfWord\Arabic\Tafqeet;
 use BiztechEG\EasyPdfWord\Console\CopyTemplateCommand;
 use BiztechEG\EasyPdfWord\Console\ListTemplatesCommand;
 use BiztechEG\EasyPdfWord\Console\MakeTemplateCommand;
+use BiztechEG\EasyPdfWord\Console\SampleCommand;
 use BiztechEG\EasyPdfWord\Fonts\FontRegistry;
 use BiztechEG\EasyPdfWord\Pdf\PdfManager;
 use BiztechEG\EasyPdfWord\Templates\TemplateRegistry;
@@ -43,6 +44,10 @@ class EasyPdfWordServiceProvider extends ServiceProvider
         Blade::directive('tafqeet', fn ($expression) => "<?php echo e(\\BiztechEG\\EasyPdfWord\\Arabic\\Arabic::tafqeet({$expression})); ?>");
         Blade::directive('hijri', fn ($expression) => "<?php echo e(\\BiztechEG\\EasyPdfWord\\Arabic\\Arabic::hijri({$expression})); ?>");
 
+        if ($this->previewEnabled()) {
+            $this->loadRoutesFrom(__DIR__.'/../routes/preview.php');
+        }
+
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__.'/../config/easy-pdf-word.php' => config_path('easy-pdf-word.php'),
@@ -52,7 +57,15 @@ class EasyPdfWordServiceProvider extends ServiceProvider
                 ListTemplatesCommand::class,
                 CopyTemplateCommand::class,
                 MakeTemplateCommand::class,
+                SampleCommand::class,
             ]);
         }
+    }
+
+    private function previewEnabled(): bool
+    {
+        $enabled = config('easy-pdf-word.preview.enabled');
+
+        return $enabled === null ? $this->app->environment('local') : filter_var($enabled, FILTER_VALIDATE_BOOLEAN);
     }
 }

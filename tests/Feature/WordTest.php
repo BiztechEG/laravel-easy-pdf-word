@@ -214,6 +214,21 @@ class WordTest extends TestCase
         $this->assertStringContainsString('نص المذكرة', $this->documentXml($document->word()->content()));
     }
 
+    public function test_layout_php_serves_both_formats_and_word_php_wins_for_word(): void
+    {
+        mkdir($this->templates.'/memo', 0775, true);
+        file_put_contents($this->templates.'/memo/layout.php', '<?php return fn ($b, $data) => $b->paragraph("shared layout");');
+
+        $memo = Doc::template('memo')->locale('ar');
+        $this->assertStringContainsString('shared layout', $memo->toHtml());
+        $this->assertStringContainsString('shared layout', $this->documentXml($memo->word()->content()));
+
+        file_put_contents($this->templates.'/memo/word.php', '<?php return fn ($b, $data) => $b->paragraph("word layout");');
+
+        $this->assertStringContainsString('shared layout', Doc::template('memo')->toHtml());
+        $this->assertStringContainsString('word layout', $this->documentXml(Doc::template('memo')->word()->content()));
+    }
+
     public function test_builder_methods_are_only_available_on_make(): void
     {
         $this->expectException(\BadMethodCallException::class);

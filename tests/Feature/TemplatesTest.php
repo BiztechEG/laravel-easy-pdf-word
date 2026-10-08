@@ -18,6 +18,12 @@ class TemplatesTest extends TestCase
             'letter en' => ['letter', 'en'],
             'report ar' => ['report', 'ar'],
             'report en' => ['report', 'en'],
+            'quotation ar' => ['quotation', 'ar'],
+            'quotation en' => ['quotation', 'en'],
+            'receipt ar' => ['receipt', 'ar'],
+            'receipt en' => ['receipt', 'en'],
+            'eg-invoice ar' => ['eg-invoice', 'ar'],
+            'eg-invoice en' => ['eg-invoice', 'en'],
         ];
     }
 
@@ -35,7 +41,7 @@ class TemplatesTest extends TestCase
 
     public function test_bundled_templates_are_listed(): void
     {
-        $this->assertSame(['invoice', 'letter', 'report'], array_keys(Doc::templates()->all()));
+        $this->assertSame(['eg-invoice', 'invoice', 'letter', 'quotation', 'receipt', 'report'], array_keys(Doc::templates()->all()));
     }
 
     public function test_invoice_totals_and_zatca_qr_are_prepared(): void
@@ -99,6 +105,36 @@ class TemplatesTest extends TestCase
         $data['items'] = collect($data['items']);
 
         $this->assertStringContainsString('39,330.00', Doc::template('invoice', $data)->locale('ar')->toHtml());
+    }
+
+    public function test_egyptian_e_invoice_taxes(): void
+    {
+        $data = Doc::templates()->get('eg-invoice')->sample();
+        $data['lines'][] = [
+            'description' => 'سلعة عليها ضريبة جدول',
+            'quantity' => 2, 'unit_price' => 100,
+            'taxes' => [['type' => 'T2', 'rate' => 10], ['type' => 'T1', 'rate' => 14]],
+        ];
+
+        $prepared = Doc::templates()->get('eg-invoice')->prepare($data);
+
+        // 25,000 + 3,500 VAT - 750 WHT; 5,000 + 700 VAT; 200 + 20 table tax + 30.80 VAT on 220.
+        $this->assertSame(27750.0, $prepared['lines'][0]['total']);
+        $this->assertSame(250.8, $prepared['lines'][2]['total']);
+        $this->assertSame(['T1' => 4230.8, 'T2' => 20.0, 'T4' => 750.0], $prepared['totals']['taxes']);
+        $this->assertSame(33700.8, $prepared['totals']['total']);
+        $this->assertStringStartsWith('https://invoicing.eta.gov.eg/documents/R6ZQ4SB1ZWP2XKCV2G0AYXHG10/share/', $prepared['qr']);
+    }
+
+    public function test_receipt_and_quotation_amounts_in_words(): void
+    {
+        $receipt = Doc::template('receipt', Doc::templates()->get('receipt')->sample());
+        $this->assertStringContainsString('فقط خمسة عشر ألفاً وسبعمائة وخمسون جنيهاً وخمسون قرشاً لا غير', $receipt->locale('ar')->toHtml());
+        $this->assertStringContainsString('fifteen thousand seven hundred fifty EGP and 50/100 only', $receipt->locale('en')->toHtml());
+
+        $quote = Doc::template('quotation', Doc::templates()->get('quotation')->sample())->locale('ar')->numerals('arabic')->toHtml();
+        $this->assertStringContainsString('<bdo dir="ltr">QT-٢٠٢٦-٠٠٨٨</bdo>', $quote);
+        $this->assertStringContainsString('٧١,٢٥٠.٠٠', $quote);
     }
 
     public function test_template_data_is_validated(): void

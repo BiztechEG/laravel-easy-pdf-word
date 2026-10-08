@@ -256,7 +256,11 @@ class WordRenderer
                 continue;
             }
 
-            $runs = is_array($line) ? [$line] : [['text' => (string) $line]];
+            $runs = match (true) {
+                is_array($line) && array_is_list($line) => array_map(fn ($run) => is_array($run) ? $run : ['text' => (string) $run], $line),
+                is_array($line) => [$line],
+                default => [['text' => (string) $line]],
+            };
             $this->paragraph($cell, $runs, isset($line['align']) ? ['align' => $line['align']] + $paragraphStyle : $paragraphStyle);
         }
     }
@@ -271,9 +275,15 @@ class WordRenderer
             $source = base64_decode(substr($source, strpos($source, ',') + 1));
         }
 
+        // An image paragraph is not marked right to left, so "start" and
+        // "end" are given as the physical side.
         $container->addImage($source, [
             'width' => round($widthMm * self::POINTS_PER_MM),
-            'alignment' => $this->alignment($align),
+            'alignment' => match ($align) {
+                'center' => Jc::CENTER,
+                'end' => $this->rtl ? Jc::LEFT : Jc::RIGHT,
+                default => $this->rtl ? Jc::RIGHT : Jc::LEFT,
+            },
         ]);
     }
 

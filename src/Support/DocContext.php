@@ -137,6 +137,49 @@ class DocContext
         return $only ? 'فقط '.$text.' لا غير' : $text;
     }
 
+    /**
+     * An amount in words in the document's language: Arabic tafqeet, or the
+     * intl spell-out for other languages ("one thousand two hundred EGP").
+     * Empty when neither is available.
+     */
+    public function inWords(int|float|string $amount, string $currency, bool $only = true): string
+    {
+        $language = strtolower(preg_split('/[-_]/', $this->locale)[0]);
+
+        if ($language === 'ar') {
+            return $this->tafqeet($amount, $currency, $only);
+        }
+
+        if (! class_exists(\NumberFormatter::class)) {
+            return '';
+        }
+
+        $value = round((float) $amount, 2);
+        $integer = (int) $value;
+        $cents = (int) round(abs($value - $integer) * 100);
+        $words = (new \NumberFormatter($language, \NumberFormatter::SPELLOUT))->format($integer);
+
+        return trim($words.' '.strtoupper($currency).($cents > 0 ? ' and '.$cents.'/100' : '').($only ? ' only' : ''));
+    }
+
+    /** A currency's short label from the template's "currencies" labels, or its code. */
+    public function currency(string $code): string
+    {
+        $code = strtoupper($code);
+        $label = $this->t('currencies.'.$code);
+
+        if ($label !== 'currencies.'.$code) {
+            return $label;
+        }
+
+        return $this->isRtl() ? (self::ARABIC_CURRENCIES[$code] ?? $code) : $code;
+    }
+
+    private const ARABIC_CURRENCIES = [
+        'EGP' => 'ج.م', 'SAR' => 'ر.س', 'AED' => 'د.إ', 'KWD' => 'د.ك', 'QAR' => 'ر.ق',
+        'BHD' => 'د.ب', 'OMR' => 'ر.ع', 'JOD' => 'د.أ', 'USD' => 'دولار', 'EUR' => 'يورو',
+    ];
+
     /** Hijri dates need the intl extension; templates skip them without it. */
     public function hasHijri(): bool
     {

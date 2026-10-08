@@ -73,4 +73,19 @@ class CommandsTest extends TestCase
         $this->artisan('doc:make-template', ['name' => '..'])->assertFailed();
         $this->assertFalse(Doc::templates()->exists('..'));
     }
+
+    public function test_render_a_sample_file(): void
+    {
+        $dir = sys_get_temp_dir().'/easy-pdf-word-tests/samples';
+
+        foreach (['pdf' => '%PDF', 'docx' => 'PK', 'html' => '<!DOCTYPE'] as $format => $start) {
+            $this->artisan('doc:sample', ['name' => 'receipt', '--format' => $format, '--output' => "{$dir}/receipt.{$format}"])
+                ->assertSuccessful();
+
+            $this->assertStringStartsWith($start, file_get_contents("{$dir}/receipt.{$format}"));
+        }
+
+        $this->artisan('doc:sample', ['name' => 'nope'])->assertFailed();
+        $this->artisan('doc:sample', ['name' => 'receipt', '--format' => 'xls'])->assertFailed();
+    }
 }

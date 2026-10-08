@@ -30,7 +30,7 @@ return function (DocumentBuilder $word, array $data, DocContext $doc): void {
 
     $meta = [
         ['text' => $doc->t('title'), 'bold' => true, 'size' => 20, 'color' => $primary],
-        ['text' => $doc->t('number').': '.$invoice['number']],
+        [$doc->t('number').': ', ['text' => (string) $invoice['number'], 'ltr' => true]],
         ['text' => $doc->t('date').': '.$date($invoice['date'])],
     ];
 
