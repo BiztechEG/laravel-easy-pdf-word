@@ -1,10 +1,11 @@
 # Laravel Easy PDF & Word
 
-Generate PDF documents from Laravel in any language, with first-class Arabic support and ready-made templates. Word (.docx) output is coming in the next phase.
+Generate PDF and Word (.docx) documents from Laravel in any language, with first-class Arabic support and ready-made templates.
 
 - Arabic that renders correctly: joined letters, right-to-left layout, mixed Arabic and English, Arabic or Latin digits.
 - Two PDF engines you can switch between: **mPDF** (pure PHP, works on shared hosting) and **Chromium** (via Browsershot or Gotenberg), with automatic fallback.
-- Ready-made templates: tax invoice (with ZATCA QR), official letter, table report. Use them as they are, copy and customise them, or build your own.
+- Word files with real right-to-left paragraphs and tables, from the same templates, from code, or from a .docx you design in Word.
+- Ready-made templates: tax invoice (with ZATCA QR), official letter, table report, each in PDF and Word. Use them as they are, copy and customise them, or build your own.
 - Arabic helpers: amounts in words (تفقيط), Hijri dates, Arabic numerals.
 - Bundled Arabic fonts: Cairo, Tajawal and Noto Naskh Arabic.
 
@@ -24,6 +25,9 @@ composer require biztecheg/laravel-easy-pdf-word
 # Pick at least one PDF engine
 composer require mpdf/mpdf              # default, pure PHP
 composer require spatie/browsershot     # optional, Chromium
+
+# For Word files
+composer require phpoffice/phpword
 ```
 
 Publish the config if you want to change the defaults:
@@ -87,6 +91,7 @@ Doc::html('<h1>مرحبا</h1>')->locale('ar')->pdf()->stream();
 | `->pdf()->stream()` | Show in the browser |
 | `->pdf()->save('path.pdf', disk: 's3')` | Save to a disk (or an absolute path without a disk) |
 | `->pdf()->content()` | PDF bytes, e.g. for mail attachments |
+| `->word()->download('file.docx')` | The same for Word: `download`, `stream`, `save`, `content` |
 | `->toHtml()` | The final HTML, for debugging |
 
 Returning `->pdf()` from a controller streams it.
@@ -100,6 +105,69 @@ Doc::template('report', $data)
     ->footer('<div style="text-align:center">{page} / {pages}</div>')
     ->pdf();
 ```
+
+## Word files
+
+Every bundled template also makes a Word file from the same data:
+
+```php
+Doc::template('invoice', $data)->locale('ar')->word()->download('فاتورة-1024.docx');
+```
+
+Arabic documents get right-to-left paragraphs, Arabic text marked as Arabic (so Word uses the right font and size), and tables laid out from the right. The table header repeats on every page, and `{page}` / `{pages}` in the footer become Word page numbers.
+
+### Build a document in code
+
+`Doc::make()` describes a document block by block. The same document renders to Word and to PDF:
+
+```php
+$report = Doc::make()
+    ->heading('تقرير المبيعات')
+    ->paragraph([['text' => 'الفترة: ', 'bold' => true], 'سبتمبر 2026'])
+    ->table([
+        ['الفرع', 'الطلبات', 'الإيرادات'],
+        ['القاهرة', '1,240', '486,500.75'],
+        ['الجيزة', '980', '371,200.00'],
+    ], ['header' => true, 'columns' => [50, 20, ['width' => 30, 'align' => 'end']]])
+    ->qr('https://example.com/reports/9')
+    ->locale('ar');
+
+$report->word()->download('sales.docx');
+$report->pdf()->download('sales.pdf');
+```
+
+| Block | Example |
+| --- | --- |
+| `heading($text, $level = 1)` | `->heading('عقد خدمات', 2)` |
+| `paragraph($text or runs, $style)` | `->paragraph('نص', ['align' => 'justify'])` |
+| `table($rows, $options)` | options: `header`, `columns`, `striped`, `footer`, `borders`, `font_size` |
+| `image($path, $widthMm, $align)` | `->image(public_path('logo.png'), 40, 'end')` |
+| `qr($value, $sizeMm)` | `->qr($url, 30)` |
+| `spacer($mm)`, `line()`, `pageBreak()` | |
+
+Styles: `bold`, `italic`, `size` (pt), `color`, `align` (`start`, `end`, `center`, `justify`), `background` (cells), `border` (a box around a cell), and `ltr` to keep a phone number or code in order inside Arabic text. A cell is a string, or an array with `text`, `lines`, `image` or `qr`, plus `colspan`.
+
+### Word layout in a template
+
+A template folder can hold either of these next to `pdf.blade.php`:
+
+- `word.php` returns `fn (DocumentBuilder $word, array $data, DocContext $doc)` and adds blocks, like the bundled templates do. A template with only `word.php` makes PDFs from it too.
+- `word.docx` is a file you design in Word with placeholders. It wins over `word.php`.
+
+Placeholders in `word.docx`:
+
+| Placeholder | Value |
+| --- | --- |
+| `${invoice.number}`, `${buyer.name}` | Data, nested with dots |
+| `${items.description}` in a table row | The row repeats for every item; `${items.row_number}` numbers them |
+| `${logo}` or `${logo:120:60}` | An image path or data URI, optionally with a size in pixels |
+| `${t.title}` | A label from `lang/{locale}.php` |
+| `${theme.company.name}` | Theme values |
+| `${doc.hijri_date}`, `${doc.qr}`, `${doc.today}` | Hijri date of `date`, a QR image of `qr`, today's date |
+
+Values are escaped, and digits follow `->numerals()`. Set right-to-left direction for the paragraphs in Word itself.
+
+Word does not embed fonts, so Word files use a font your readers already have. The default is Arial; change it with `DOC_WORD_FONT` (for example `Tahoma` or `Sakkal Majalla`).
 
 ## Switching PDF engines
 
@@ -155,6 +223,7 @@ A template is a folder:
 resources/doc-templates/my-invoice/
   template.php        title, fields (validation rules), defaults, prepare(), sample data
   pdf.blade.php       the layout
+  word.php            optional Word layout (or word.docx designed in Word)
   footer.blade.php    optional, may use {page} and {pages}
   header.blade.php    optional
   lang/ar.php         labels, read with $doc->t('key')
@@ -234,11 +303,12 @@ MIT. mPDF, an optional dependency, is GPL-2.0; check that it fits your project, 
 
 ## بالعربي
 
-مكتبة Laravel لإنشاء ملفات PDF بأي لغة، مع دعم كامل للعربي وقوالب جاهزة. دعم ملفات Word جاي في المرحلة الجاية.
+مكتبة Laravel لإنشاء ملفات PDF و Word بأي لغة، مع دعم كامل للعربي وقوالب جاهزة.
 
 - العربي بيطلع صح: الحروف متشبكة، الاتجاه من اليمين للشمال، والنص المختلط عربي وإنجليزي، وأرقام عربية أو لاتينية.
 - محركين PDF تقدر تبدل بينهم: **mPDF** (PHP بس، شغال على الاستضافة المشتركة) و **Chromium** (عن طريق Browsershot أو Gotenberg)، ولو المحرك المختار مش موجود بيرجع للتاني تلقائياً.
-- قوالب جاهزة: فاتورة ضريبية (مع QR هيئة الزكاة)، خطاب رسمي، تقرير جدولي. تستخدمها زي ما هي، أو تنسخها وتعدلها، أو تعمل قالبك.
+- ملفات Word بفقرات وجداول من اليمين للشمال، من نفس القوالب، أو من الكود، أو من ملف docx تصممه في Word.
+- قوالب جاهزة: فاتورة ضريبية (مع QR هيئة الزكاة)، خطاب رسمي، تقرير جدولي، وكل قالب بيطلع PDF و Word. تستخدمها زي ما هي، أو تنسخها وتعدلها، أو تعمل قالبك.
 - أدوات عربية: التفقيط، التاريخ الهجري، الأرقام العربية.
 - خطوط عربية مدمجة: Cairo و Tajawal و Noto Naskh Arabic.
 
@@ -247,6 +317,7 @@ MIT. mPDF, an optional dependency, is GPL-2.0; check that it fits your project, 
 ```bash
 composer require biztecheg/laravel-easy-pdf-word
 composer require mpdf/mpdf
+composer require phpoffice/phpword   # لملفات Word
 ```
 
 ### مثال سريع
@@ -260,6 +331,24 @@ return Doc::template('invoice', $data)
     ->pdf()
     ->download('فاتورة.pdf');
 ```
+
+### ملفات Word
+
+```php
+// نفس القالب بصيغة Word
+Doc::template('invoice', $data)->locale('ar')->word()->download('فاتورة.docx');
+
+// مستند من الكود يطلع Word و PDF
+$doc = Doc::make()
+    ->heading('تقرير المبيعات')
+    ->table([['الفرع', 'المبيعات'], ['القاهرة', '1,000']], ['header' => true])
+    ->locale('ar');
+
+$doc->word()->download('تقرير.docx');
+$doc->pdf()->download('تقرير.pdf');
+```
+
+وتقدر تحط في فولدر القالب ملف `word.docx` تصممه في Word وتكتب فيه `${invoice.number}` و `${items.description}` جوه صف جدول، والمكتبة تملاه.
 
 ### التبديل بين المحركات
 

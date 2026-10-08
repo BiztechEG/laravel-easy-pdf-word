@@ -29,6 +29,7 @@ class CommandsTest extends TestCase
     {
         $this->artisan('doc:templates')
             ->expectsOutputToContain('invoice')
+            ->expectsOutputToContain('Formats')
             ->expectsOutputToContain('package')
             ->assertSuccessful();
     }
@@ -38,6 +39,7 @@ class CommandsTest extends TestCase
         $this->artisan('doc:template', ['name' => 'invoice', '--as' => 'my-invoice'])->assertSuccessful();
 
         $this->assertFileExists($this->projectTemplates.'/my-invoice/pdf.blade.php');
+        $this->assertFileExists($this->projectTemplates.'/my-invoice/word.php');
         $this->assertFalse(Doc::templates()->isBundled('my-invoice'));
 
         $html = Doc::template('my-invoice', Doc::templates()->get('invoice')->sample())->locale('ar')->toHtml();
@@ -61,6 +63,7 @@ class CommandsTest extends TestCase
         $pdf = Doc::template('delivery-note', ['title' => 'إذن تسليم'])->locale('ar')->pdf();
 
         $this->assertStringStartsWith('%PDF', $pdf->content());
+        $this->assertStringStartsWith('PK', Doc::template('delivery-note', ['title' => 'إذن تسليم'])->locale('ar')->word()->content());
         $this->artisan('doc:make-template', ['name' => 'delivery-note'])->assertFailed();
     }
 }

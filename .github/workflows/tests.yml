@@ -31,7 +31,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: mbstring, gd, intl
+          extensions: mbstring, gd, intl, zip
           coverage: none
 
       - name: Install dependencies
