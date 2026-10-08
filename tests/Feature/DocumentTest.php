@@ -40,6 +40,15 @@ class DocumentTest extends TestCase
         $this->assertStringContainsString('١,٢٥٠.٥٠', $html('tajawal'));
     }
 
+    public function test_formatted_numbers_are_read_whole(): void
+    {
+        $doc = new \BiztechEG\EasyPdfWord\Support\DocContext('en', 'ltr', 'cairo', [], 'latin', '');
+
+        $this->assertSame('1,250.50', $doc->numberText('1,250.5'));
+        $this->assertSame('1,250.50', (string) $doc->number('١٬٢٥٠٫٥'));
+        $this->assertSame('one thousand two hundred fifty EGP and 50/100 only', $doc->inWords('1,250.50', 'EGP'));
+    }
+
     public function test_full_html_documents_are_not_wrapped(): void
     {
         $html = Doc::html('<html><body>raw</body></html>')->toHtml();
