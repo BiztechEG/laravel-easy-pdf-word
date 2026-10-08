@@ -88,6 +88,23 @@ class WordTest extends TestCase
         $this->assertStringContainsString("\u{202A}-٢.٥\u{202C}", $xml);
     }
 
+    public function test_special_characters_are_escaped(): void
+    {
+        $content = Doc::make()
+            ->heading('Smith & Co <Ltd>')
+            ->table([['A & B', ['lines' => ['<x>']]]])
+            ->footer('<p>R&amp;D</p>')
+            ->word()
+            ->content();
+
+        $xml = $this->documentXml($content);
+
+        $this->assertNotFalse(simplexml_load_string($xml));
+        $this->assertNotFalse(simplexml_load_string($this->zipEntry($content, 'word/footer1.xml')));
+        $this->assertStringContainsString('Smith &amp; Co &lt;Ltd&gt;', $xml);
+        $this->assertStringContainsString('R&amp;D', $this->zipEntry($content, 'word/footer1.xml'));
+    }
+
     public function test_page_settings_and_footer_page_numbers(): void
     {
         $content = Doc::make()
