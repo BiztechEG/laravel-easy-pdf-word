@@ -54,6 +54,21 @@ class ChromiumTest extends TestCase
         $this->assertStringContainsString('scripted', $this->text(Doc::html($html)->driver('chromium')->pdf()->content()));
     }
 
+    public function test_footers_use_the_document_font(): void
+    {
+        if (! is_executable('/usr/bin/pdffonts')) {
+            $this->markTestSkipped('Needs pdffonts.');
+        }
+
+        $file = tempnam(sys_get_temp_dir(), 'pdf');
+        file_put_contents($file, Doc::html('<p>مرحبا</p>')->locale('ar')->footer('<div>صفحة {page} من {pages}</div>')->driver('chromium')->pdf()->content());
+        $fonts = (string) shell_exec('/usr/bin/pdffonts '.escapeshellarg($file));
+        @unlink($file);
+
+        $this->assertStringContainsString('Cairo', $fonts);
+        $this->assertStringNotContainsString('DejaVu', $fonts);
+    }
+
     public function test_watermark_and_password_with_chromium(): void
     {
         $pdf = Doc::template('invoice', Doc::templates()->get('invoice')->sample())->locale('ar')->driver('chromium')

@@ -190,6 +190,19 @@ class DriversTest extends TestCase
         Http::assertSent(fn (Request $request) => ! str_contains($this->gotenbergPage($request), 'Content-Security-Policy'));
     }
 
+    public function test_gotenberg_footers_carry_the_document_font(): void
+    {
+        $this->fakeGotenberg();
+
+        Doc::html('<p>مرحبا</p>')->locale('ar')->footer('<div>صفحة {page}</div>')->driver('gotenberg')->pdf()->content();
+
+        Http::assertSent(function (Request $request) {
+            $footer = collect($request->data())->firstWhere('filename', 'footer.html')['contents'];
+
+            return str_contains($footer, "@font-face{font-family:'cairo'") && str_contains($footer, "font-family:'cairo',sans-serif");
+        });
+    }
+
     public function test_a_gotenberg_answer_that_is_not_a_pdf_is_a_failure(): void
     {
         $this->fakeGotenberg('<html><body>Please sign in</body></html>');
