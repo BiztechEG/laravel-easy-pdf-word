@@ -258,10 +258,12 @@ class PendingDocument
 
     public function pdf(?string $filename = null): PdfDocument
     {
-        $options = $this->options();
+        // A copy, so changes made to this document afterwards do not reach the file.
+        $document = clone $this;
+        $options = $document->options();
 
         return new PdfDocument(
-            fn () => $this->pdf->render('', $options, $this->driver, fn (PdfDriver $engine) => $this->toHtml($engine, $options)),
+            fn () => $document->pdf->render('', $options, $document->driver, fn (PdfDriver $engine) => $document->toHtml($engine, $options)),
             $filename ?? ($this->template?->name ?? 'document').'.pdf',
         );
     }
@@ -276,8 +278,10 @@ class PendingDocument
             throw $this->template ? WordNotSupported::forTemplate($this->template->name) : WordNotSupported::forSource();
         }
 
+        $document = clone $this;
+
         return new WordDocument(
-            fn () => $this->renderWord(),
+            fn () => $document->renderWord(),
             $filename ?? ($this->template?->name ?? 'document').'.docx',
         );
     }
@@ -339,6 +343,13 @@ class PendingDocument
             title: $this->title ?? $this->template?->title(),
             author: $this->resolvedTheme()['company']['name'] ?? null,
         );
+    }
+
+    public function __clone()
+    {
+        if ($this->builder !== null) {
+            $this->builder = clone $this->builder;
+        }
     }
 
     /**

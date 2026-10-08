@@ -292,6 +292,25 @@ class WordTest extends TestCase
         $this->assertStringContainsString('word layout', $this->documentXml(Doc::template('memo')->word()->content()));
     }
 
+    public function test_files_keep_the_document_as_it_was_when_requested(): void
+    {
+        $document = Doc::make()->heading('الأول')->locale('ar');
+        $word = $document->word();
+        $pdf = $document->pdf();
+        $document->heading('Second')->locale('en')->numerals('arabic');
+
+        $xml = $this->documentXml($word->content());
+        $this->assertStringContainsString('الأول', $xml);
+        $this->assertStringNotContainsString('Second', $xml);
+        $this->assertStringContainsString('<w:bidi/>', $xml);
+        $this->assertStringStartsWith('%PDF', $pdf->content());
+
+        $letter = Doc::template('letter', Doc::templates()->get('letter')->sample())->locale('ar');
+        $arabic = $letter->word();
+        $letter->locale('en');
+        $this->assertStringContainsString('<w:bidi/>', $this->documentXml($arabic->content()));
+    }
+
     public function test_builder_methods_are_only_available_on_make(): void
     {
         $this->expectException(\BadMethodCallException::class);
