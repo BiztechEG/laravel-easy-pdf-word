@@ -2,8 +2,11 @@
 
 namespace BiztechEG\EasyPdfWord;
 
+use BiztechEG\EasyPdfWord\Testing\GeneratedDocument;
 use Closure;
+use Illuminate\Contracts\Mail\Attachable;
 use Illuminate\Contracts\Support\Responsable;
+use Illuminate\Mail\Attachment;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\Response;
@@ -12,7 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
  * A rendered (or about to be rendered) file. Rendering happens once, on the
  * first call that needs the bytes.
  */
-abstract class RenderedFile implements Responsable
+abstract class RenderedFile implements Attachable, Responsable
 {
     private ?string $content = null;
 
@@ -20,10 +23,12 @@ abstract class RenderedFile implements Responsable
 
     /**
      * @param  Closure(): array{0: string, 1: string}  $renderer  returns [bytes, engine name]
+     * @param  GeneratedDocument|null  $fake  set under Doc::fake(): saves and responses are recorded there
      */
     public function __construct(
         private Closure $renderer,
         private string $filename = 'document',
+        private ?GeneratedDocument $fake = null,
     ) {}
 
     abstract public function mimeType(): string;
@@ -79,6 +84,13 @@ abstract class RenderedFile implements Responsable
      */
     public function save(string $path, ?string $disk = null): string
     {
+        if ($this->fake !== null) {
+            $this->content();
+            $this->fake->recordSave($path, $disk);
+
+            return $path;
+        }
+
         if ($disk === null && $this->isAbsolute($path)) {
             if (! is_dir(dirname($path))) {
                 mkdir(dirname($path), 0775, true);
@@ -99,22 +111,41 @@ abstract class RenderedFile implements Responsable
         return $this->stream();
     }
 
+    /**
+     * Attach the file to a mail: return it from a Mailable's attachments(),
+     * or pass it to ->attach() on a notification's MailMessage.
+     */
+    public function toMailAttachment(): Attachment
+    {
+        return Attachment::fromData(fn () => $this->content(), $this->filename())->withMime($this->mimeType());
+    }
+
+    /** The file name used for downloads and mail attachments, with its extension. */
+    public function filename(): string
+    {
+        return $this->cleanFilename($this->filename);
+    }
+
     private function response(?string $filename, string $disposition): Response
     {
-        // Slashes are not allowed in a download name; "%" not in its ASCII fallback.
-        $filename = str_replace(['/', '\\'], '-', $filename ?? $this->filename);
-        $extension = '.'.$this->extension();
-
-        if (! str_ends_with(strtolower($filename), $extension)) {
-            $filename .= $extension;
-        }
-
+        $filename = $this->cleanFilename($filename ?? $this->filename);
+        $this->fake?->recordResponse($filename, $disposition);
+        // "%" is not allowed in the ASCII fallback name.
         $fallback = preg_replace('/[^\x20-\x24\x26-\x7E]/', '_', $filename);
 
         return new Response($this->content(), 200, [
             'Content-Type' => $this->mimeType(),
             'Content-Disposition' => HeaderUtils::makeDisposition($disposition, $filename, $fallback),
         ]);
+    }
+
+    private function cleanFilename(string $filename): string
+    {
+        // Slashes are not allowed in a file name.
+        $filename = str_replace(['/', '\\'], '-', $filename);
+        $extension = '.'.$this->extension();
+
+        return str_ends_with(strtolower($filename), $extension) ? $filename : $filename.$extension;
     }
 
     private function isAbsolute(string $path): bool
