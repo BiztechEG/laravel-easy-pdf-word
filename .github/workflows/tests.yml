@@ -17,16 +17,21 @@ jobs:
       matrix:
         php: ['8.2', '8.3', '8.4']
         laravel: ['12.*', '13.*']
+        dependencies: ['highest']
         include:
           - laravel: '12.*'
             testbench: '10.*'
           - laravel: '13.*'
             testbench: '11.*'
+          - php: '8.2'
+            laravel: '12.*'
+            testbench: '10.*'
+            dependencies: 'lowest'
         exclude:
           - php: '8.2'
             laravel: '13.*'
 
-    name: PHP ${{ matrix.php }} / Laravel ${{ matrix.laravel }}
+    name: PHP ${{ matrix.php }} / Laravel ${{ matrix.laravel }}${{ matrix.dependencies == 'lowest' && ' / lowest' || '' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -40,9 +45,11 @@ jobs:
       - name: Install dependencies
         run: |
           composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --dev --no-update --no-interaction
-          composer update --prefer-dist --no-interaction --no-progress
+          composer update --prefer-dist --no-interaction --no-progress ${{ matrix.dependencies == 'lowest' && '--prefer-lowest --prefer-stable' || '' }}
 
+      # The lowest versions are only there to prove they still work.
       - name: Check dependencies for security advisories
+        if: matrix.dependencies != 'lowest'
         run: composer audit --no-dev
 
       - name: Run tests
