@@ -180,6 +180,21 @@ class WordTest extends TestCase
         $this->assertStringStartsWith('%PDF', $document->pdf()->content());
     }
 
+    public function test_headings_stay_with_the_text_after_them_and_paragraph_spacing_matches(): void
+    {
+        $document = Doc::make()
+            ->heading('البند الأول', 3)
+            ->paragraph('نص البند', ['space_after' => 4, 'line_height' => 1.5])
+            ->locale('ar');
+
+        $html = $document->toHtml();
+        $xml = $this->documentXml($document->word()->content());
+
+        $this->assertStringContainsString('page-break-after: avoid;', $html);
+        $this->assertStringContainsString('margin-bottom: 4mm; line-height: 1.5;', $html);
+        $this->assertMatchesRegularExpression('/<w:keepNext[^>]*\/>.*البند الأول/s', $xml);
+    }
+
     public function test_word_download_response(): void
     {
         $response = Doc::make()->paragraph('مرحبا')->locale('ar')->word()->download('تقرير');

@@ -30,6 +30,12 @@ class TemplatesTest extends TestCase
             'delivery-note en' => ['delivery-note', 'en'],
             'credit-note ar' => ['credit-note', 'ar'],
             'credit-note en' => ['credit-note', 'en'],
+            'payslip ar' => ['payslip', 'ar'],
+            'payslip en' => ['payslip', 'en'],
+            'contract ar' => ['contract', 'ar'],
+            'contract en' => ['contract', 'en'],
+            'certificate ar' => ['certificate', 'ar'],
+            'certificate en' => ['certificate', 'en'],
         ];
     }
 
@@ -48,7 +54,7 @@ class TemplatesTest extends TestCase
     public function test_bundled_templates_are_listed(): void
     {
         $this->assertSame(
-            ['credit-note', 'delivery-note', 'eg-invoice', 'invoice', 'letter', 'purchase-order', 'quotation', 'receipt', 'report'],
+            ['certificate', 'contract', 'credit-note', 'delivery-note', 'eg-invoice', 'invoice', 'letter', 'payslip', 'purchase-order', 'quotation', 'receipt', 'report'],
             array_keys(Doc::templates()->all()),
         );
     }
@@ -290,6 +296,110 @@ class TemplatesTest extends TestCase
             $this->assertArrayHasKey('invoice.number', $e->errors());
             $this->assertArrayHasKey('reason', $e->errors());
         }
+    }
+
+    public function test_payslip_totals_month_and_net_in_words(): void
+    {
+        $data = Doc::templates()->get('payslip')->sample();
+        $prepared = Doc::templates()->get('payslip')->prepare($data);
+
+        // 18,000 + 3,000 + 1,200 + 1,450 - (1,980 + 2,135.50 + 1,000)
+        $this->assertSame(['earnings' => 23650.0, 'deductions' => 5115.5, 'net' => 18534.5], $prepared['totals']);
+
+        $html = Doc::template('payslip', $data)->locale('ar')->toHtml();
+        $this->assertStringContainsString('عن شهر سبتمبر 2026', $html);
+        $this->assertStringContainsString('18,534.50', $html);
+        $this->assertStringContainsString('فقط ثمانية عشر ألفاً وخمسمائة وأربعة وثلاثون جنيهاً وخمسون قرشاً لا غير', $html);
+        $this->assertStringContainsString('أيام الحضور', $html);
+        $this->assertStringContainsString('For September 2026', Doc::template('payslip', $data)->locale('en')->toHtml());
+
+        // February stays February on the 30th or 31st of a month, and a
+        // payslip without deductions or attendance still renders.
+        $data['period'] = '2026-02';
+        unset($data['deductions'], $data['attendance']);
+        $html = Doc::template('payslip', $data)->locale('ar')->toHtml();
+
+        $this->assertStringContainsString('عن شهر فبراير 2026', $html);
+        $this->assertStringContainsString('23,650.00', $html);
+        $this->assertStringNotContainsString('أيام الحضور', $html);
+    }
+
+    public function test_contract_parties_clauses_and_copies(): void
+    {
+        $data = Doc::templates()->get('contract')->sample();
+        $html = Doc::template('contract', $data)->locale('ar')->toHtml();
+
+        $this->assertStringContainsString('إنه في يوم الخميس الموافق 2026/10/08 تحرر هذا العقد في القاهرة بين كل من:', $html);
+        $this->assertStringContainsString('البند الأول: التمهيد', $html);
+        $this->assertStringContainsString('البند الثامن: فض النزاعات', $html);
+        $this->assertStringContainsString('(مقدم الخدمة)', $html);
+        $this->assertStringContainsString('وبعد أن أقر الطرفان', $html);
+        $this->assertStringContainsString('حُرر هذا العقد من نسختين', $html);
+        $this->assertStringContainsString('الشاهد الثاني', $html);
+
+        // A third party, more clauses than there are ordinal words, and
+        // more copies than there are copy words.
+        $data['parties'][] = ['name' => 'بنك القاهرة', 'alias' => 'الضامن'];
+        $data['clauses'] = array_fill(0, 21, ['text' => 'نص']);
+        $data['copies'] = 12;
+        $html = Doc::template('contract', $data)->locale('ar')->toHtml();
+
+        $this->assertStringContainsString('الطرف الثالث', $html);
+        $this->assertStringContainsString('وبعد أن أقرت الأطراف', $html);
+        $this->assertStringContainsString('البند العشرون', $html);
+        $this->assertStringContainsString('البند 21', $html);
+        $this->assertStringContainsString('حُرر هذا العقد من 12 نسخة', $html);
+
+        $data['closing'] = 'حُرر هذا العقد من أصل واحد يحفظه الضامن.';
+        $this->assertStringContainsString('أصل واحد يحفظه الضامن', Doc::template('contract', $data)->locale('ar')->toHtml());
+
+        $english = Doc::template('contract', Doc::templates()->get('contract')->sample())->locale('en')->toHtml();
+        $this->assertStringContainsString('First party', $english);
+        $this->assertStringContainsString('Clause 8:', $english);
+        $this->assertStringContainsString('This contract is made in two copies', $english);
+    }
+
+    public function test_certificate_wording_follows_type_gender_and_hours(): void
+    {
+        $data = Doc::templates()->get('certificate')->sample();
+        $html = Doc::template('certificate', $data)->locale('ar')->toHtml();
+
+        $this->assertStringContainsString('شهادة إتمام', $html);
+        $this->assertStringContainsString('لإتمامها بنجاح', $html);
+        $this->assertStringContainsString('خلال الفترة من 2026/09/06 إلى 2026/10/01', $html);
+        $this->assertStringContainsString('بعدد 40 ساعة تدريبية', $html);
+        $this->assertStringContainsString('بتقدير امتياز', $html);
+        $this->assertStringContainsString('data:image/png;base64,', $html);
+
+        $hours = fn (int|float $hours) => Doc::template('certificate', ['hours' => $hours, 'gender' => 'male'] + $data)->locale('ar')->toHtml();
+        $this->assertStringContainsString('بعدد ساعة تدريبية واحدة', $hours(1));
+        $this->assertStringContainsString('بعدد ساعتين تدريبيتين', $hours(2));
+        $this->assertStringContainsString('بعدد 5 ساعات تدريبية', $hours(5));
+        $this->assertStringContainsString('بعدد 7.5 ساعة تدريبية', $hours(7.5));
+        $this->assertStringContainsString('لإتمامه بنجاح', $hours(12));
+
+        // A one-day event.
+        $day = Doc::template('certificate', ['from' => null, 'to' => '2026-10-01'] + $data)->locale('ar')->toHtml();
+        $this->assertStringContainsString('بتاريخ 2026/10/01', $day);
+
+        // Appreciation, issued by the company in the theme.
+        $this->app['config']->set('easy-pdf-word.theme.company.name', 'شركة المثال');
+        $data = ['type' => 'appreciation', 'issuer' => null] + $data;
+        $html = Doc::template('certificate', $data)->locale('ar')->toHtml();
+
+        $this->assertStringContainsString('شهادة شكر وتقدير', $html);
+        $this->assertStringContainsString('شركة المثال', $html);
+        $this->assertStringContainsString('تُقدَّم هذه الشهادة مع خالص الشكر والتقدير إلى', $html);
+        $this->assertStringContainsString('تقديراً لجهودها المتميزة في', $html);
+    }
+
+    public function test_certificates_take_at_most_three_signatures(): void
+    {
+        $data = Doc::templates()->get('certificate')->sample();
+        $data['signatures'] = array_fill(0, 4, ['name' => 'x']);
+
+        $this->expectException(ValidationException::class);
+        Doc::template('certificate', $data)->toHtml();
     }
 
     public function test_receipt_and_quotation_amounts_in_words(): void
