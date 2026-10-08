@@ -90,6 +90,19 @@ class WordTest extends TestCase
         $this->assertStringContainsString("\u{202D}-٢.٥\u{202C}", $xml);
     }
 
+    public function test_ranges_are_not_read_as_negative_numbers(): void
+    {
+        $document = Doc::make()->paragraph('الفترة 2020 - 2021، الرصيد - 50')->locale('ar');
+
+        $html = $document->toHtml();
+        $this->assertStringContainsString('2020 - 2021', $html);
+        $this->assertStringContainsString('<bdo dir="ltr">- 50</bdo>', $html);
+
+        $xml = $this->documentXml($document->word()->content());
+        $this->assertStringContainsString('2020 - 2021', $xml);
+        $this->assertStringContainsString("\u{202D}- 50\u{202C}", $xml);
+    }
+
     public function test_invoice_tax_numbers_keep_their_order_in_word(): void
     {
         $sample = Doc::templates()->get('invoice')->sample();
