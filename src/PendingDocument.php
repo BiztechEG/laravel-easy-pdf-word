@@ -397,6 +397,10 @@ class PendingDocument
     {
         $settings = array_diff_key(get_object_vars($this), array_flip(self::NOT_QUEUED));
 
+        // The locale a middleware set for this request is not the worker's.
+        $settings['locale'] = $this->resolvedLocale();
+        $settings['numerals'] = $this->resolvedNumerals();
+
         // Template data ends up as arrays anyway; models and collections are not stored whole.
         if ($this->template !== null) {
             $settings['data'] = $this->toArrays($this->data);
