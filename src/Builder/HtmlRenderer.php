@@ -92,7 +92,7 @@ class HtmlRenderer
                 $cell = is_array($cell) ? $cell : ['text' => (string) $cell];
                 $column = $columns[$col] ?? [];
                 $span = (int) ($cell['colspan'] ?? 1);
-                $style = $cell + ['align' => $column['align'] ?? 'start', 'size' => $options['font_size']];
+                $style = $cell + ['align' => $this->linesAlign($cell) ?? $column['align'] ?? 'start', 'size' => $options['font_size']];
 
                 if ($isHeader) {
                     $style += ['bold' => true, 'color' => $options['header_color'], 'background' => $options['header_background']];
@@ -141,6 +141,17 @@ class HtmlRenderer
             is_array($line) && ! empty($line['align']) => '<div style="text-align: '.$this->align($line['align'], $doc).';'.$this->css($line, $doc, withAlign: false).'">'.$this->text($line, $doc).'</div>',
             default => $this->line($line, $cell, $doc),
         }, $lines));
+    }
+
+    /**
+     * mPDF aligns everything in a cell like the cell itself, so a cell whose
+     * aligned lines all agree (all centred, say) takes that alignment.
+     */
+    private function linesAlign(array $cell): ?string
+    {
+        $aligns = array_unique(array_filter(array_map(fn ($line) => is_array($line) ? ($line['align'] ?? null) : null, $cell['lines'] ?? [])));
+
+        return count($aligns) === 1 ? reset($aligns) : null;
     }
 
     private function line(mixed $line, array $cell, DocContext $doc): string
