@@ -11,11 +11,16 @@ All notable changes to this package are listed here. The format follows
 - `purchase-order` template: a purchase order to a supplier with item codes and units, discounts, optional VAT, delivery date and place, payment terms and approval signatures.
 - `delivery-note` template: a delivery note with ordered, delivered and remaining quantities, packages, driver and vehicle, and the receiver's acknowledgement.
 - `credit-note` template: a credit or debit note against an invoice, with the reason, VAT, amount in words and a ZATCA or e-invoice QR.
+- `payslip` template: a monthly payslip with earnings and deductions side by side, the net pay in figures and words, attendance and signatures.
+- `contract` template: a contract between two or more parties with a preamble, numbered clauses (البند الأول، البند الثاني ...), copies, signatures, witnesses and initials on every page.
+- `certificate` template: a landscape certificate of completion, attendance, participation or appreciation with up to three signatures and a verification QR. The Arabic wording follows the recipient's gender.
+- Builder paragraphs take `space_after` and `line_height` in PDF files too, as they already did in Word.
 
 ### Changed
 
 - `doc:sample` picks the format from the `--output` extension when `--format` is not given, so `--output=invoice.docx` makes a Word file.
 - `doc:make-template` warns when the new template has the name of a bundled one, which it then replaces in the app.
+- A heading stays on the same page as the text after it, in PDF and Word.
 
 ## [1.1.0] - 2026-10-08
 
