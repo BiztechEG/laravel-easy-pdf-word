@@ -178,6 +178,11 @@ export default defineConfig({
   ],
   markdown: {
     theme: { light: 'github-light', dark: 'github-dark' },
+    config(md) {
+      // Blade's {{ }} in inline code is text, not a Vue expression.
+      const codeInline = md.renderer.rules.code_inline!
+      md.renderer.rules.code_inline = (...args) => codeInline(...args).replace(/^<code/, '<code v-pre')
+    },
   },
   themeConfig: {
     logo: '/logo.svg',
