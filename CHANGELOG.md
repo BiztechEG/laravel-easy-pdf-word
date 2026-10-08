@@ -6,6 +6,11 @@ All notable changes to this package are listed here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- `->watermark($text, opacity, color)` prints text across every page of a PDF, with mPDF, Chromium and Gotenberg.
+- `->password($user, owner, allow)` encrypts a PDF. Chromium files are encrypted afterwards by mPDF. `->word()` refuses a document with a password.
+
 ## [1.0.0] - 2026-10-08
 
 ### Added
