@@ -76,6 +76,15 @@ class DocumentTest extends TestCase
         $this->assertStringContainsString('Arabic::tafqeet(5, \'EGP\')', $compiled);
     }
 
+    public function test_download_names_with_slashes_and_percent_signs(): void
+    {
+        $pdf = Doc::html('<p>x</p>')->pdf('فاتورة/1');
+
+        $this->assertStringContainsString('reports-2026.pdf', $pdf->download('reports/2026.pdf')->headers->get('Content-Disposition'));
+        $this->assertStringContainsString('attachment', $pdf->download('100% done')->headers->get('Content-Disposition'));
+        $this->assertStringContainsString('inline', $pdf->stream()->headers->get('Content-Disposition'));
+    }
+
     public function test_images_are_only_read_from_allowed_folders(): void
     {
         $this->app['view']->addNamespace('tests', __DIR__.'/../fixtures');

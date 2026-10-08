@@ -101,14 +101,15 @@ abstract class RenderedFile implements Responsable
 
     private function response(?string $filename, string $disposition): Response
     {
-        $filename ??= $this->filename;
+        // Slashes are not allowed in a download name; "%" not in its ASCII fallback.
+        $filename = str_replace(['/', '\\'], '-', $filename ?? $this->filename);
         $extension = '.'.$this->extension();
 
         if (! str_ends_with(strtolower($filename), $extension)) {
             $filename .= $extension;
         }
 
-        $fallback = preg_replace('/[^\x20-\x7E]/', '_', $filename);
+        $fallback = preg_replace('/[^\x20-\x24\x26-\x7E]/', '_', $filename);
 
         return new Response($this->content(), 200, [
             'Content-Type' => $this->mimeType(),
