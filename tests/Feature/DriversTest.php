@@ -81,6 +81,14 @@ class DriversTest extends TestCase
         $this->assertSame([10.0, 5.0, 10.0, 5.0], $driver->options->margins);
         $this->assertSame('{page}/{pages}', $driver->options->footer);
     }
+
+    public function test_mpdf_renders_landscape_pages(): void
+    {
+        $pdf = Doc::html('<p>x</p>')->landscape()->pdf()->content();
+
+        // A4 landscape is 842 x 595 points.
+        $this->assertMatchesRegularExpression('/\/MediaBox \[0 0 841\.8\d* 595\.2\d*\]/', $pdf);
+    }
 }
 
 class FakeDriver implements PdfDriver
