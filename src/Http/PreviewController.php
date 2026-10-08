@@ -38,12 +38,19 @@ class PreviewController
             ];
         }
 
+        $nonce = base64_encode(random_bytes(16));
+
         return response($views->make('easy-pdf-word::preview.index', [
             'templates' => $templates,
             'selected' => $request->query('template', array_key_first($templates)),
             'engines' => self::ENGINES,
-            'base' => rtrim($request->url(), '/'),
-        ])->render());
+            'base' => rtrim(route('easy-pdf-word.preview.index', absolute: false), '/'),
+            'nonce' => $nonce,
+        ])->render())->withHeaders([
+            'Content-Security-Policy' => "default-src 'none'; script-src 'nonce-{$nonce}'; style-src 'unsafe-inline'; "
+                ."frame-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'self'",
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
     }
 
     public function show(Request $request, string $template): Response
@@ -61,7 +68,11 @@ class PreviewController
         }
 
         return match ($request->query('format')) {
-            'html' => response($document->toHtml()),
+            // The document's own HTML, shown in the page's frame: no scripts, no requests but images and fonts.
+            'html' => response($document->toHtml())->withHeaders([
+                'Content-Security-Policy' => "sandbox; default-src 'none'; style-src 'unsafe-inline'; img-src data: https: http:; font-src data: https: http:",
+                'X-Content-Type-Options' => 'nosniff',
+            ]),
             'docx', 'word' => $document->word()->download($template.'.docx'),
             default => $document->pdf()->stream($template.'.pdf'),
         };

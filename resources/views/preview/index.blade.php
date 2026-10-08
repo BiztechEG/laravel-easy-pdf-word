@@ -72,7 +72,7 @@
         @endif
     </main>
 
-    <script>
+    <script nonce="{{ $nonce }}">
         const base = @json($base);
         let current = @json($selected);
         const $ = (id) => document.getElementById(id);
@@ -97,9 +97,9 @@
             document.querySelectorAll('.template').forEach((b) => b.classList.toggle('active', b === button));
 
             const locale = $('locale').value;
-            $('locale').innerHTML = button.dataset.locales.split(',')
-                .map((l) => `<option value="${l}">${l}</option>`).join('');
-            if (button.dataset.locales.split(',').includes(locale)) $('locale').value = locale;
+            const locales = button.dataset.locales.split(',');
+            $('locale').replaceChildren(...locales.map((l) => new Option(l, l)));
+            if (locales.includes(locale)) $('locale').value = locale;
 
             $('download-word').style.display = button.dataset.word === '1' ? '' : 'none';
             $('open-pdf').style.display = button.dataset.pdf === '1' ? '' : 'none';

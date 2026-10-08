@@ -80,6 +80,27 @@ class PreviewTest extends TestCase
         $this->get('/doc-preview/letter?format=html&locale=fr')->assertOk()->assertSee('<html lang="ar"', false);
     }
 
+    public function test_the_page_links_with_relative_urls_and_a_content_security_policy(): void
+    {
+        $response = $this->get('http://evil.example/doc-preview')->assertOk();
+        $csp = $response->headers->get('Content-Security-Policy');
+
+        $this->assertStringNotContainsString('evil.example', $response->getContent());
+        $this->assertStringContainsString('const base = "\\/doc-preview";', $response->getContent());
+        $this->assertStringNotContainsString('innerHTML', $response->getContent());
+        $this->assertMatchesRegularExpression("/script-src 'nonce-([A-Za-z0-9+\\/=]+)'/", $csp);
+        preg_match("/'nonce-([^']+)'/", $csp, $nonce);
+        $this->assertStringContainsString('<script nonce="'.$nonce[1].'">', $response->getContent());
+    }
+
+    public function test_html_previews_are_sandboxed(): void
+    {
+        $csp = $this->get('/doc-preview/letter?format=html')->assertOk()->headers->get('Content-Security-Policy');
+
+        $this->assertStringContainsString('sandbox', $csp);
+        $this->assertStringContainsString("default-src 'none'", $csp);
+    }
+
     public function test_unknown_templates_are_not_found(): void
     {
         $this->get('/doc-preview/nope')->assertNotFound();
