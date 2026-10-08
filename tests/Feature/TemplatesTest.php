@@ -141,6 +141,21 @@ class TemplatesTest extends TestCase
         $this->assertStringStartsWith('https://invoicing.eta.gov.eg/documents/R6ZQ4SB1ZWP2XKCV2G0AYXHG10/share/', $prepared['qr']);
     }
 
+    public function test_egyptian_e_invoice_takes_lowercase_tax_types_names_non_taxable_ones_and_prints_the_submission_id(): void
+    {
+        $data = Doc::templates()->get('eg-invoice')->sample();
+        $data['document']['submission_uuid'] = 'SUB7XKQ2M9ZP0A';
+        $data['lines'][0]['taxes'] = [['type' => 't1', 'rate' => 14], ['type' => 'T13', 'rate' => 1]];
+
+        $html = Doc::template('eg-invoice', $data)->locale('en')->toHtml();
+
+        $this->assertStringContainsString('T1 - Value added tax', $html);
+        $this->assertStringContainsString('T13 - Stamping tax (percentage)', $html);
+        $this->assertStringContainsString('Submission ID', $html);
+        $this->assertStringContainsString('SUB7XKQ2M9ZP0A', $html);
+        $this->assertStringContainsString('T13 - ضريبة الدمغة (نسبية)', Doc::template('eg-invoice', $data)->locale('ar')->toHtml());
+    }
+
     public function test_egyptian_e_invoice_prints_the_eta_utc_time_in_the_app_time_zone(): void
     {
         config(['app.timezone' => 'Africa/Cairo']);
