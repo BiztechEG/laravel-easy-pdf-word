@@ -271,9 +271,15 @@ class WordRenderer
             $source = base64_decode(substr($source, strpos($source, ',') + 1));
         }
 
+        // An image paragraph is not marked right to left, so "start" and
+        // "end" are given as the physical side.
         $container->addImage($source, [
             'width' => round($widthMm * self::POINTS_PER_MM),
-            'alignment' => $this->alignment($align),
+            'alignment' => match ($align) {
+                'center' => Jc::CENTER,
+                'end' => $this->rtl ? Jc::LEFT : Jc::RIGHT,
+                default => $this->rtl ? Jc::RIGHT : Jc::LEFT,
+            },
         ]);
     }
 
