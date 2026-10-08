@@ -102,6 +102,20 @@ class SecurityTest extends TestCase
         $this->assertStringNotContainsString('evil.test', $html);
     }
 
+    public function test_builder_colours_cannot_add_css(): void
+    {
+        $html = Doc::make()
+            ->paragraph('x', ['color' => 'red; background-image: url(http://evil.test/a.png)', 'background' => '#FFF;position:fixed'])
+            ->table([[['text' => 'y', 'background' => 'url(http://evil.test/b.png)', 'border' => 'red;background:url(http://evil.test/e)']]], ['border_color' => 'red; background: url(http://evil.test/c)'])
+            ->line('#000; background: url(http://evil.test/d)')
+            ->toHtml();
+
+        $this->assertStringNotContainsString('evil.test', $html);
+        $this->assertStringNotContainsString('position:fixed', $html);
+        $this->assertStringContainsString('color: #0F766E', Doc::make()->paragraph('x', ['color' => '#0F766E'])->toHtml());
+        $this->assertStringContainsString('color: rgb(10, 20, 30)', Doc::make()->paragraph('x', ['color' => 'rgb(10, 20, 30)'])->toHtml());
+    }
+
     private function context(?array $imagePaths = [], bool|array $remoteImages = false): DocContext
     {
         return new DocContext('en', 'ltr', 'cairo', [], 'latin', '', imagePaths: $imagePaths, remoteImages: $remoteImages);
