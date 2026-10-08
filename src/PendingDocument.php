@@ -1,0 +1,346 @@
+<?php
+
+namespace BiztechEG\EasyPdfWord;
+
+use BiztechEG\EasyPdfWord\Arabic\Direction;
+use BiztechEG\EasyPdfWord\Arabic\Numerals;
+use BiztechEG\EasyPdfWord\Contracts\PdfDriver;
+use BiztechEG\EasyPdfWord\Fonts\FontRegistry;
+use BiztechEG\EasyPdfWord\Pdf\PdfManager;
+use BiztechEG\EasyPdfWord\Pdf\PdfOptions;
+use BiztechEG\EasyPdfWord\Support\DocContext;
+use BiztechEG\EasyPdfWord\Templates\Template;
+use Illuminate\Contracts\Config\Repository as Config;
+use Illuminate\Contracts\View\Factory as ViewFactory;
+use Illuminate\Support\Facades\Validator;
+
+/**
+ * A document being configured. Every setter returns $this, and ->pdf()
+ * turns it into a PdfDocument.
+ *
+ *   Doc::template('invoice')->data($data)->locale('ar')->pdf()->download('invoice.pdf');
+ */
+class PendingDocument
+{
+    private array $data = [];
+
+    private ?string $locale = null;
+
+    private ?string $direction = null;
+
+    private ?string $numerals = null;
+
+    private array $theme = [];
+
+    private ?string $font = null;
+
+    private ?string $paper = null;
+
+    private ?string $orientation = null;
+
+    private ?array $margins = null;
+
+    private ?string $header = null;
+
+    private ?string $footer = null;
+
+    private ?string $driver = null;
+
+    private ?string $title = null;
+
+    private bool $validate = true;
+
+    private function __construct(
+        private PdfManager $pdf,
+        private FontRegistry $fonts,
+        private ViewFactory $views,
+        private Config $config,
+        private ?Template $template = null,
+        private ?string $view = null,
+        private ?string $html = null,
+    ) {}
+
+    public static function forTemplate(Template $template, PdfManager $pdf, FontRegistry $fonts, ViewFactory $views, Config $config): self
+    {
+        return new self($pdf, $fonts, $views, $config, template: $template);
+    }
+
+    public static function forView(string $view, PdfManager $pdf, FontRegistry $fonts, ViewFactory $views, Config $config): self
+    {
+        return new self($pdf, $fonts, $views, $config, view: $view);
+    }
+
+    public static function forHtml(string $html, PdfManager $pdf, FontRegistry $fonts, ViewFactory $views, Config $config): self
+    {
+        return new self($pdf, $fonts, $views, $config, html: $html);
+    }
+
+    public function data(array $data): static
+    {
+        $this->data = array_replace($this->data, $data);
+
+        return $this;
+    }
+
+    public function with(string|array $key, mixed $value = null): static
+    {
+        return $this->data(is_array($key) ? $key : [$key => $value]);
+    }
+
+    /** Sets language and, unless ->direction() is called, the direction (ar => rtl). */
+    public function locale(string $locale): static
+    {
+        $this->locale = $locale;
+
+        return $this;
+    }
+
+    public function direction(string $direction): static
+    {
+        $this->direction = strtolower($direction) === 'rtl' ? 'rtl' : 'ltr';
+
+        return $this;
+    }
+
+    public function rtl(): static
+    {
+        return $this->direction('rtl');
+    }
+
+    public function ltr(): static
+    {
+        return $this->direction('ltr');
+    }
+
+    /** "arabic" (٠١٢٣) or "latin" (0123) digits in the document text. */
+    public function numerals(string $style): static
+    {
+        $this->numerals = Numerals::normalizeStyle($style);
+
+        return $this;
+    }
+
+    /** Colours, logo and company details used by the templates. */
+    public function theme(array $theme): static
+    {
+        $this->theme = array_replace_recursive($this->theme, $theme);
+
+        return $this;
+    }
+
+    public function font(string $font): static
+    {
+        $this->font = strtolower($font);
+
+        return $this;
+    }
+
+    public function paper(string $paper, ?string $orientation = null): static
+    {
+        $this->paper = $paper;
+
+        if ($orientation) {
+            $this->orientation = $orientation;
+        }
+
+        return $this;
+    }
+
+    public function landscape(): static
+    {
+        $this->orientation = 'landscape';
+
+        return $this;
+    }
+
+    public function portrait(): static
+    {
+        $this->orientation = 'portrait';
+
+        return $this;
+    }
+
+    /** Millimetres. One value for all sides, or top, right, bottom, left. */
+    public function margins(float $top, ?float $right = null, ?float $bottom = null, ?float $left = null): static
+    {
+        $this->margins = [$top, $right ?? $top, $bottom ?? $top, $left ?? $right ?? $top];
+
+        return $this;
+    }
+
+    /** Page header HTML; may use {page} and {pages}. */
+    public function header(string $html): static
+    {
+        $this->header = $html;
+
+        return $this;
+    }
+
+    /** Page footer HTML; may use {page} and {pages}. */
+    public function footer(string $html): static
+    {
+        $this->footer = $html;
+
+        return $this;
+    }
+
+    /** PDF engine for this document: "mpdf", "chromium" or "gotenberg". */
+    public function driver(string $driver): static
+    {
+        $this->driver = $driver;
+
+        return $this;
+    }
+
+    public function title(string $title): static
+    {
+        $this->title = $title;
+
+        return $this;
+    }
+
+    public function withoutValidation(): static
+    {
+        $this->validate = false;
+
+        return $this;
+    }
+
+    public function pdf(?string $filename = null): PdfDocument
+    {
+        $options = $this->options();
+
+        return new PdfDocument(
+            fn () => $this->pdf->render('', $options, $this->driver, fn (PdfDriver $engine) => $this->toHtml($engine, $options)),
+            $filename ?? ($this->template?->name ?? 'document').'.pdf',
+        );
+    }
+
+    /**
+     * The final HTML handed to the engine; useful for previews and debugging.
+     */
+    public function toHtml(?PdfDriver $engine = null, ?PdfOptions $options = null): string
+    {
+        $options ??= $this->options();
+        $engine ??= $this->pdf->driver($this->driver);
+        $context = $this->context($options, $engine);
+        $data = $this->viewData($context);
+
+        $html = match (true) {
+            $this->template !== null => $this->views->file($this->template->pdfView(), $data)->render(),
+            $this->view !== null => $this->views->make($this->view, $data)->render(),
+            default => $this->wrapHtml((string) $this->html, $data),
+        };
+
+        if ($context->usesCssFonts() && ! str_contains($html, '@font-face')) {
+            $html = preg_replace('/<\/head>/i', '<style>'.$context->fontCss.'</style></head>', $html, 1) ?? $html;
+        }
+
+        return $context->numerals === Numerals::ARABIC ? Numerals::convertHtml($html, Numerals::ARABIC) : $html;
+    }
+
+    public function options(): PdfOptions
+    {
+        $locale = $this->resolvedLocale();
+        $direction = $this->direction ?? Direction::forLocale($locale);
+        $config = $this->config->get('easy-pdf-word', []);
+        $data = $this->templateData();
+        $numerals = $this->resolvedNumerals();
+
+        $partial = function (?string $view) use ($data, $locale, $direction, $numerals) {
+            if ($view === null) {
+                return null;
+            }
+
+            $context = $this->context(new PdfOptions(locale: $locale, direction: $direction, font: $this->resolvedFont($direction)), null);
+            $html = $this->views->file($view, $data + ['doc' => $context])->render();
+
+            return $numerals === Numerals::ARABIC ? Numerals::convertHtml($html, Numerals::ARABIC) : $html;
+        };
+
+        return new PdfOptions(
+            paper: $this->paper ?? $this->template?->paper() ?? $config['pdf']['paper'] ?? 'A4',
+            orientation: $this->orientation ?? $this->template?->orientation() ?? $config['pdf']['orientation'] ?? 'portrait',
+            margins: $this->margins ?? $this->template?->margins() ?? $config['pdf']['margins'] ?? [15, 15, 15, 15],
+            direction: $direction,
+            locale: $locale,
+            font: $this->resolvedFont($direction),
+            header: $this->header ?? $partial($this->template?->headerView()),
+            footer: $this->footer ?? $partial($this->template?->footerView()),
+            title: $this->title ?? $this->template?->title(),
+            author: $this->resolvedTheme()['company']['name'] ?? null,
+        );
+    }
+
+    private function context(PdfOptions $options, ?PdfDriver $engine): DocContext
+    {
+        $usesCss = $engine?->usesCssFonts() ?? false;
+
+        return new DocContext(
+            locale: $options->locale,
+            direction: $options->direction,
+            font: $options->font,
+            theme: $this->resolvedTheme(),
+            numerals: $this->resolvedNumerals(),
+            engine: $engine ? $engine::class : '',
+            fontCss: $usesCss ? $this->fonts->cssFontFaces([$options->font]) : '',
+            translations: $this->template?->translations($options->locale) ?? [],
+            fallbackTranslations: $this->template?->translations('en') ?? [],
+        );
+    }
+
+    private function viewData(DocContext $context): array
+    {
+        return $this->templateData() + ['doc' => $context];
+    }
+
+    private function templateData(): array
+    {
+        if ($this->template === null) {
+            return $this->data;
+        }
+
+        $data = array_replace_recursive($this->template->defaults(), $this->data);
+
+        if ($this->validate && $this->template->rules() !== []) {
+            Validator::make($data, $this->template->rules())->validate();
+        }
+
+        return $this->template->prepare($data);
+    }
+
+    private function wrapHtml(string $html, array $data): string
+    {
+        if (preg_match('/<html[\s>]/i', $html)) {
+            return $html;
+        }
+
+        return $this->views->make('easy-pdf-word::raw', $data + ['body' => $html])->render();
+    }
+
+    private function resolvedLocale(): string
+    {
+        return $this->locale ?? $this->config->get('easy-pdf-word.locale') ?? $this->config->get('app.locale', 'en');
+    }
+
+    private function resolvedNumerals(): string
+    {
+        return $this->numerals ?? Numerals::normalizeStyle($this->config->get('easy-pdf-word.numerals', 'latin'));
+    }
+
+    private function resolvedFont(string $direction): string
+    {
+        $key = $direction === 'rtl' ? 'default' : 'default_ltr';
+
+        return $this->font ?? strtolower($this->config->get("easy-pdf-word.fonts.{$key}", 'cairo'));
+    }
+
+    private function resolvedTheme(): array
+    {
+        return array_replace_recursive(
+            (array) $this->config->get('easy-pdf-word.theme', []),
+            $this->template?->theme() ?? [],
+            $this->theme,
+        );
+    }
+}
