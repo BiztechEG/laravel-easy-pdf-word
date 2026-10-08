@@ -105,6 +105,19 @@ class WordTest extends TestCase
         $this->assertStringContainsString('R&amp;D', $this->zipEntry($content, 'word/footer1.xml'));
     }
 
+    public function test_colours_are_written_as_hex_values(): void
+    {
+        $xml = $this->documentXml(Doc::make()
+            ->paragraph('short', ['color' => '#abc'])
+            ->paragraph('named', ['color' => 'red'])
+            ->paragraph('broken', ['color' => '"><x'])
+            ->word()
+            ->content());
+
+        $this->assertStringContainsString('<w:color w:val="AABBCC"/>', $xml);
+        $this->assertSame(1, substr_count($xml, '<w:color '));
+    }
+
     public function test_page_settings_and_footer_page_numbers(): void
     {
         $content = Doc::make()
