@@ -176,6 +176,16 @@ class DriversTest extends TestCase
         }
     }
 
+    public function test_a_misspelt_engine_name_is_an_error_not_a_fallback(): void
+    {
+        Log::shouldReceive('warning')->never();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unknown PDF engine [chromuim]');
+
+        Doc::html('<p>x</p>')->driver('chromuim')->pdf()->content();
+    }
+
     public function test_a_paper_size_in_mm_needs_two_positive_numbers(): void
     {
         $this->expectException(\InvalidArgumentException::class);
