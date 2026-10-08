@@ -336,10 +336,14 @@ Register your own in the config:
         'my-font' => [
             'regular' => resource_path('fonts/MyFont-Regular.ttf'),
             'bold' => resource_path('fonts/MyFont-Bold.ttf'),
+            // Optional: the font draws ٫ and ٬ clearly, so Arabic digits use them (١٢٬٥٠٠٫٧٥).
+            'arabic_separators' => true,
         ],
     ],
 ],
 ```
+
+With Arabic digits, Naskh uses the Arabic decimal and thousands separators (١٢٬٥٠٠٫٧٥). Cairo and Tajawal keep `,` and `.` (Cairo draws both Arabic separators like commas, and Tajawal has none), and so do Word files.
 
 mPDF cannot read some recent fonts and stops with "MarkGlyphSets - Not tested yet" or "GPOS Lookup Type 5, Format 3 not supported". Fix the font files once with the included script (needs `pip install fonttools`):
 

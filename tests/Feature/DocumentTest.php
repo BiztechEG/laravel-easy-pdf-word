@@ -31,6 +31,15 @@ class DocumentTest extends TestCase
         $this->assertStringContainsString('font-size: 12pt', $html);
     }
 
+    public function test_arabic_separators_only_with_fonts_that_have_them(): void
+    {
+        $html = fn (string $font) => Doc::html('<p>1,250.50</p>')->locale('ar')->numerals('arabic')->font($font)->toHtml();
+
+        $this->assertStringContainsString('١٬٢٥٠٫٥٠', $html('naskh'));
+        $this->assertStringContainsString('١,٢٥٠.٥٠', $html('cairo'));
+        $this->assertStringContainsString('١,٢٥٠.٥٠', $html('tajawal'));
+    }
+
     public function test_full_html_documents_are_not_wrapped(): void
     {
         $html = Doc::html('<html><body>raw</body></html>')->toHtml();

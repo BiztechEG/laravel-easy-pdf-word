@@ -309,7 +309,9 @@ class PendingDocument
             $html = preg_replace('/<\/head>/i', '<style>'.$context->fontCss.'</style></head>', $html, 1) ?? $html;
         }
 
-        return $context->numerals === Numerals::ARABIC ? Numerals::convertHtml($html, Numerals::ARABIC) : $html;
+        return $context->numerals === Numerals::ARABIC
+            ? Numerals::convertHtml($html, Numerals::ARABIC, $this->fonts->hasArabicSeparators($context->font))
+            : $html;
     }
 
     public function options(): PdfOptions
@@ -328,7 +330,9 @@ class PendingDocument
             $context = $this->context(new PdfOptions(locale: $locale, direction: $direction, font: $this->resolvedFont($direction)), null);
             $html = $this->views->file($view, $data + ['doc' => $context])->render();
 
-            return $numerals === Numerals::ARABIC ? Numerals::convertHtml($html, Numerals::ARABIC) : $html;
+            return $numerals === Numerals::ARABIC
+                ? Numerals::convertHtml($html, Numerals::ARABIC, $this->fonts->hasArabicSeparators($this->resolvedFont($direction)))
+                : $html;
         };
 
         return new PdfOptions(
