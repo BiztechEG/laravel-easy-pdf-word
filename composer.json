@@ -23,6 +23,7 @@
         }
     ],
     "support": {
+        "docs": "https://easypdf.biztech-eg.com",
         "issues": "https://github.com/BiztechEG/laravel-easy-pdf-word/issues",
         "source": "https://github.com/BiztechEG/laravel-easy-pdf-word",
         "security": "https://github.com/BiztechEG/laravel-easy-pdf-word/security/policy"
