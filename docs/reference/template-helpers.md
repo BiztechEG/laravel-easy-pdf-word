@@ -98,9 +98,7 @@ $doc->t('page', ['current' => 3, 'total' => 5]);   // صفحة 3 من 5
 // lang/en.php: 'page' => 'Page :current of :total'  → Page 3 of 5
 ```
 
-::: tip
-Replacements are applied in the order given, so `:page` would also replace the start of `:pages`. Use names that do not begin with another name (`:current`, `:total`), or pass the longer one first: `['pages' => 5, 'page' => 3]`.
-:::
+Names that begin with another name work in any order: in `'صفحة :page من :pages'`, `$doc->t('page', ['page' => 3, 'pages' => 5])` gives `صفحة 3 من 5`, because the longer name is replaced first.
 
 ### translations() {#context-translations}
 
@@ -555,7 +553,7 @@ A QR code of any text as a PNG data URI (`data:image/png;base64,...`) that every
 | `title` | `string` | `doc:templates`, the preview page, and the file's title property | The folder name |
 | `description` | `string` | The preview page | `''` |
 | `locales` | `array` | Languages listed in `doc:templates` and offered on the preview page | `['ar', 'en']` |
-| `paper` | `string` | A paper name such as `'A4'`, `'A5'`, `'A4-L'` | `pdf.paper` config |
+| `paper` | `string` or `array` | A paper name such as `'A4'`, `'A5'`, `'A4-L'` (A4 landscape), or `[width, height]` in mm | `pdf.paper` config |
 | `orientation` | `string` | `'portrait'` or `'landscape'` | `pdf.orientation` config |
 | `margins` | `array` | Millimetres, 1 to 4 values like `->margins()`: `[15, 12]` | `pdf.margins` config |
 | `theme` | `array` | Theme values for this template, between the config and `->theme()` | `[]` |
@@ -722,10 +720,11 @@ A `word.docx` designed in Word is filled with the template's prepared data. Writ
 
 How values are written:
 
-- Decimal numbers (floats) get thousands separators and the decimals of the document's currency, taken from `currency`, `invoice.currency` or `document.currency` (`27501.0` gives `27,501.00`; KWD gives three decimals). Whole numbers and strings are written as they are (`25000`).
+- Decimal numbers (floats) get thousands separators and the decimals of the document's currency, taken from a top-level `currency` or from a group's `currency` such as `invoice.currency` or `quote.currency` (`27501.0` gives `27,501.00`; KWD gives three decimals). Whole numbers and strings are written as they are (`25000`).
 - `true` gives `✓`; `false`, `null` and missing values give an empty text. Date objects give `Y/m/d`.
 - With `->numerals('arabic')` the digits become Arabic, with `,` and `.` kept: `٢٧,٥٠١.٠٠`, `INV-٢٠٢٦-١٠٢٤`.
 - Values are escaped, and a `${...}` inside a value stays text.
-- Images follow the [image rules](/guide/images); an SVG or an image that may not be read leaves the placeholder empty.
+- In right-to-left documents, a value without Arabic letters (a phone number, a date, a code) is marked left to right so Word keeps it in order; values of digits only are left as they are.
+- Images follow the [image rules](/guide/images); an SVG, a missing file or an image that may not be read leaves the placeholder empty.
 
 Set right-to-left direction for the paragraphs and tables in Word itself. For a step-by-step example, see [A template designed in Word](/recipes/word-designed-template).
