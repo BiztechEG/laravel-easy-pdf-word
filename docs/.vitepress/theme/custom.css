@@ -40,6 +40,7 @@ html[lang='ar'] .vp-doc li {
 }
 
 /* Code reads left to right, also on right-to-left pages. */
+/* rtl:begin:ignore */
 html[dir='rtl'] .vp-doc div[class*='language-'],
 html[dir='rtl'] .vp-doc pre,
 html[dir='rtl'] .vp-doc code {
@@ -47,16 +48,7 @@ html[dir='rtl'] .vp-doc code {
   text-align: left;
   unicode-bidi: isolate;
 }
-
-html[dir='rtl'] .vp-doc div[class*='language-'] > span.lang {
-  right: auto;
-  left: 12px;
-}
-
-html[dir='rtl'] .vp-doc div[class*='language-'] > button.copy {
-  right: auto;
-  left: 12px;
-}
+/* rtl:end:ignore */
 
 /* Template previews: a page of paper on the documentation page. */
 .vp-doc .preview {
