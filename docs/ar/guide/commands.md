@@ -83,9 +83,10 @@ php artisan doc:template letter --force
    ERROR  resources/doc-templates/my-invoice already exists. Use --force to overwrite it.
    ERROR  Use letters, digits, dots, dashes or underscores for the template name.
    ERROR  resources/doc-templates/packing-list is the template itself. Use --as to copy it under another name.
+   ERROR  Template [invoce] was not found. Run php artisan doc:templates to list them.
 ```
 
-يظهر الخطأ الأخير مع `--force` لقالب موجود في مشروعك فقط. واسم القالب غير المعروف يتوقف بالرسالة `Template [invoce] was not found in: ...` تليها المجلدات التي بُحث فيها. وتذهب النسخة إلى أول مجلد في `templates.paths` في ملف الإعدادات. وتشرح صفحة [قوالبك الخاصة](/ar/guide/custom-templates) ما يمكن تغييره في القالب المنسوخ.
+يظهر الخطأ الثالث مع `--force` لقالب موجود في مشروعك فقط. أما الأخير فلاسم قالب غير معروف، وحينها لا ينسخ الأمر شيئًا وينتهي برمز فشل. وتذهب النسخة إلى أول مجلد في `templates.paths` في ملف الإعدادات. وتشرح صفحة [قوالبك الخاصة](/ar/guide/custom-templates) ما يمكن تغييره في القالب المنسوخ.
 
 ## doc:make-template {#doc-make-template}
 

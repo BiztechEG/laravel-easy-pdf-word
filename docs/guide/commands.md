@@ -83,9 +83,10 @@ Errors you may see:
    ERROR  resources/doc-templates/my-invoice already exists. Use --force to overwrite it.
    ERROR  Use letters, digits, dots, dashes or underscores for the template name.
    ERROR  resources/doc-templates/packing-list is the template itself. Use --as to copy it under another name.
+   ERROR  Template [invoce] was not found. Run php artisan doc:templates to list them.
 ```
 
-The last one comes from `--force` on a template that exists only in your project. An unknown template name stops with `Template [invoce] was not found in: ...` followed by the folders searched. The copy goes to the first folder in `templates.paths` in the config. What to change in a copied template is covered in [Your own templates](/guide/custom-templates).
+The third one comes from `--force` on a template that exists only in your project. The last one is an unknown template name; the command then copies nothing and exits with a failure code. The copy goes to the first folder in `templates.paths` in the config. What to change in a copied template is covered in [Your own templates](/guide/custom-templates).
 
 ## doc:make-template {#doc-make-template}
 
