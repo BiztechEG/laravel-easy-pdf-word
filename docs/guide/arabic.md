@@ -78,7 +78,7 @@ Doc::make()
     ->pdf();
 ```
 
-Negative numbers are handled for you: `$doc->number(-2.3)` and numbers in builder text keep the minus sign in front (`-2.30`, not `2.30-`). The bundled templates already wrap their codes, phone numbers and tax numbers. More helpers for views are listed in [Template helpers](/reference/template-helpers), and builder styles in [Building in code](/guide/builder).
+Negative numbers are handled for you: `$doc->number(-2.3)` and numbers in builder text keep the minus sign in front (`-2.30`, not `2.30-`). The bundled templates already wrap their codes, phone numbers and tax numbers, and in a `word.docx` template every value without Arabic letters keeps its order by itself (see [Word files](/guide/word)). More helpers for views are listed in [Template helpers](/reference/template-helpers), and builder styles in [Building in code](/guide/builder).
 
 To find out which way a piece of text runs, `Arabic::direction()` looks at its first letter, as `dir="auto"` does in a browser:
 
