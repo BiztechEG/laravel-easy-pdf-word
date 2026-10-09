@@ -45,20 +45,7 @@ In your own views and HTML, use the same names in `font-family`:
 <p style="font-family: 'naskh'">نص العرض بخط النسخ.</p>
 ```
 
-With mPDF, every registered font can be used this way. Chromium and Gotenberg get only the document font embedded, so another font in your CSS needs its own `@font-face` rule. `Doc::fonts()->cssFontFaces()` writes it for you:
-
-```blade
-<x-doc::layout :doc="$doc">
-    <x-slot:styles>
-        <style>{!! \BiztechEG\EasyPdfWord\Facades\Doc::fonts()->cssFontFaces(['naskh']) !!}</style>
-    </x-slot:styles>
-
-    <h1>عرض سعر</h1>
-    <p style="font-family: 'naskh'">نص العرض بخط النسخ.</p>
-</x-doc::layout>
-```
-
-The rules embed the whole font files (a few hundred KB each), so add only the fonts you use. Views and the layout component are covered in [Blade views and HTML](/guide/views-and-html).
+Every bundled or registered font can be used this way, with every engine. mPDF reads the font files itself; for Chromium and Gotenberg the package embeds each registered font your page's CSS names as an `@font-face` rule. Embedding adds the whole font files to the HTML (a few hundred KB each), so name only the fonts you use. Views and the layout component are covered in [Blade views and HTML](/guide/views-and-html).
 
 ## Your own fonts {#custom-fonts}
 
@@ -94,9 +81,7 @@ Put the `.ttf` files in your app, for example in `resources/fonts`, and register
 
 Names are matched without case. A custom font with the name of a bundled one (`cairo`) replaces it.
 
-::: warning Clear mPDF's font cache after changing a font
-mPDF keeps the data it reads from each font file in its temp folder, under `mpdf/ttfontdata` (by default `/tmp/easy-pdf-word-{uid}/mpdf/ttfontdata`; see [`temp_dir`](/guide/configuration#mpdf)). When you replace a font's files, or point a name that mPDF has already used, such as `cairo`, at other files, delete that folder. Otherwise mPDF keeps drawing the old font, or fails with an error such as `Uninitialized string offset -101250`.
-:::
+mPDF caches the data it reads from font files in a `fonts-<hash>` folder inside its [`temp_dir`](/guide/configuration#mpdf), one folder per version of the registered font files. When you add a font, or replace or edit a font file, the next document uses a new folder and reads the fonts again, so there is no cache to clear. Older `fonts-...` folders are no longer used and can be deleted.
 
 You can also register a font in code, in a service provider's `boot()`:
 
@@ -154,7 +139,7 @@ Pick a font that your readers have and that covers Arabic: Arial, Tahoma, Times 
 
 ## Fonts with Chromium and Gotenberg {#chromium}
 
-Chromium and Gotenberg get the document font embedded in the HTML as an `@font-face` rule with the font file inside it. They need no fonts installed on the server, and headers and footers use the same font. Only the document font is embedded; see [In your own CSS](#css) for a second font.
+Chromium and Gotenberg get the document font embedded in the HTML as an `@font-face` rule with the font file inside it. They need no fonts installed on the server, and headers and footers use the same font. Any other registered font that the page's CSS names is embedded the same way; see [In your own CSS](#css).
 
 ## Documents in several scripts {#auto-lang-to-font}
 
