@@ -153,10 +153,10 @@ In the order page:
 **Arabic file names.** The package sends the name twice in `Content-Disposition`:
 
 ```text
-attachment; filename=____________-ORD-2026-1024.pdf; filename*=utf-8''%D9%81%D8%A7%D8%AA%D9%88%D8%B1%D8%A9-ORD-2026-1024.pdf
+attachment; filename=fator-ORD-2026-1024.pdf; filename*=utf-8''%D9%81%D8%A7%D8%AA%D9%88%D8%B1%D8%A9-ORD-2026-1024.pdf
 ```
 
-Browsers use the UTF-8 name (`filename*`) and save `فاتورة-ORD-2026-1024.pdf`. Old clients that read only `filename` get underscores in place of the Arabic letters, which is why a Latin part such as the order number in the name is useful.
+Browsers use the UTF-8 name (`filename*`) and save `فاتورة-ORD-2026-1024.pdf`. Old clients that read only `filename` get the name written in Latin letters, `fator-ORD-2026-1024.pdf`, so a Latin part such as the order number keeps it recognisable.
 
 **Choosing PDF or Word.** The request's `format` is validated, so `?format=xlsx` is refused with the usual validation response (a redirect back, or `422` for JSON requests) instead of an error. Word files need `phpoffice/phpword`.
 
