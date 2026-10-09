@@ -6,6 +6,7 @@ on:
     paths: ['docs/**', '.github/workflows/docs.yml']
   pull_request:
     paths: ['docs/**', '.github/workflows/docs.yml']
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -32,8 +33,38 @@ jobs:
       # Fails on dead links between pages.
       - run: npm run build
 
-      # The built site, ready to upload to the documentation subdomain.
+      # The built site, also kept as a zip for uploading by hand.
       - uses: actions/upload-artifact@v4
         with:
           name: docs-site
           path: docs/.vitepress/dist
+
+  # Uploads the site to the documentation server after every change merged
+  # into main. Runs only once the DOCS_FTP_SERVER variable is set; see the
+  # FTP settings below.
+  deploy:
+    if: github.event_name != 'pull_request' && vars.DOCS_FTP_SERVER != ''
+    needs: build
+    runs-on: ubuntu-latest
+
+    concurrency:
+      group: docs-deploy
+      cancel-in-progress: false
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: docs-site
+          path: site
+
+      # Only changed files are uploaded. Files the action uploaded earlier
+      # and that are no longer in the site are deleted from the server.
+      - uses: SamKirkland/FTP-Deploy-Action@8e83cea8672e3fbcbb9fdafff34debf6ae4c5f65 # v4.3.5
+        with:
+          server: ${{ vars.DOCS_FTP_SERVER }}
+          username: ${{ secrets.DOCS_FTP_USERNAME }}
+          password: ${{ secrets.DOCS_FTP_PASSWORD }}
+          protocol: ${{ vars.DOCS_FTP_PROTOCOL || 'ftps' }}
+          port: ${{ vars.DOCS_FTP_PORT || 21 }}
+          local-dir: ./site/
+          server-dir: ${{ vars.DOCS_FTP_DIR || './' }}
