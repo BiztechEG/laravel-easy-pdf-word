@@ -7,10 +7,10 @@
 **مربعات (□□□) بدل الحروف.** الخط المستخدم لا يحتوي حروفًا عربية. ويحدث هذا حين:
 
 - تسجّل خطًا بلا حروف عربية وتجعله خط المستند (`->font()` أو `fonts.default`)؛
-- يحدد الـ CSS الخاص بك، مع Chromium أو Gotenberg، خطًا غير مضمَّن، ولا يوجد على الخادم خط فيه حروف عربية؛
+- يحدد الـ CSS الخاص بك، مع Chromium أو Gotenberg، خطًا غير مسجل في الحزمة، ولا يوجد على الخادم خط فيه حروف عربية؛
 - يحتوي المستند حروفًا من لغة أخرى، كالصينية أو الهندية، لا يحتويها خط المستند.
 
-استخدم أحد الخطوط المرفقة أو خطًا يدعم العربية. وللغات الأخرى مع mPDF، فعّل `auto_lang_to_font` (انظر [الخطوط](/ar/guide/fonts#auto-lang-to-font)). ولخط ثانٍ مع Chromium، ضمّنه كما في [الخطوط](/ar/guide/fonts#css).
+استخدم أحد الخطوط المرفقة أو خطًا يدعم العربية. وللغات الأخرى مع mPDF، فعّل `auto_lang_to_font` (انظر [الخطوط](/ar/guide/fonts#auto-lang-to-font)). ولخط ثانٍ مع Chromium، سجّله (انظر [الخطوط](/ar/guide/fonts#custom-fonts))؛ فالخط المسجل الذي يذكره الـ CSS الخاص بك يُضمَّن تلقائيًا.
 
 **حروف مرسومة منفصلة غير متصلة.** يحتوي الخط الحروف العربية لكن بلا قواعد التشكيل التي تصلها (جدول GSUB). وتفتقدها بعض الخطوط القديمة والخطوط المحوّلة ببعض الأدوات. استخدم خط TrueType حديثًا، كالخطوط المرفقة.
 
@@ -58,7 +58,6 @@ python3 vendor/biztecheg/laravel-easy-pdf-word/bin/mpdf-font-fix.py resources/fo
 | `Fonts with postscript outlines are not supported` | استخدم نسخة `.ttf` (TrueType) من الخط، لا `.otf`. |
 | `The font files [...] and [...] have the same name. mPDF finds fonts by file name, so rename one of them.` | أعطِ كل ملف خط اسمًا فريدًا. |
 | `Font [name] needs at least a "regular" file.` | أضف `regular` إلى الخط في `fonts.custom`. |
-| `Uninitialized string offset ...` من الملف `Otl.php` في mPDF | غيّرت ملفات خط، أو أعطيت اسم خط سبق أن استخدمه mPDF (مثل `cairo`) ملفات أخرى، وما زالت لدى mPDF بيانات الخط القديم. احذف المجلد `mpdf/ttfontdata` داخل المجلد المؤقت لـ mPDF (انظر [الخطوط](/ar/guide/fonts#custom-fonts)). |
 
 انظر [الخطوط](/ar/guide/fonts#mpdf-font-fix).
 
@@ -119,7 +118,7 @@ production.WARNING: easy-pdf-word: [gotenberg] failed, falling back to [mpdf]: c
 2. **ملف ليس صورة،** كصفحة خطأ HTML محفوظة باسم `logo.png`. تفحص الحزمة المحتوى، لا الاسم.
 3. **مسار على قرص سحابي** مثل `tenants/14/logo.png` على S3. هذا ليس مسارًا محليًا: مرّر رابط الملف أو data URI.
 4. **رابط نطاقه غير مسموح به.** أضف النطاق إلى `DOC_REMOTE_IMAGES`، ثم شغّل `php artisan config:cache` مجددًا في بيئة الإنتاج.
-5. **رابط يعيد التوجيه.** يعرض mPDF بدلًا منه أيقونة صغيرة تعني "الصورة غير موجودة"، وتُترك الصورة في ملفات Word. استخدم الرابط النهائي.
+5. **رابط يعيد التوجيه.** لا تُتبع إعادة التوجيه: يعرض mPDF بدلًا من الصورة أيقونة صغيرة تعني "الصورة غير موجودة"، ويتركها Chromium وGotenberg وملفات Word. استخدم الرابط النهائي.
 6. **صورة SVG تشير إلى ملفات أو روابط**، أو فيها سطر `<!DOCTYPE>`. صدّرها مجددًا بصيغة SVG عادية، أو استخدم PNG.
 7. **صورة SVG في ملف Word.** تُترك صور SVG في ملفات Word. استخدم PNG أو JPEG.
 
@@ -217,8 +216,9 @@ BiztechEG\EasyPdfWord\Jobs\SaveDocument has been attempted too many times.
 | الرسالة | الحل |
 | --- | --- |
 | `The [mpdf] engine needs the mpdf/mpdf package. Run: composer require mpdf/mpdf` | ثبّت mPDF، أو اختر محركًا آخر بـ `DOC_PDF_DRIVER`. |
+| `Unknown PDF engine [chromuim]. Use mpdf, chromium, gotenberg or a name added with Doc::extend().` | اسم محرك مكتوب خطأً في `->driver()` أو `DOC_PDF_DRIVER` أو `doc:sample --driver`. صحّح الاسم؛ فلا يوجد محرك احتياطي لاسم ليس محركًا. |
 | `PDF passwords need the mpdf/mpdf package, also with Chromium. Run: composer require mpdf/mpdf` | تحتاج `->password()` مع Chromium أو Gotenberg إلى mPDF لتشفير الملف. |
 | `Cannot create the mPDF temp folder [...]` أو `The mPDF temp folder [...] is not writable.` | حدد في `pdf.drivers.mpdf.temp_dir` مجلدًا يستطيع خادم الويب والـ workers الكتابة فيه. |
 | `Could not write [invoices/INV-2026-1024.pdf] to the [s3] disk.` | تحقق من إعدادات القرص وصلاحياته. انظر [الإخراج والتسليم](/ar/guide/output#save-failures). |
-| `Unknown paper size [Foolscap].` | استخدم مقاسًا من القائمة، أو `[width, height]` في ملف الإعدادات. انظر [إعدادات الصفحة](/ar/guide/page-settings#paper). |
+| `Unknown paper size [Foolscap].` | استخدم مقاسًا من القائمة، أو `[width, height]` بالمليمتر. انظر [إعدادات الصفحة](/ar/guide/page-settings#paper). |
 | `Unknown currency [GBP]. Register it with Tafqeet::registerCurrency().` | أضف العملة تحت `currencies` في ملف الإعدادات. انظر [دعم اللغة العربية](/ar/guide/arabic#currencies). |
