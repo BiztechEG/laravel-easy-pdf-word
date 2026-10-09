@@ -145,7 +145,7 @@ function nav(prefix: string, n: Labels): DefaultTheme.NavItem[] {
     { text: n.recipes, link: `${prefix}/recipes/`, activeMatch: `^${prefix}/recipes/` },
     { text: n.reference, link: `${prefix}/reference/api`, activeMatch: `^${prefix}/reference/` },
     {
-      text: 'v1.2',
+      text: 'v1.3',
       items: [
         { text: n.changelog, link: `${repo}/blob/main/CHANGELOG.md` },
         { text: 'Packagist', link: 'https://packagist.org/packages/biztecheg/laravel-easy-pdf-word' },
