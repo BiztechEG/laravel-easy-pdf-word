@@ -148,7 +148,7 @@ Doc::template('quotation', $data)
     ->pdf();
 ```
 
-`->theme()` is merged into the config theme key by key: setting only `company.name` keeps the address and phone from the config. Colours must be real colours (`#B45309`, `rgb(180, 83, 9)`, `red`); anything else falls back to the default. Use hex colours if you also make Word files, since Word takes only hex.
+`->theme()` is merged into the config theme key by key: setting only `company.name` keeps the address and phone from the config. Colours must be real colours (`#B45309`, `rgb(180, 83, 9)`, `red`); anything else falls back to the default. If you also make Word files, use hex, `rgb()` or `hsl()` colours, since Word leaves colour names out.
 
 How the templates use the theme:
 
