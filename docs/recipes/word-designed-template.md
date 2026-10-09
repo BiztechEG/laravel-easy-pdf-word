@@ -115,7 +115,7 @@ return [
 
 How values are printed in the Word file:
 
-- **Floats** get thousands separators and two decimals: `1450.0` becomes `1,450.00`. With a top-level `currency` such as `KWD`, they get that currency's decimals.
+- **Floats** get thousands separators and two decimals: `1450.0` becomes `1,450.00`. With a `currency` such as `KWD`, at the top level or in a group (`quote.currency`), they get that currency's decimals.
 - **Whole numbers and strings** are printed as they are: the quantity `4` stays `4`, and a price stored as `1450` or `"1450.00"` would print without separators. That is why `prepare` turns `unit_price` into a float.
 - **Dates** (`Carbon` and other date objects) print as `Y/m/d`; a date string prints as you pass it.
 - Digits follow `->numerals()`, every value is escaped, and a value that contains `${...}` stays plain text.
@@ -145,7 +145,6 @@ class QuotationWordController extends Controller
     public function show(Quotation $quotation)
     {
         $quotation->load('customer', 'items', 'salesperson');
-        $signature = storage_path("app/signatures/{$quotation->salesperson_id}.png");
 
         return Doc::template('price-offer', [
             'date' => $quotation->issued_at,
@@ -167,7 +166,7 @@ class QuotationWordController extends Controller
                 'name' => $quotation->salesperson->name,
                 'title' => $quotation->salesperson->job_title,
             ],
-            'signature' => is_file($signature) ? $signature : null,
+            'signature' => storage_path("app/signatures/{$quotation->salesperson_id}.png"),
         ])
             ->locale('ar')
             ->word()
@@ -181,7 +180,7 @@ Notes on the data:
 - `date` sits at the top level because `${doc.hijri_date}` is made from it. `issued_at` and `valid_until` are cast to dates on the model, so they print as `2026/10/08`.
 - The letterhead's `${theme.company.*}` and `${theme.logo}` come from the theme in `config/easy-pdf-word.php`; pass `->theme([...])` to override them for one document.
 - The signature is a file path. Images are read only from `public/`, `storage/app` and `resources/` by default, and only when they are real images. PNG, JPEG and GIF go in as they are, WebP and BMP are turned into PNG, and an SVG leaves the placeholder empty.
-- Pass `null` when there is no signature, as the `is_file()` check does: `null` leaves the placeholder empty, while a path the package cannot read (a missing file, or one outside the allowed folders) is printed in the document as text.
+- When a salesperson has no signature file yet, the placeholder is left empty: a path the package cannot read (a missing file, or one outside the allowed folders) is never printed as text.
 - Word files need `phpoffice/phpword`.
 
 ## Check a design before it goes live {#check}
