@@ -57,7 +57,7 @@ return $pdf->stream('invoice-INV-2026-1024.pdf');
 return $word->download();
 ```
 
-Arabic file names are fine. The response carries the UTF-8 name, plus a plain ASCII copy of it for old clients in which every non-ASCII character becomes underscores.
+Arabic file names are fine. The response carries the UTF-8 name, plus an ASCII copy of it in Latin letters for old clients: `فاتورة-1024.pdf` becomes `fator-1024.pdf`, and a name with nothing left in Latin letters becomes `document.pdf`.
 
 ## Return a file from a controller {#controllers}
 
@@ -126,7 +126,7 @@ Check the disk's credentials and bucket, or the folder's permissions for the use
 
 The bytes are kept, so calling `download()` after `save()` does not render twice.
 
-Template data is checked against the template's rules when you call `->pdf()`, so a mistake throws a `ValidationException` at that line. For `->word()` the check runs when the file is rendered.
+Template data is checked against the template's rules when you call `->pdf()` or `->word()`, so a mistake throws a `ValidationException` at that line.
 
 ## See the HTML: toHtml() {#to-html}
 
