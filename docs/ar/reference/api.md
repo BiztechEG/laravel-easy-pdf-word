@@ -312,19 +312,20 @@ font(string $font): static
 title(string $title): static
 ```
 
-العنوان المحفوظ في خصائص الملف: ملف PDF، وملفات Word المبنية من الكتل أو من ملف تخطيط (أما `word.docx` فيحتفظ بعنوانه). القيمة الافتراضية هي `title` في القالب.
+العنوان المحفوظ في خصائص الملف: ملف PDF، وملفات Word المبنية من الكتل أو من ملف تخطيط (أما `word.docx` فيحتفظ بعنوانه). وفي ملف PDF يحل محل `<title>` الخاص بالصفحة. وبدونه يحتفظ ملف PDF بعنوان صفحته، والقالب الذي ليس لصفحته عنوان يأخذ `title` القالب.
 
 ### paper() {#pending-paper}
 
 ```php
-paper(string $paper, ?string $orientation = null): static
+paper(string|array $paper, ?string $orientation = null): static
 ```
 
-مقاس الورق: `A2` و`A3` و`A4` و`A5` و`A6` و`B4` و`B5` و`Letter` و`Legal` و`Tabloid` و`Executive` (بأي حالة أحرف). القيمتان `A4-L` و`A4-P` تحددان الاتجاه أيضًا. المعامل `$orientation` إما `'landscape'` (عرضي) أو `'portrait'` (طولي). المقاس غير المعروف يرمي `InvalidArgumentException`.
+مقاس الورق: `A2` و`A3` و`A4` و`A5` و`A6` و`B4` و`B5` و`Letter` و`Legal` و`Tabloid` و`Executive` (بأي حالة أحرف)، أو `[width, height]` بالمليمتر. القيمتان `A4-L` و`A4-P` تحددان الاتجاه أيضًا. المعامل `$orientation` إما `'landscape'` (عرضي) أو `'portrait'` (طولي). الاسم غير المعروف، أو المصفوفة التي ليست عددين موجبين، يرمي `InvalidArgumentException`.
 
 ```php
 Doc::template('receipt', $receipt)->paper('A5', 'landscape');
 Doc::template('report', $report)->paper('A4-L');
+Doc::view('pdf.till-receipt', ['order' => $order])->paper([80, 200]);
 ```
 
 ### landscape() / portrait() {#pending-landscape-portrait}
@@ -380,7 +381,7 @@ footer(string $html): static
 driver(string $driver): static
 ```
 
-محرك PDF لهذا المستند: `mpdf` أو `chromium` (أو `browsershot` أو `chrome`) أو `gotenberg` أو اسم سجلته بـ `Doc::extend()`. إن لم يكن المحرك مثبتًا أو فشل، ينشئ المحرك الاحتياطي `pdf.fallback` الملف ويُسجَّل تحذير في السجلات.
+محرك PDF لهذا المستند: `mpdf` أو `chromium` (أو `browsershot` أو `chrome`) أو `gotenberg` أو اسم سجلته بـ `Doc::extend()`. إن لم يكن المحرك مثبتًا أو فشل، ينشئ المحرك الاحتياطي `pdf.fallback` الملف ويُسجَّل تحذير في السجلات. وأي اسم آخر يرمي `InvalidArgumentException` عند إنشاء ملف PDF: `Unknown PDF engine [chromuim]. Use mpdf, chromium, gotenberg or a name added with Doc::extend().`
 
 ### watermark() {#pending-watermark}
 
@@ -427,7 +428,7 @@ pdf(?string $filename = null): PdfDocument
 word(?string $filename = null): WordDocument
 ```
 
-يعيد ملف Word ككائن [`WordDocument`](#rendered-files)، مبنيًا من `word.docx` أو `word.php` أو `layout.php` في القالب، أو من كتل `Doc::make()`. الاسم الافتراضي `invoice.docx` أو `document.docx`. يرمي [`WordNotSupported`](#exceptions) لملفات Blade و HTML والقوالب التي لا تخطيط Word لها، و`LogicException` إن وُجدت كلمة مرور. يحتاج `phpoffice/phpword`.
+يعيد ملف Word ككائن [`WordDocument`](#rendered-files)، مبنيًا من `word.docx` أو `word.php` أو `layout.php` في القالب، أو من كتل `Doc::make()`. الاسم الافتراضي `invoice.docx` أو `document.docx`. وكما في `pdf()`، يجري التحقق من بيانات القالب في هذه اللحظة، ويُنشأ الملف حين تُطلب بياناته أول مرة. يرمي [`WordNotSupported`](#exceptions) لملفات Blade و HTML والقوالب التي لا تخطيط Word لها، و`LogicException` إن وُجدت كلمة مرور. يحتاج `phpoffice/phpword`.
 
 ### queue() {#pending-queue}
 
@@ -579,7 +580,7 @@ isEmpty(): bool
 | `bold` | `true` | خط عريض |
 | `italic` | `true` | خط مائل |
 | `size` | بالنقطة، مثل `9.5` | |
-| `color` | `#hex` (أو لون CSS في PDF) | يحتاج Word إلى لون hex |
+| `color` | `#hex` أو `rgb()` أو `hsl()` (أو اسم لون في PDF) | يترك Word أسماء الألوان ويُسقط الشفافية من `#RRGGBBAA` |
 | `align` | `start` أو `end` أو `center` أو `justify` | `start` يمين في المستندات العربية ويسار في الإنجليزية. لا ينطبق على المقطع الواحد |
 | `ltr` | `true` | يحافظ على ترتيب رقم الهاتف أو الكود أو البريد من اليسار إلى اليمين داخل النص العربي |
 | `background` | `#hex` | لخلايا الجداول فقط |
@@ -645,7 +646,7 @@ isEmpty(): bool
 
 ### الأسماء والحفظ {#rendered-names}
 
-الاسم الذي ينقصه الامتداد الصحيح يُضاف إليه (`'فاتورة-1024'` يصبح `فاتورة-1024.pdf`)، و`/` و`\` في الاسم يصبحان `-`. الأسماء العربية تعمل: يحمل الرد اسمًا بديلًا بحروف ASCII والاسم الأصلي بترميز UTF-8.
+الاسم الذي ينقصه الامتداد الصحيح يُضاف إليه (`'فاتورة-1024'` يصبح `فاتورة-1024.pdf`)، و`/` و`\` في الاسم يصبحان `-`. الأسماء العربية تعمل: يحمل الرد الاسم الأصلي بترميز UTF-8، ومعه للبرامج القديمة اسم بحروف ASCII لاتينية (`fator-1024.pdf`)، أو `document.pdf` إن لم يبقَ منه شيء.
 
 `save()` مع disk يكتب عبر `Storage::disk($disk)`. وبدون disk يُكتب المسار المطلق (`/var/...` أو `C:\...`) مباشرة مع إنشاء المجلد، ويذهب المسار النسبي إلى الـ disk الافتراضي. الكتابة الفاشلة ترمي `RuntimeException` بدلًا من أن تبدو ناجحة.
 
@@ -837,7 +838,7 @@ foreach (Doc::templates()->all() as $name => $template) {
 | `prepare(array $data, array $theme = []): array` | البيانات بعد دالة `prepare` |
 | `sample(): array` | `sample` (وإن كانت دالة تُستدعى) |
 | `theme(): array` | `theme` |
-| `paper(): ?string` و`orientation(): ?string` و`margins(): ?array` | إعدادات الصفحة، أو `null` |
+| `paper()` و`orientation(): ?string` و`margins(): ?array` | إعدادات الصفحة، أو `null`. وتعيد `paper()` اسمًا مثل `'A4-L'` أو `[width, height]` بالمليمتر |
 | `hasPdfView(): bool` و`pdfView(): string` | `pdf.blade.php`، و`pdfView()` يرمي `RuntimeException` إن لم يوجد |
 | `wordFile(): ?string` | مسار `word.docx`، أو `null` |
 | `wordLayout(): ?callable` | `word.php`، وإلا `layout.php` |
@@ -910,7 +911,7 @@ interface PdfDriver
 ```
 
 - تستلم `render()` نص HTML النهائي (بعد تحويل الأرقام) وكائن [`PdfOptions`](#pdf-options). عليها تطبيق مقاس الورق والهوامش ورأس الصفحة وتذييلها (مع استبدال `{page}` و`{pages}`)، والعلامة المائية إن دعمتها. تضيف `BiztechEG\EasyPdfWord\Pdf\Watermark::inject($html, $options)` العلامة المائية بالطريقة التي تستخدمها محركات Chromium.
-- إن أعادت `usesCssFonts()` القيمة `true` تضيف المكتبة قواعد `@font-face` لخط المستند إلى HTML.
+- إن أعادت `usesCssFonts()` القيمة `true` تضيف المكتبة إلى HTML قواعد `@font-face` لخط المستند ولكل خط مسجل تذكره أنماط CSS في الصفحة (`font-family: 'naskh'`)، وتنزّل بنفسها الصور البعيدة المسموح بها وتضمّنها في الصفحة، فلا يحمّل محركك أي رابط.
 - تضيف mPDF كلمة المرور بعد `render()`، فلا يحتاج محركك إلى التشفير.
 - إن أعادت `isAvailable()` القيمة `false` أو رمت `render()` استثناءً، ينشئ المحرك الاحتياطي المستند.
 
@@ -992,12 +993,12 @@ Doc::template('invoice', $data)->driver('pdf-service')->pdf()->engine();   // 'p
 
 | الاستثناء | متى |
 | --- | --- |
-| `Illuminate\Validation\ValidationException` | فشل بيانات القالب في قواعد `fields`: فورًا مع `->pdf()` و`->queue()` و`->toHtml()` و`->options()`، وعند إنشاء الملف مع `->word()` |
-| `InvalidArgumentException` | لغة أو اسم خط أو مقاس ورق أو نمط أرقام غير صالح، أو علامة مائية فارغة، أو صلاحية كلمة مرور غير معروفة، أو مسار `->queue()` لا ينتهي بـ `.pdf` أو `.docx`، أو قائمة `Doc::zip()` فارغة أو خاطئة |
+| `Illuminate\Validation\ValidationException` | فشل بيانات القالب في قواعد `fields`: فورًا مع `->pdf()` و`->word()` و`->queue()` و`->toHtml()` و`->options()` |
+| `InvalidArgumentException` | لغة أو اسم خط أو مقاس ورق أو نمط أرقام غير صالح، أو اسم محرك PDF غير معروف، أو علامة مائية فارغة، أو صلاحية كلمة مرور غير معروفة، أو مسار `->queue()` لا ينتهي بـ `.pdf` أو `.docx`، أو قائمة `Doc::zip()` فارغة أو خاطئة |
 | `LogicException` | `->word()` أو `->queue('….docx')` لمستند له كلمة مرور، أو `GeneratedDocument::html()` لملف Word |
 | `BadMethodCallException` | دالة كتلة (`heading` و`table` ...) على قالب أو view أو HTML، أو دالة غير موجودة |
 | `RuntimeException` | حفظ لم يمكن كتابته، أو ZIP بدون `ext-zip`، أو تاريخ هجري بدون `ext-intl`، أو مجلد mPDF المؤقت غير قابل للكتابة، أو خطأ محرك بلا محرك احتياطي |
 
-::: warning تنبيه
-اسم المحرك غير المدمج وغير المسجل بـ `Doc::extend()` يُعامل كمحرك فاشل: إن كان هناك محرك احتياطي في الإعدادات ينشئ المستندَ ويُسجَّل تحذير. استخدم `->pdf()->engine()` إن لم تكن متأكدًا من المحرك الذي عمل.
+::: tip ملاحظة
+اسم المحرك غير المدمج وغير المسجل بـ `Doc::extend()`، كخطأ إملائي، يرمي استثناءً بدلًا من اللجوء إلى المحرك الاحتياطي. فالمحرك الاحتياطي للمحركات الموجودة غير المثبتة أو التي تفشل فقط؛ استخدم `->pdf()->engine()` إن لم تكن متأكدًا من المحرك الذي عمل.
 :::

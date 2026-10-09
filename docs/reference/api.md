@@ -312,19 +312,20 @@ A font name from the config: `cairo`, `tajawal`, `naskh`, or one you registered 
 title(string $title): static
 ```
 
-The title stored in the file's properties: the PDF, and Word files built from blocks or a layout (a `word.docx` keeps its own). Defaults to the template's `title`.
+The title stored in the file's properties: the PDF, and Word files built from blocks or a layout (a `word.docx` keeps its own). In a PDF it replaces the page's own `<title>`. Without it, a PDF keeps its page title, and a template whose page has none gets the template's `title`.
 
 ### paper() {#pending-paper}
 
 ```php
-paper(string $paper, ?string $orientation = null): static
+paper(string|array $paper, ?string $orientation = null): static
 ```
 
-Paper size: `A2`, `A3`, `A4`, `A5`, `A6`, `B4`, `B5`, `Letter`, `Legal`, `Tabloid` or `Executive` (any case). `A4-L` and `A4-P` set the orientation too. `$orientation` is `'landscape'` or `'portrait'`. An unknown size throws `InvalidArgumentException`.
+Paper size: `A2`, `A3`, `A4`, `A5`, `A6`, `B4`, `B5`, `Letter`, `Legal`, `Tabloid` or `Executive` (any case), or `[width, height]` in mm. `A4-L` and `A4-P` set the orientation too. `$orientation` is `'landscape'` or `'portrait'`. An unknown name, or an array that is not two positive numbers, throws `InvalidArgumentException`.
 
 ```php
 Doc::template('receipt', $receipt)->paper('A5', 'landscape');
 Doc::template('report', $report)->paper('A4-L');
+Doc::view('pdf.till-receipt', ['order' => $order])->paper([80, 200]);
 ```
 
 ### landscape() / portrait() {#pending-landscape-portrait}
@@ -380,7 +381,7 @@ Chromium and Gotenberg print `{page}` and `{pages}` in Latin digits, even with `
 driver(string $driver): static
 ```
 
-The PDF engine for this document: `mpdf`, `chromium` (or `browsershot`, `chrome`), `gotenberg`, or a name registered with `Doc::extend()`. When the engine is not installed or fails, the `pdf.fallback` engine renders the file and a warning is logged.
+The PDF engine for this document: `mpdf`, `chromium` (or `browsershot`, `chrome`), `gotenberg`, or a name registered with `Doc::extend()`. When the engine is not installed or fails, the `pdf.fallback` engine renders the file and a warning is logged. Any other name throws `InvalidArgumentException` when the PDF is rendered: `Unknown PDF engine [chromuim]. Use mpdf, chromium, gotenberg or a name added with Doc::extend().`
 
 ### watermark() {#pending-watermark}
 
@@ -427,7 +428,7 @@ Returns the PDF as a [`PdfDocument`](#rendered-files). `$filename` is the name u
 word(?string $filename = null): WordDocument
 ```
 
-Returns the Word file as a [`WordDocument`](#rendered-files), built from the template's `word.docx`, `word.php` or `layout.php`, or from the `Doc::make()` blocks. The name defaults to `invoice.docx` or `document.docx`. Throws [`WordNotSupported`](#exceptions) for Blade views, HTML and templates without a Word layout, and `LogicException` when a password is set. Needs `phpoffice/phpword`.
+Returns the Word file as a [`WordDocument`](#rendered-files), built from the template's `word.docx`, `word.php` or `layout.php`, or from the `Doc::make()` blocks. The name defaults to `invoice.docx` or `document.docx`. As with `pdf()`, template data is validated now and the file is rendered when its bytes are first needed. Throws [`WordNotSupported`](#exceptions) for Blade views, HTML and templates without a Word layout, and `LogicException` when a password is set. Needs `phpoffice/phpword`.
 
 ### queue() {#pending-queue}
 
@@ -579,7 +580,7 @@ Headings, paragraphs, runs and table cells take these keys:
 | `bold` | `true` | |
 | `italic` | `true` | |
 | `size` | points, e.g. `9.5` | |
-| `color` | `#hex` (or a CSS colour in PDF) | Word needs a hex colour |
+| `color` | `#hex`, `rgb()` or `hsl()` (or a colour name in PDF) | Word leaves colour names out and drops the alpha of `#RRGGBBAA` |
 | `align` | `start`, `end`, `center`, `justify` | `start` is right in Arabic documents, left in English ones. Not for single runs |
 | `ltr` | `true` | Keeps a phone number, code or e-mail in left-to-right order inside Arabic text |
 | `background` | `#hex` | Table cells only |
@@ -645,7 +646,7 @@ A cell is a string, or an array with these keys plus any [text style](#builder-s
 
 ### Names and saving {#rendered-names}
 
-A name without the right extension gets it (`'فاتورة-1024'` becomes `فاتورة-1024.pdf`), and `/` or `\` in a name become `-`. Arabic names work: the response carries an ASCII fallback name and the UTF-8 name.
+A name without the right extension gets it (`'فاتورة-1024'` becomes `فاتورة-1024.pdf`), and `/` or `\` in a name become `-`. Arabic names work: the response carries the UTF-8 name, and for old clients an ASCII name in Latin letters (`fator-1024.pdf`), or `document.pdf` when nothing is left.
 
 `save()` with a disk writes through `Storage::disk($disk)`; without a disk, an absolute path (`/var/...` or `C:\...`) is written directly, creating the folder, and a relative path goes to the default disk. A write that fails throws `RuntimeException` instead of looking saved.
 
@@ -837,7 +838,7 @@ foreach (Doc::templates()->all() as $name => $template) {
 | `prepare(array $data, array $theme = []): array` | The data after the `prepare` callback |
 | `sample(): array` | `sample` (a closure is called) |
 | `theme(): array` | `theme` |
-| `paper(): ?string`, `orientation(): ?string`, `margins(): ?array` | Page settings, or `null` |
+| `paper()`, `orientation(): ?string`, `margins(): ?array` | Page settings, or `null`. `paper()` returns a name such as `'A4-L'` or `[width, height]` in mm |
 | `hasPdfView(): bool`, `pdfView(): string` | `pdf.blade.php`; `pdfView()` throws `RuntimeException` when it is missing |
 | `wordFile(): ?string` | The path of `word.docx`, or `null` |
 | `wordLayout(): ?callable` | `word.php`, else `layout.php` |
@@ -910,7 +911,7 @@ interface PdfDriver
 ```
 
 - `render()` gets the final HTML (digits already converted) and a [`PdfOptions`](#pdf-options). It should apply the paper size, margins, header and footer (replacing `{page}` and `{pages}`), and the watermark if you support it; `BiztechEG\EasyPdfWord\Pdf\Watermark::inject($html, $options)` adds the watermark the way the Chromium engines do.
-- When `usesCssFonts()` is `true`, the package adds `@font-face` rules with the document font to the HTML.
+- When `usesCssFonts()` is `true`, the package adds `@font-face` rules to the HTML for the document font and for every registered font the page's CSS names (`font-family: 'naskh'`), and fetches allowed remote images itself and inlines them, so your engine never loads a URL.
 - A password is added after `render()` by mPDF, so your engine does not need to encrypt.
 - When `isAvailable()` is `false` or `render()` throws, the fallback engine renders the document.
 
@@ -992,12 +993,12 @@ Other exceptions you may meet:
 
 | Exception | When |
 | --- | --- |
-| `Illuminate\Validation\ValidationException` | Template data fails the template's `fields` rules: on `->pdf()`, `->queue()`, `->toHtml()` and `->options()` at once, and on `->word()` when the file is rendered |
-| `InvalidArgumentException` | An invalid locale, font name, paper size, numerals style, empty watermark, unknown password permission, a `->queue()` path not ending in `.pdf` or `.docx`, an empty or wrong `Doc::zip()` list |
+| `Illuminate\Validation\ValidationException` | Template data fails the template's `fields` rules: on `->pdf()`, `->word()`, `->queue()`, `->toHtml()` and `->options()` at once |
+| `InvalidArgumentException` | An invalid locale, font name, paper size, numerals style, an unknown PDF engine name, empty watermark, unknown password permission, a `->queue()` path not ending in `.pdf` or `.docx`, an empty or wrong `Doc::zip()` list |
 | `LogicException` | `->word()` or `->queue('….docx')` on a document with a password; `GeneratedDocument::html()` on a Word file |
 | `BadMethodCallException` | A block method (`heading`, `table` ...) on a template, view or HTML document, or a method that does not exist |
 | `RuntimeException` | A save that could not be written, a ZIP without `ext-zip`, a Hijri date without `ext-intl`, an mPDF temp folder that cannot be written, an engine error with no fallback |
 
-::: warning
-An engine name that is neither built in nor registered with `Doc::extend()` is treated like a failing engine: with a fallback engine configured, the document is rendered by the fallback and a warning is logged. Check `->pdf()->engine()` if you are not sure which engine ran.
+::: tip
+An engine name that is neither built in nor registered with `Doc::extend()`, such as a typo, throws instead of falling back. The fallback is only for engines that exist but are not installed or fail; check `->pdf()->engine()` if you are not sure which engine ran.
 :::
