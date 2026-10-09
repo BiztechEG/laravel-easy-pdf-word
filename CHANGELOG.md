@@ -6,6 +6,8 @@ All notable changes to this package are listed here. The format follows
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-09
+
 ### Added
 
 - Paper sizes `A2`, `B4`, `B5`, `Tabloid` and `Executive`, and `A4-L` for A4 landscape.
@@ -131,7 +133,8 @@ The first release.
 - Colour values, fonts and locales are checked before they reach HTML, CSS or file paths.
 - Chromium runs without JavaScript unless it is turned on in config.
 
-[Unreleased]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/BiztechEG/laravel-easy-pdf-word/releases/tag/v1.0.0
