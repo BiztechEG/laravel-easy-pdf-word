@@ -6,6 +6,7 @@ on:
     paths: ['docs/**', '.github/workflows/docs.yml']
   pull_request:
     paths: ['docs/**', '.github/workflows/docs.yml']
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -32,8 +33,36 @@ jobs:
       # Fails on dead links between pages.
       - run: npm run build
 
-      # The built site, ready to upload to the documentation subdomain.
+      # The built site, also kept as a zip for uploading by hand.
       - uses: actions/upload-artifact@v4
         with:
           name: docs-site
           path: docs/.vitepress/dist
+
+      - uses: actions/upload-pages-artifact@v3
+        if: github.event_name != 'pull_request'
+        with:
+          path: docs/.vitepress/dist
+
+  # Publishes the site on GitHub Pages after every change merged into main.
+  # Needs Settings > Pages > Source set to "GitHub Actions".
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
