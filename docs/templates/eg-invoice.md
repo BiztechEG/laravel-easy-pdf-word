@@ -95,7 +95,7 @@ In a controller, `return $einvoice->pdf()->download('INV-2026-1024.pdf');` sends
 | `document.issued_at` | Yes | date and time | | Issue time, printed as `2026/10/08 11:45` in the app's time zone. An ETA time in UTC (`2026-10-08T09:45:00Z`) is converted. |
 | `document.uuid` | No | text | | The UUID the ETA returned, printed under the header. With `long_id`, it builds the portal QR. |
 | `document.long_id` | No | text | | The long ID the ETA returned, used only in the portal QR link. |
-| `document.submission_uuid` | No | text | | Accepted so you can pass the whole ETA result; the bundled layout does not print it. |
+| `document.submission_uuid` | No | text | | The submission ID the ETA returned, printed under the UUID as رقم الإرسال (Submission ID). |
 | `document.purchase_order` | No | text | | Purchase order reference, printed under the issue time. |
 | `document.currency` | Yes | 3-letter code | `EGP` | Currency of all amounts: decimals, the label after the total and the amount in words. |
 | `issuer.name` | Yes | text | | The seller's registered name, at the top and in the issuer box. |
@@ -116,10 +116,10 @@ In a controller, `return $einvoice->pdf()->download('INV-2026-1024.pdf');` sends
 | `lines.*.unit_price` | Yes | number | | Price of one unit before taxes. |
 | `lines.*.discount` | No | number, 0 or more | | An amount taken off the line before taxes. It cannot be more than quantity × unit price. |
 | `lines.*.taxes` | No | array | | The line's taxes, see [Taxes](#taxes). |
-| `lines.*.taxes.*.type` | Yes, per tax | `T1` to `T20` (capital T) | | The ETA tax type. |
+| `lines.*.taxes.*.type` | Yes, per tax | `T1` to `T20` (`t1` works too) | | The ETA tax type. |
 | `lines.*.taxes.*.rate` | No | number | | Percentage of the tax's base. |
 | `lines.*.taxes.*.amount` | No | number | | A fixed amount instead of a rate (wins over `rate`). |
-| `lines.*.taxes.*.subtype` | No | text | `V009` for T1 | The ETA subtype, such as `W010`. Kept with the tax in the data, not printed. |
+| `lines.*.taxes.*.subtype` | No | text, up to 20 characters | `V009` for T1 | The ETA subtype, such as `W010`. Kept with the tax in the data, not printed. |
 | `extra_discount` | No | number, 0 or more | `0` | A discount on the whole document, taken off the total after taxes. |
 | `qr` | No | text | portal link | Replaces the QR content. Without it, the QR links to the portal when `uuid` and `long_id` are given. |
 | `notes` | No | text | | Notes at the end. |
@@ -196,7 +196,7 @@ Each line lists its taxes by ETA type, with a `rate` (a percentage) or a fixed `
 | T3 | Table tax (fixed amount) | net (usually given as `amount`) | added |
 | T4 | Withholding tax (WHT) | net | deducted |
 | T5 to T12 | Stamping tax, entertainment tax, resource development fee, service charges, municipality fees, medical insurance fee, other fees | net | added, and part of the T1 and T2 base |
-| T13 to T20 | Non-taxable fees | net | added only |
+| T13 to T20 | The same taxes and fees as T5 to T12 when they are not taxable, with the same names | net | added only |
 
 Here a line of goods carries a fixed table tax, a table tax and VAT, and a service line has VAT and 1% withholding:
 
@@ -232,7 +232,7 @@ Here a line of goods carries a fixed table tax, a table tax and VAT, and a servi
 
 The first line: net 1,200.00, T3 50.00, T2 8% of 1,250 = 100.00, T1 14% of 1,350 = 189.00, total 1,539.00. The second: 2,000 + 280.00 VAT - 20.00 withholding = 2,260.00. The summary lists T1 469.00, T2 100.00, T3 50.00 and T4 -20.00.
 
-The line's "VAT" column shows T1 only; every other tax appears in the summary under its type and name. T13 to T20 have no name in the language files, so the summary shows their code twice (`T13 - T13`); add names under `tax_types` in a copy's `lang` files if you use them.
+The line's "VAT" column shows T1 only; every other tax appears in the summary under its type and name, such as `T13 - ضريبة الدمغة (نسبية)`.
 
 ### Totals and extra discount {#totals}
 
@@ -260,7 +260,7 @@ php artisan doc:template eg-invoice --as=my-eg-invoice
 
 This copies the template to `resources/doc-templates/my-eg-invoice`. Use it with `Doc::template('my-eg-invoice', $data)` and edit:
 
-- `lang/ar.php` and `lang/en.php` for the labels: the titles under `types`, the tax names under `tax_types` (add `T13` to `T20` here), the QR caption under `verify`.
+- `lang/ar.php` and `lang/en.php` for the labels: the titles under `types`, the tax names under `tax_types`, the QR caption under `verify`.
 - `layout.php` for the layout of both formats: the columns of the lines table, what the boxes show.
 - `template.php` for the fields and the tax computation in `prepare()`.
 - `footer.blade.php` for the footer.
