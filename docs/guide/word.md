@@ -169,14 +169,11 @@ The labels (`${t.title}` and the rest) come from the template's `lang/ar.php`, t
 How values are written:
 
 - Text is escaped, and a `${` inside a value stays text, so data cannot add placeholders.
-- Decimal numbers (floats) get thousands separators and the decimals of the currency in `currency`, `invoice.currency` or `document.currency`: three for KWD, two for most. Whole numbers and strings are printed as they are, so pass amounts as floats (`42000.0`) or format them yourself.
+- Decimal numbers (floats) get thousands separators and the decimals of the document's currency, read from a top-level `currency` or from a group's `currency` (`invoice.currency`, `quote.currency`, `document.currency` ...): three for KWD, two for most. Whole numbers and strings are printed as they are, so pass amounts as floats (`42000.0`) or format them yourself.
 - Dates passed as date objects (`now()`, a Carbon date) print as `2026/10/08`. `true` prints ✓, and `false` and `null` print nothing.
 - Digits follow `->numerals()`.
-- A placeholder with no value in the data is removed. So is an image placeholder whose image cannot be used (an SVG, or a file outside the allowed folders).
-
-::: warning Left-to-right values in a word.docx
-The package does not mark values in a `word.docx` as left to right. In a right-to-left paragraph, a value made of digits separated by spaces or dashes can show in the wrong order: `+20 100 000 0000` shows as `0000 000 100 20+`, and the string `2026-10-08` as `08-10-2026`. Pass dates as date objects, and wrap such values in Unicode left-to-right marks before passing them: `"\u{202D}{$phone}\u{202C}"`.
-:::
+- A placeholder with no value in the data is removed. So is an image placeholder whose image cannot be used (an SVG, a missing file, or a file outside the allowed folders): it is left empty, and the path is never printed.
+- In right-to-left documents, a value without Arabic letters, such as a phone number, a date or a code (`+20 100 000 0000`, `2026-10-08`, `INV-2026-1024`), is marked as left to right, so Word keeps its parts in order. Values made only of digits are left as they are.
 
 A `word.docx` makes the Word file only. For the PDF, add a `pdf.blade.php` or `layout.php` to the same folder; without one, `->pdf()` fails with "Template [quote-word] has no pdf.blade.php."
 
