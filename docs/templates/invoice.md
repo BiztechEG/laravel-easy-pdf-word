@@ -122,7 +122,7 @@ Lines are rounded one by one, so they always add up to the subtotal. Under `Doc:
 
 On the page the template also prints:
 
-- **Amount in words** (المبلغ بالحروف), from `totals.total` and the currency, in Arabic documents only.
+- **Amount in words** (المبلغ بالحروف), from `totals.total` and the currency, in the document's language.
 - **Hijri date** of `invoice.date`, in Arabic documents when PHP's `intl` extension is installed.
 
 ### Theme values {#theme}
@@ -182,10 +182,8 @@ Leave `qr` out (or `null`) for an invoice without a QR code. `invoice.eta_uuid` 
 
 ### Hijri date and amount in words {#arabic}
 
-Arabic documents (`->locale('ar')`, or any right-to-left locale) add two lines that English documents do not have:
-
-- the Hijri date of `invoice.date` under the issue date, for example 27 ربيع الآخر 1448 هـ. It needs PHP's `intl` extension; without it the line is left out.
-- the amount in words under the totals, for example «فقط ألف ومائة وخمسون ريالاً لا غير». EGP, SAR, AED, QAR, KWD, USD and EUR are read with their Arabic names; add others under `currencies` in the config (see [Arabic support](/guide/arabic)). An unknown currency is read as the number in words followed by its code.
+- Arabic documents (`->locale('ar')`, or any right-to-left locale) show the Hijri date of `invoice.date` under the issue date, for example 27 ربيع الآخر 1448 هـ. It needs PHP's `intl` extension; without it the line is left out.
+- The amount in words is printed under the totals in the document's language. In Arabic it is tafqeet, for example «فقط ألف ومائة وخمسون ريالاً لا غير»: EGP, SAR, AED, QAR, KWD, USD and EUR are read with their Arabic names; add others under `currencies` in the config (see [Arabic support](/guide/arabic)), and an unknown currency is read as the number in words followed by its code. In English the number is spelled out by PHP's `intl` extension («one thousand one hundred fifty SAR only»); without `intl`, English documents leave that line out.
 
 ### Arabic digits, colours and your company {#branding}
 
