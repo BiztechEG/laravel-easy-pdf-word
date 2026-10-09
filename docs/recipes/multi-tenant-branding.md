@@ -292,7 +292,7 @@ Keep logos small (a few dozen KB): the data URI is part of every queued job.
 
 ### Let each tenant set its brand
 
-The values come from a settings form. Validate them so they work in both PDF and Word files: Word takes hex colours only.
+The values come from a settings form. Validate them so they work in both PDF and Word files: Word leaves colour names such as `navy` out, so accept hex colours.
 
 ```php
 // app/Http/Controllers/BrandingController.php
