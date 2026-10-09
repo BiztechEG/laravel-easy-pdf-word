@@ -127,7 +127,7 @@ The contract does not print the company name from the theme: every party, your c
 
 ### Parties {#parties}
 
-Each party gets a row in the parties table and a signature box at the end. The label comes from its position (الطرف الأول، الطرف الثاني ... in Arabic, First party, Second party ... in English) and `alias` adds the name the clauses use, such as (العميل). `id_label` and `id` print one line, for example سجل تجاري رقم 123456 or رقم قومي 29501011234567; give `id` alone to print just the number.
+Each party gets a row in the parties table and a signature box at the end. The label comes from its position, in words up to the twentieth party (الطرف الأول، الطرف الثاني ... الطرف العشرون in Arabic, First party ... Twentieth party in English), and `alias` adds the name the clauses use, such as (العميل). `id_label` and `id` print one line, for example سجل تجاري رقم 123456 or رقم قومي 29501011234567; give `id` alone to print just the number.
 
 ### Three or more parties {#more-parties}
 

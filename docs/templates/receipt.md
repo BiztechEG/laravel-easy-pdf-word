@@ -95,7 +95,7 @@ The template also reads these theme values, which you set once in `config/easy-p
 | `company.name` | Top corner, bold, in the primary colour. |
 | `company.address` | Under the company name, small and grey. |
 | `logo` | Above the company name, 25 mm wide. See [Images](/guide/images) for the allowed folders. |
-| `primary` | The title, the line under the header and the border of the amount box. |
+| `primary` | The title, the line under the header, and the border of the amount box, whose background is a pale tint of the same colour. |
 | `muted` | The address, the notes and the signature lines. |
 | `border` | The lines of the details table. |
 
