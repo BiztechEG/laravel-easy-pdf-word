@@ -7,6 +7,8 @@
 
 Generate PDF and Word (.docx) documents from Laravel in any language, with first-class Arabic support and ready-made templates.
 
+**Documentation:** [easypdf.biztech-eg.com](https://easypdf.biztech-eg.com) (guides, every template, recipes and the API, in English and Arabic).
+
 - Arabic that renders correctly: joined letters, right-to-left layout, mixed Arabic and English, Arabic or Latin digits.
 - Two PDF engines you can switch between: **mPDF** (pure PHP, works on shared hosting) and **Chromium** (via Browsershot or Gotenberg), with automatic fallback.
 - Word files with real right-to-left paragraphs and tables, from the same templates, from code, or from a .docx you design in Word.
@@ -501,6 +503,8 @@ MIT. mPDF, an optional dependency, is GPL-2.0; check that it fits your project, 
 ## بالعربي
 
 مكتبة Laravel لإنشاء ملفات PDF و Word بأي لغة، مع دعم كامل للعربي وقوالب جاهزة.
+
+**التوثيق بالعربي:** [easypdf.biztech-eg.com/ar](https://easypdf.biztech-eg.com/ar/) (شرح، وكل القوالب، وأمثلة استخدام، والـ API).
 
 - العربي بيطلع صح: الحروف متشبكة، الاتجاه من اليمين للشمال، والنص المختلط عربي وإنجليزي، وأرقام عربية أو لاتينية.
 - محركين PDF تقدر تبدل بينهم: **mPDF** (PHP بس، شغال على الاستضافة المشتركة) و **Chromium** (عن طريق Browsershot أو Gotenberg)، ولو المحرك المختار مش موجود بيرجع للتاني تلقائياً.
