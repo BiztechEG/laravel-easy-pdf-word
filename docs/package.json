@@ -8,6 +8,7 @@
         "preview": "vitepress preview"
     },
     "devDependencies": {
+        "postcss-rtlcss": "5.7.1",
         "vitepress": "1.6.4"
     }
 }
