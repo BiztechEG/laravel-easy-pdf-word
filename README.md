@@ -21,7 +21,7 @@ Generate PDF and Word (.docx) documents from Laravel in any language, with first
 
 - PHP 8.2+
 - Laravel 12 or 13
-- ext-mbstring, ext-gd; ext-intl for Hijri dates
+- ext-mbstring, ext-gd; ext-intl for Hijri dates; ext-zip for Word files and ZIP archives
 
 ## Installation
 
@@ -174,7 +174,7 @@ Doc::template('report', $data)
     ->pdf();
 ```
 
-Paper sizes: `A2` to `A6`, `B4`, `B5`, `Letter`, `Legal`, `Tabloid` and `Executive`; `A4-L` is A4 landscape. The config and `template.php` also take `[width, height]` in mm. Margins in the config and `template.php` can be shortened the same way: `[15, 12]`.
+Paper sizes: `A2` to `A6`, `B4`, `B5`, `Letter`, `Legal`, `Tabloid` and `Executive`; `A4-L` is A4 landscape. `->paper()`, the config and `template.php` also take `[width, height]` in mm, such as `->paper([80, 200])` for a till receipt. Margins in the config and `template.php` can be shortened the same way: `[15, 12]`.
 
 ### Watermark and password
 
@@ -252,7 +252,7 @@ Placeholders in `word.docx`:
 | `${theme.company.name}` | Theme values |
 | `${doc.hijri_date}`, `${doc.qr}`, `${doc.today}` | Hijri date of `date`, a QR image of `qr`, today's date |
 
-Values are escaped, and digits follow `->numerals()`. Set right-to-left direction for the paragraphs in Word itself.
+Values are escaped, and digits follow `->numerals()`. In Arabic documents, values without Arabic letters (phone numbers, dates, codes) keep their left-to-right order. Set right-to-left direction for the paragraphs in Word itself.
 
 Word does not embed fonts, so Word files use a font your readers already have. The default is Arial; change it with `DOC_WORD_FONT` (for example `Tahoma` or `Sakkal Majalla`).
 
@@ -277,9 +277,9 @@ Per document:
 Doc::template('invoice', $data)->driver('chromium')->pdf();
 ```
 
-If the chosen engine is not installed or fails, the document is rendered with the fallback engine and a warning is logged. `->pdf()->engine()` tells you which engine was used. Set `DOC_PDF_FALLBACK=null` to turn this off.
+If the chosen engine is not installed or fails, the document is rendered with the fallback engine and a warning is logged. A name that is no engine at all, such as a typo, throws an error instead. `->pdf()->engine()` tells you which engine was used. Set `DOC_PDF_FALLBACK=null` to turn this off.
 
-The bundled templates use CSS that both engines understand, so they look the same on either. One difference: Chromium writes `{page}` and `{pages}` in headers and footers in Latin digits, even with `->numerals('arabic')`.
+The bundled templates use CSS that both engines understand, so they look the same on either. One difference: Chromium and Gotenberg write `{page}` and `{pages}` in headers and footers in Latin digits, even with `->numerals('arabic')`.
 
 Large documents: mPDF keeps a whole table in memory while it lays it out, about 85 KB per row. A report of 1,000 rows needs more than PHP's default 128 MB (`memory_limit`), and running out ends the request with no fallback. For reports beyond a few hundred rows, raise `memory_limit` for the job that renders them, or use Chromium, which renders 2,000 rows in about 55 MB.
 
@@ -444,7 +444,7 @@ Register your own in the config:
 
 With Arabic digits, Naskh uses the Arabic decimal and thousands separators (١٢٬٥٠٠٫٧٥). Cairo and Tajawal keep `,` and `.` (Cairo draws both Arabic separators like commas, and Tajawal has none), and so do Word files.
 
-mPDF cannot read some recent fonts and stops with "MarkGlyphSets - Not tested yet" or "GPOS Lookup Type 5, Format 3 not supported". Fix the font files once with the included script (needs `pip install fonttools`):
+mPDF cannot read some recent fonts and stops with "This font [...] contains MarkGlyphSets - Not tested yet" or "Lookup Type 5, SubstFormat 3 not tested". Fix the font files once with the included script (needs `pip install fonttools`):
 
 ```bash
 python3 vendor/biztecheg/laravel-easy-pdf-word/bin/mpdf-font-fix.py resources/fonts/MyFont-*.ttf

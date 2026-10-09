@@ -7,10 +7,10 @@ Common problems, what causes them and how to fix them. The messages quoted are t
 **Boxes (□□□) instead of letters.** The font in use has no Arabic letters. This happens when:
 
 - you registered a font without Arabic letters and made it the document font (`->font()` or `fonts.default`);
-- with Chromium or Gotenberg, your own CSS names a font that is not embedded, and the server has no font with Arabic letters;
+- with Chromium or Gotenberg, your own CSS names a font that is not registered with the package, and the server has no font with Arabic letters;
 - the document has letters from another script, such as Chinese or Hindi, that the document font does not have.
 
-Use one of the bundled fonts or a font that covers Arabic. For other scripts with mPDF, turn on `auto_lang_to_font` (see [Fonts](/guide/fonts#auto-lang-to-font)). For a second font with Chromium, embed it as shown in [Fonts](/guide/fonts#css).
+Use one of the bundled fonts or a font that covers Arabic. For other scripts with mPDF, turn on `auto_lang_to_font` (see [Fonts](/guide/fonts#auto-lang-to-font)). For a second font with Chromium, register it (see [Fonts](/guide/fonts#custom-fonts)); a registered font named in your CSS is embedded for you.
 
 **Letters drawn one by one, not joined.** The font has the Arabic letters but not the shaping rules that join them (its GSUB table). Some old fonts, and fonts converted with some tools, lack them. Use a modern TrueType font, such as the bundled ones.
 
@@ -58,7 +58,6 @@ Other font errors:
 | `Fonts with postscript outlines are not supported` | Use the `.ttf` (TrueType) version of the font, not `.otf`. |
 | `The font files [...] and [...] have the same name. mPDF finds fonts by file name, so rename one of them.` | Give each font file a unique name. |
 | `Font [name] needs at least a "regular" file.` | Add `regular` to the font in `fonts.custom`. |
-| `Uninitialized string offset ...` from mPDF's `Otl.php` | You changed a font's files, or gave a font name that mPDF had already used (such as `cairo`) other files, and mPDF still has the old font's data. Delete the `mpdf/ttfontdata` folder in mPDF's temp folder (see [Fonts](/guide/fonts#custom-fonts)). |
 
 See [Fonts](/guide/fonts#mpdf-font-fix).
 
@@ -119,7 +118,7 @@ Images that do not pass the [image rules](/guide/images) are left out without an
 2. **A file that is not an image,** for example an HTML error page saved as `logo.png`. The package checks the content, not the name.
 3. **A path on a cloud disk** like `tenants/14/logo.png` on S3. It is not a local path: pass the file's URL or a data URI.
 4. **A URL whose host is not allowed.** Add the host to `DOC_REMOTE_IMAGES`, then run `php artisan config:cache` again in production.
-5. **A URL that redirects.** mPDF shows a small "image not found" icon instead, and Word files leave the image out. Use the final URL.
+5. **A URL that redirects.** Redirects are not followed: mPDF shows a small "image not found" icon instead, and Chromium, Gotenberg and Word files leave the image out. Use the final URL.
 6. **An SVG that refers to files or URLs**, or has a `<!DOCTYPE>` line. Export it again as plain SVG, or use a PNG.
 7. **An SVG in a Word file.** Word files leave SVG out. Use a PNG or JPEG.
 
@@ -217,8 +216,9 @@ The render took longer than the worker's `--timeout` (60 seconds by default). Gi
 | Message | Fix |
 | --- | --- |
 | `The [mpdf] engine needs the mpdf/mpdf package. Run: composer require mpdf/mpdf` | Install mPDF, or choose another engine with `DOC_PDF_DRIVER`. |
+| `Unknown PDF engine [chromuim]. Use mpdf, chromium, gotenberg or a name added with Doc::extend().` | A misspelt engine name in `->driver()`, `DOC_PDF_DRIVER` or `doc:sample --driver`. Fix the spelling; there is no fallback for a name that is not an engine. |
 | `PDF passwords need the mpdf/mpdf package, also with Chromium. Run: composer require mpdf/mpdf` | `->password()` with Chromium or Gotenberg needs mPDF to encrypt the file. |
 | `Cannot create the mPDF temp folder [...]` or `The mPDF temp folder [...] is not writable.` | Set a folder the web server and workers can write to in `pdf.drivers.mpdf.temp_dir`. |
 | `Could not write [invoices/INV-2026-1024.pdf] to the [s3] disk.` | Check the disk's settings and permissions. See [Output and delivery](/guide/output#save-failures). |
-| `Unknown paper size [Foolscap].` | Use a listed size, or `[width, height]` in the config. See [Page settings](/guide/page-settings#paper). |
+| `Unknown paper size [Foolscap].` | Use a listed size, or `[width, height]` in mm. See [Page settings](/guide/page-settings#paper). |
 | `Unknown currency [GBP]. Register it with Tafqeet::registerCurrency().` | Add the currency under `currencies` in the config. See [Arabic support](/guide/arabic#currencies). |

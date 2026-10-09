@@ -30,14 +30,20 @@ Doc::template('report', $data)->paper('A4-L')->pdf();   // A4 landscape, as mPDF
 
 - Names are not case sensitive: `a4`, `letter`.
 - `->landscape()` and `->portrait()` set the orientation. `->paper('A5', 'landscape')` does both in one call.
-- In `->paper()`, a name ending in `-L` or `-P` (`A4-L`, `Letter-P`) carries the orientation too.
+- A name ending in `-L` or `-P` (`A4-L`, `Letter-P`) carries the orientation too, in `->paper()`, in `template.php` and in the config.
 - An unknown name throws at once: `Unknown paper size [Foolscap]. Use one of A2, A3, A4, A5, A6, B4, B5, LETTER, LEGAL, TABLOID, EXECUTIVE, or [width, height] in mm.`
 
 The same settings apply to Word files made from the document: the Word page gets the same size, orientation and margins.
 
 ### A custom size {#custom-paper}
 
-For a size that is not in the list, such as a label or a thermal receipt, set `[width, height]` in millimetres as the default paper in `config/easy-pdf-word.php`:
+For a size that is not in the list, such as a label or a thermal receipt, pass `[width, height]` in millimetres:
+
+```php
+Doc::view('pdf.till-receipt', ['order' => $order])->paper([80, 200])->pdf();
+```
+
+The same array works as `paper` in a template's `template.php`, or as the default paper in `config/easy-pdf-word.php`:
 
 ```php
 'pdf' => [
@@ -46,7 +52,7 @@ For a size that is not in the list, such as a label or a thermal receipt, set `[
 ],
 ```
 
-The orientation still applies: in portrait the shorter side is the width, and with `->landscape()` the longer side is. `->paper()` itself takes names only.
+The orientation still applies: in portrait the shorter side is the width, and with `->landscape()` the longer side is. A size that is not two positive numbers throws `A paper size must be [width, height] in mm, for example [100, 150].`
 
 ## Margins {#margins}
 
@@ -61,9 +67,7 @@ Margins are in millimetres and work like CSS margins:
 
 The config and a template's `template.php` take the same forms as arrays: `[15]`, `[20, 15]`, `[25, 15, 20]` or `[25, 15, 20, 10]`.
 
-::: warning Right and left in Arabic documents
-Chromium, Gotenberg and Word put the right and left values on those sides of the paper. mPDF swaps them in right-to-left documents: with `->margins(15, 40, 15, 10)` an Arabic mPDF page has 40 mm on the left and 10 mm on the right. Keep the right and left margins equal when a document may be made by more than one engine.
-:::
+Right and left are the sides of the paper, in Arabic documents too and with every engine: `->margins(15, 40, 15, 10)` leaves 40 mm on the right and 10 mm on the left.
 
 ## Header and footer {#header-footer}
 
@@ -146,17 +150,19 @@ What to know:
 
 ## Title and author {#metadata}
 
-The title of a PDF, shown in the viewer's title bar, is the page title of the document's HTML. The invoice, report, letter and certificate templates set one, in the document's language: `فاتورة ضريبية INV-2026-1024`, or `Tax Invoice INV-2026-1024` in English. The other bundled templates set none, so mPDF leaves the title empty and Chromium writes `index.html`. In your own Blade view, pass a title to the layout component, as in `<x-doc::layout :doc="$doc" title="عقد عمل">`; see [Blade views and HTML](/guide/views-and-html).
+The title of a PDF, shown in the viewer's title bar, comes from the first of these that is set:
 
-mPDF sets the author to the company name from the theme (`theme.company.name`, which defaults to `APP_NAME`). Chromium sets no author.
-
-`->title()` sets the title of Word files, which otherwise take the `title` from the template's `template.php` (such as `Tax invoice`). Word files get the company name as author too:
+1. `->title()` on the document.
+2. The page title of the document's HTML. The invoice, report, letter and certificate templates set one in the document's language: `فاتورة ضريبية INV-2026-1024`, or `Tax Invoice INV-2026-1024` in English. In your own Blade view, pass a title to the layout component, as in `<x-doc::layout :doc="$doc" title="عقد عمل">`; see [Blade views and HTML](/guide/views-and-html).
+3. The `title` in the template's `template.php`, such as `Receipt voucher` or `Payslip`, for a template whose page has no title of its own.
 
 ```php
-Doc::template('invoice', $data)->title('فاتورة INV-2026-1024')->word();
+Doc::template('receipt', $data)->locale('ar')->title('سند قبض RV-2026-0315')->pdf();
 ```
 
-`->title()` does not change the title of a PDF; use the page title as above.
+`->title()` sets the title of Word files too, which otherwise take the `title` from `template.php` (such as `Tax invoice`).
+
+mPDF sets the author to the company name from the theme (`theme.company.name`, which defaults to `APP_NAME`), and so do Word files. Chromium sets no author.
 
 ## Where the defaults come from {#defaults}
 

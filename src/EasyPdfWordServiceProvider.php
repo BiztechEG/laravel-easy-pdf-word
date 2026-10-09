@@ -66,6 +66,7 @@ class EasyPdfWordServiceProvider extends ServiceProvider
     {
         $enabled = config('easy-pdf-word.preview.enabled');
 
-        return $enabled === null ? $this->app->environment('local') : filter_var($enabled, FILTER_VALIDATE_BOOLEAN);
+        // Unset or empty (DOC_PREVIEW=): only in the local environment.
+        return $enabled === null || $enabled === '' ? $this->app->environment('local') : filter_var($enabled, FILTER_VALIDATE_BOOLEAN);
     }
 }

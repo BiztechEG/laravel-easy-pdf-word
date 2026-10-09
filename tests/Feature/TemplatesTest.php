@@ -141,6 +141,21 @@ class TemplatesTest extends TestCase
         $this->assertStringStartsWith('https://invoicing.eta.gov.eg/documents/R6ZQ4SB1ZWP2XKCV2G0AYXHG10/share/', $prepared['qr']);
     }
 
+    public function test_egyptian_e_invoice_takes_lowercase_tax_types_names_non_taxable_ones_and_prints_the_submission_id(): void
+    {
+        $data = Doc::templates()->get('eg-invoice')->sample();
+        $data['document']['submission_uuid'] = 'SUB7XKQ2M9ZP0A';
+        $data['lines'][0]['taxes'] = [['type' => 't1', 'rate' => 14], ['type' => 'T13', 'rate' => 1]];
+
+        $html = Doc::template('eg-invoice', $data)->locale('en')->toHtml();
+
+        $this->assertStringContainsString('T1 - Value added tax', $html);
+        $this->assertStringContainsString('T13 - Stamping tax (percentage)', $html);
+        $this->assertStringContainsString('Submission ID', $html);
+        $this->assertStringContainsString('SUB7XKQ2M9ZP0A', $html);
+        $this->assertStringContainsString('T13 - ضريبة الدمغة (نسبية)', Doc::template('eg-invoice', $data)->locale('ar')->toHtml());
+    }
+
     public function test_egyptian_e_invoice_prints_the_eta_utc_time_in_the_app_time_zone(): void
     {
         config(['app.timezone' => 'Africa/Cairo']);
@@ -404,6 +419,32 @@ class TemplatesTest extends TestCase
         $this->assertStringContainsString('تقديراً لجهودها المتميزة في', $html);
     }
 
+    public function test_contract_names_up_to_twenty_parties_in_english(): void
+    {
+        $data = Doc::templates()->get('contract')->sample();
+        $data['parties'] = array_map(fn ($n) => ['name' => 'Party '.$n], range(1, 12));
+
+        $html = Doc::template('contract', $data)->locale('en')->toHtml();
+
+        $this->assertStringContainsString('Twelfth party', $html);
+        $this->assertStringNotContainsString('12 party', $html);
+    }
+
+    public function test_certificates_need_more_than_zero_hours_and_letter_copies_are_text(): void
+    {
+        $certificate = Doc::templates()->get('certificate')->sample();
+        $letter = Doc::templates()->get('letter')->sample();
+
+        foreach ([['certificate', ['hours' => 0] + $certificate, 'hours'], ['letter', ['cc' => [['x']]] + $letter, 'cc.0']] as [$name, $data, $field]) {
+            try {
+                Doc::template($name, $data)->toHtml();
+                $this->fail("{$name} accepted an invalid {$field}.");
+            } catch (ValidationException $e) {
+                $this->assertArrayHasKey($field, $e->errors());
+            }
+        }
+    }
+
     public function test_certificates_take_at_most_three_signatures(): void
     {
         $data = Doc::templates()->get('certificate')->sample();
@@ -426,6 +467,10 @@ class TemplatesTest extends TestCase
         $receipt = Doc::template('receipt', Doc::templates()->get('receipt')->sample());
         $this->assertStringContainsString('فقط خمسة عشر ألفاً وسبعمائة وخمسون جنيهاً وخمسون قرشاً لا غير', $receipt->locale('ar')->toHtml());
         $this->assertStringContainsString('fifteen thousand seven hundred fifty EGP and 50/100 only', $receipt->locale('en')->toHtml());
+
+        $invoice = Doc::template('invoice', Doc::templates()->get('invoice')->sample())->locale('en');
+        $this->assertStringContainsString('thirty-nine thousand three hundred thirty EGP only', $invoice->toHtml());
+        $this->assertStringContainsString('thirty-nine thousand three hundred thirty EGP only', $this->zipEntry($invoice->word()->content(), 'word/document.xml'));
 
         $quote = Doc::template('quotation', Doc::templates()->get('quotation')->sample())->locale('ar')->numerals('arabic')->toHtml();
         $this->assertStringContainsString('<bdo dir="ltr">QT-٢٠٢٦-٠٠٨٨</bdo>', $quote);

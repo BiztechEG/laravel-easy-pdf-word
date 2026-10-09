@@ -115,7 +115,7 @@ return [
 
 كيف تُطبع القيم في ملف Word:
 
-- **الأعداد العشرية (float)** تُطبع بفواصل الآلاف وخانتين عشريتين: `1450.0` تصبح `1,450.00`. ومع قيمة `currency` في المستوى الأعلى مثل `KWD` تأخذ عدد الخانات العشرية لتلك العملة.
+- **الأعداد العشرية (float)** تُطبع بفواصل الآلاف وخانتين عشريتين: `1450.0` تصبح `1,450.00`. ومع قيمة `currency` مثل `KWD`، في المستوى الأعلى أو داخل مجموعة (`quote.currency`)، تأخذ عدد الخانات العشرية لتلك العملة.
 - **الأعداد الصحيحة والنصوص** تُطبع كما هي: الكمية `4` تبقى `4`، والسعر المحفوظ `1450` أو `"1450.00"` يُطبع دون فواصل. لهذا يحوّل `prepare` القيمة `unit_price` إلى عدد عشري.
 - **التواريخ** (`Carbon` وغيرها من كائنات التاريخ) تُطبع بصيغة `Y/m/d`، والتاريخ المكتوب نصاً يُطبع كما تمرره.
 - تتبع الأرقام `->numerals()`، وتُهرَّب كل قيمة (escaping)، والقيمة التي تحتوي `${...}` تبقى نصاً عادياً.
@@ -145,7 +145,6 @@ class QuotationWordController extends Controller
     public function show(Quotation $quotation)
     {
         $quotation->load('customer', 'items', 'salesperson');
-        $signature = storage_path("app/signatures/{$quotation->salesperson_id}.png");
 
         return Doc::template('price-offer', [
             'date' => $quotation->issued_at,
@@ -167,7 +166,7 @@ class QuotationWordController extends Controller
                 'name' => $quotation->salesperson->name,
                 'title' => $quotation->salesperson->job_title,
             ],
-            'signature' => is_file($signature) ? $signature : null,
+            'signature' => storage_path("app/signatures/{$quotation->salesperson_id}.png"),
         ])
             ->locale('ar')
             ->word()
@@ -181,7 +180,7 @@ class QuotationWordController extends Controller
 - `date` في المستوى الأعلى لأن `${doc.hijri_date}` يُحسب منه. و`issued_at` و`valid_until` محوّلان إلى تواريخ في النموذج، فيُطبعان هكذا `2026/10/08`.
 - يأتي `${theme.company.*}` و`${theme.logo}` في الترويسة من الهوية في `config/easy-pdf-word.php`، ومرّر `->theme([...])` لتغييرهما لمستند واحد.
 - التوقيع مسار ملف. تُقرأ الصور افتراضياً من `public/` و`storage/app` و`resources/` فقط، وبشرط أن تكون صوراً فعلية. تدخل PNG وJPEG وGIF كما هي، وتتحول WebP وBMP إلى PNG، أما SVG فتترك المتغير فارغاً.
-- مرّر `null` عندما لا يوجد توقيع، كما يفعل فحص `is_file()`: فالقيمة `null` تترك المتغير فارغاً، أما المسار الذي لا تستطيع الحزمة قراءته (ملف غير موجود، أو خارج المجلدات المسموح بها) فيُطبع في المستند نصاً.
+- إن لم يكن لمندوب المبيعات ملف توقيع بعد، يُترك المتغير فارغاً: فالمسار الذي لا تستطيع الحزمة قراءته (ملف غير موجود، أو خارج المجلدات المسموح بها) لا يُطبع نصاً أبداً.
 - تتطلب ملفات Word الحزمة `phpoffice/phpword`.
 
 ## راجع التصميم قبل اعتماده {#check}

@@ -164,7 +164,7 @@ if ($pdf->engine() !== 'browsershot') {
 What to know:
 
 - Errors in the document itself, such as a Blade error or data that fails validation, are thrown as they are. Only engine failures are retried.
-- An engine name that does not exist, such as a typo like `chromum`, counts as an engine failure: the fallback makes the file and the log says `Driver [chromum] not supported.`
+- An engine name that does not exist, such as a typo like `chromuim`, is not retried: it throws `InvalidArgumentException` with `Unknown PDF engine [chromuim]. Use mpdf, chromium, gotenberg or a name added with Doc::extend().`
 - When the fallback engine is the same as the chosen one, or is not installed either, you get the original error, not a message about the fallback.
 - Turn the fallback off with `DOC_PDF_FALLBACK=null`, so that an engine problem throws instead of producing a PDF from another engine.
 - A fallback render happens in the same request or job, so it adds its time to the first attempt. Keep that in mind for [queue worker timeouts](/guide/output#queue-timeouts).
@@ -258,7 +258,7 @@ Doc::template('invoice', $data)->driver('pdf-service')->pdf();
 
 or `DOC_PDF_DRIVER=pdf-service` for the whole app. What your engine gets and must do:
 
-- `$html` is the full document. When `usesCssFonts()` returns `true`, the package embeds the document font as an `@font-face` rule, so a browser-based engine needs no fonts installed.
+- `$html` is the full document. When `usesCssFonts()` returns `true`, the package embeds the document font, and every registered font the page's CSS names, as `@font-face` rules, so a browser-based engine needs no fonts installed. It also downloads allowed remote images and puts them in the page as data URIs, so your engine never fetches a URL.
 - `$options` carries `paperSize()` in millimetres with the orientation applied, `margins` (top, right, bottom, left in mm), `direction`, `locale`, `font`, `numerals`, `title`, `author`, `header` and `footer`. The header and footer still contain `{page}` and `{pages}`; replace them with your engine's page number syntax.
 - `$options->watermark` is set when the document has a watermark. `Watermark::inject($html, $options)` adds it to the HTML as a fixed element, as the Chromium engines do.
 - Passwords are handled for you: after your engine returns, the package encrypts the PDF with mPDF.

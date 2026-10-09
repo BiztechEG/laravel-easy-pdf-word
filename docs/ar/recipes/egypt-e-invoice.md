@@ -72,6 +72,7 @@ class EtaInvoicePrint
                 'issued_at' => $eta['dateTimeIssued'],          // UTC, printed in the app's time zone
                 'uuid' => $invoice->eta_uuid,
                 'long_id' => $invoice->eta_long_id,
+                'submission_uuid' => $invoice->eta_submission_uuid,
                 'purchase_order' => $eta['purchaseOrderReference'] ?? null,
                 'currency' => 'EGP',
             ],
@@ -174,7 +175,7 @@ class EtaInvoiceController extends Controller
 }
 ```
 
-لا يطبع الـ controller إلا المستندات التي قبلتها المصلحة: فقبل ذلك لا يوجد رقم إلكتروني ولا رابط على البوابة. وعند وجود الرقم الإلكتروني والمعرّف الطويل يبني القالب رمز QR بالرابط `https://invoicing.eta.gov.eg/documents/{uuid}/share/{longId}`، ويطبع الرقم الإلكتروني أعلى الصفحة. يُفتح ملف PDF في المتصفح، وتعرض [صفحة القالب](/ar/templates/eg-invoice) شكل الفاتورة الكاملة.
+لا يطبع الـ controller إلا المستندات التي قبلتها المصلحة: فقبل ذلك لا يوجد رقم إلكتروني ولا رابط على البوابة. وعند وجود الرقم الإلكتروني والمعرّف الطويل يبني القالب رمز QR بالرابط `https://invoicing.eta.gov.eg/documents/{uuid}/share/{longId}`، ويطبع الرقم الإلكتروني ورقم الإرسال أعلى الصفحة. يُفتح ملف PDF في المتصفح، وتعرض [صفحة القالب](/ar/templates/eg-invoice) شكل الفاتورة الكاملة.
 
 ::: details مستند المصلحة كما يقرؤه التحويل
 لا تظهر هنا إلا المفاتيح التي يستخدمها التحويل. والمستند الكامل فيه أيضاً `documentTypeVersion` وإجماليات الأسطر والمستند والتوقيعات.

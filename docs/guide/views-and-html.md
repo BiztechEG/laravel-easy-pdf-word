@@ -156,7 +156,7 @@ The layout component sets the document font, Cairo by default, on the whole page
 Doc::view('pdf.contract', ['contract' => $contract])->locale('ar')->font('naskh')->pdf();
 ```
 
-With mPDF you can also give one element another bundled or registered font in CSS, such as `font-family: 'naskh';`. Chromium and Gotenberg receive only the document's font, so with them an element in another font falls back to a font installed on the server; set the font with `->font()` instead. See [Fonts](/guide/fonts) to register your own.
+You can also give one element another bundled or registered font in CSS, such as `font-family: 'naskh';`, with every engine: for Chromium and Gotenberg the package embeds each registered font the page's CSS names. See [Fonts](/guide/fonts) to register your own.
 
 ## Never pass user input as HTML {#trust}
 

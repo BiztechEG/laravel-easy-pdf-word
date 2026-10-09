@@ -56,10 +56,10 @@ A folder is found by `Doc::template()` as soon as it has `template.php`, `pdf.bl
 
 | Key | Default | What it does |
 | --- | --- | --- |
-| `title` | The folder name | The name shown by `doc:templates` and the preview page. Also the document title stored in the PDF and the Word file, unless `->title()` is called. |
+| `title` | The folder name | The name shown by `doc:templates` and the preview page. Also the title stored in the Word file, and in the PDF when the page has no `<title>` of its own, unless `->title()` is called. |
 | `description` | `''` | A line shown on the preview page. |
 | `locales` | `['ar', 'en']` | The languages `doc:templates` lists and the preview page offers, the first being the preview's default. It does not limit `->locale()`. |
-| `paper` | `pdf.paper` in the config (`A4`) | A paper name such as `A4`, `A5` or `Letter`, or `[width, height]` in millimetres. `->paper()` wins. |
+| `paper` | `pdf.paper` in the config (`A4`) | A paper name such as `A4`, `A5`, `Letter` or `A4-L` (A4 landscape), or `[width, height]` in millimetres. `->paper()` wins. |
 | `orientation` | `pdf.orientation` in the config (`portrait`) | `portrait` or `landscape`. `->landscape()` and `->portrait()` win. |
 | `margins` | `pdf.margins` in the config (15 mm) | Millimetres: `[top, right, bottom, left]`. Shorter lists work like `->margins()`: `[15]` for all sides, `[15, 12]` for top and bottom, then right and left. `->margins()` wins. |
 | `fields` | `[]` | Laravel validation rules for the data, keyed by dotted paths: `'items.*.quantity' => ['required', 'numeric']`. |

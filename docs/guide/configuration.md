@@ -25,7 +25,7 @@ The package merges its own file under yours one level deep: a whole section you 
 | `DOC_GOTENBERG_URL` | `http://localhost:3000` | Address of the Gotenberg server. |
 | `DOC_REMOTE_IMAGES` | `false` | Image URLs: `false` ignores them, `true` allows any, or a comma-separated list of hosts (`cdn.biztech.example,*.amazonaws.com`). |
 | `DOC_WORD_FONT` | `Arial` | The font of Word files. |
-| `DOC_PREVIEW` | not set | The preview page: not set (or `null`) means on in `local` only; `true` or `false` turns it on or off everywhere. An empty value (`DOC_PREVIEW=`) counts as `false`. |
+| `DOC_PREVIEW` | not set | The preview page: not set, `null` or empty (`DOC_PREVIEW=`) means on in `local` only; `true` or `false` turns it on or off everywhere. |
 | `APP_NAME` | | Laravel's own variable, used as the default company name in the theme. |
 
 ```dotenv
@@ -70,7 +70,7 @@ See [Arabic support](/guide/arabic).
 | --- | --- | --- |
 | `pdf.driver` | `'mpdf'` | The default engine. |
 | `pdf.fallback` | `'mpdf'` | The engine used when the chosen one fails; `null` turns it off. See [Fallback](/guide/engines#fallback). |
-| `pdf.paper` | `'A4'` | Paper name (`A2` to `A6`, `B4`, `B5`, `Letter`, `Legal`, `Tabloid`, `Executive`) or `[width, height]` in mm. |
+| `pdf.paper` | `'A4'` | Paper name (`A2` to `A6`, `B4`, `B5`, `Letter`, `Legal`, `Tabloid`, `Executive`), with `-L` for landscape (`A4-L`), or `[width, height]` in mm. |
 | `pdf.orientation` | `'portrait'` | `'portrait'` or `'landscape'`. |
 | `pdf.margins` | `[15, 15, 15, 15]` | Millimetres: top, right, bottom, left. Shorter forms work as in CSS: `[15]`, `[20, 15]`, `[25, 15, 20]`. |
 
@@ -88,7 +88,7 @@ A template's `template.php` and calls on the document come before these; see [Pa
 
 | Key | Default | Meaning |
 | --- | --- | --- |
-| `temp_dir` | `null` | Folder for mPDF's font cache and work files. `null` uses a private folder per system user in the system temp folder (`/tmp/easy-pdf-word-{uid}`). Set a folder that the web server and workers can write to if `/tmp` is not usable. |
+| `temp_dir` | `null` | Folder for mPDF's font cache and work files, kept in a `fonts-<hash>` subfolder per version of the registered font files. `null` uses a private folder per system user in the system temp folder (`/tmp/easy-pdf-word-{uid}`). Set a folder that the web server and workers can write to if `/tmp` is not usable. |
 | `use_kashida` | `75` | How much of the stretching in justified Arabic text uses kashida (ـ) instead of wider spaces, 0 to 100. |
 | `auto_lang_to_font` | `false` | Pick a font per script, for documents that mix Arabic with scripts the document font lacks (Chinese, Hindi ...). Ignores `font-family` in your CSS. |
 

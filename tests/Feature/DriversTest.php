@@ -133,6 +133,109 @@ class DriversTest extends TestCase
         Doc::html('<p>x</p>')->paper('B6');
     }
 
+    public function test_paper_sizes_in_mm_and_with_a_suffix_work_everywhere(): void
+    {
+        $this->assertSame([100.0, 150.0], Doc::html('<p>x</p>')->paper([100, 150])->options()->paperSize());
+
+        config(['easy-pdf-word.pdf.paper' => 'A5-L']);
+        $this->assertSame([210, 148], Doc::html('<p>x</p>')->options()->paperSize());
+
+        $dir = sys_get_temp_dir().'/easy-pdf-word-tests/templates/label';
+        @mkdir($dir, 0775, true);
+        file_put_contents($dir.'/template.php', "<?php return ['title' => 'Label', 'paper' => [80, 200], 'fields' => []];");
+        file_put_contents($dir.'/pdf.blade.php', '<p>label</p>');
+
+        try {
+            $document = Doc::template('label', []);
+
+            $this->assertSame([80.0, 200.0], $document->options()->paperSize());
+            $this->assertSame([200.0, 80.0], $document->landscape()->options()->paperSize());
+            $this->assertStringStartsWith('%PDF', $document->pdf()->content());
+        } finally {
+            (new \Illuminate\Filesystem\Filesystem)->deleteDirectory($dir);
+        }
+    }
+
+    public function test_mpdf_keeps_the_right_and_left_margins_in_arabic_documents(): void
+    {
+        if (! is_executable('/usr/bin/pdftotext')) {
+            $this->markTestSkipped('pdftotext is not installed.');
+        }
+
+        foreach (['ar' => 'كلمة عربية ', 'en' => 'word text '] as $locale => $words) {
+            $file = tempnam(sys_get_temp_dir(), 'pdf');
+            file_put_contents($file, Doc::html('<p>'.str_repeat($words, 80).'</p>')->locale($locale)->margins(10, 10, 10, 50)->pdf()->content());
+            preg_match_all('/xMin="([\d.]+)" yMin="[\d.]+" xMax="([\d.]+)"/', (string) shell_exec('/usr/bin/pdftotext -bbox '.escapeshellarg($file).' -'), $x);
+            @unlink($file);
+
+            // Lines start at the margin of their side: 10 mm from the right of
+            // an A4 page (566.9 pt) in Arabic, 50 mm from the left (141.7 pt) in English.
+            $locale === 'ar'
+                ? $this->assertEqualsWithDelta(566.9, max(array_map('floatval', $x[2])), 2)
+                : $this->assertEqualsWithDelta(141.7, min(array_map('floatval', $x[1])), 2);
+        }
+    }
+
+    public function test_a_misspelt_engine_name_is_an_error_not_a_fallback(): void
+    {
+        Log::shouldReceive('warning')->never();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unknown PDF engine [chromuim]');
+
+        Doc::html('<p>x</p>')->driver('chromuim')->pdf()->content();
+    }
+
+    public function test_mpdf_reads_a_font_again_when_its_file_changes(): void
+    {
+        $font = sys_get_temp_dir().'/easy-pdf-word-tests/MyFont.ttf';
+        @mkdir(dirname($font), 0775, true);
+        copy(dirname(__DIR__, 2).'/resources/fonts/Cairo-Regular.ttf', $font);
+
+        $fonts = new \BiztechEG\EasyPdfWord\Fonts\FontRegistry(['my-font' => ['regular' => $font]]);
+        $before = $fonts->signature();
+        touch($font, time() + 60);
+        clearstatcache();
+
+        $this->assertNotSame($before, $fonts->signature());
+        @unlink($font);
+    }
+
+    public function test_the_word_allah_can_be_copied_from_a_cairo_pdf(): void
+    {
+        if (! is_executable('/usr/bin/pdftotext')) {
+            $this->markTestSkipped('pdftotext is not installed.');
+        }
+
+        $file = tempnam(sys_get_temp_dir(), 'pdf');
+        file_put_contents($file, Doc::html('<p>عبد الله</p>')->locale('ar')->pdf()->content());
+        $text = (string) shell_exec('/usr/bin/pdftotext '.escapeshellarg($file).' -');
+        @unlink($file);
+
+        // The ligature is copied as ﷲ, which search and Normalizer read as الله.
+        $this->assertStringContainsString('الله', \Normalizer::normalize($text, \Normalizer::FORM_KC));
+    }
+
+    public function test_chromium_gets_the_fonts_named_in_the_css(): void
+    {
+        $driver = new FakeDriver(cssFonts: true);
+        Doc::extend('css', fn () => $driver);
+
+        Doc::html('<p style="font-family: \'naskh\', serif">نص</p>')->locale('ar')->driver('css')->pdf()->content();
+
+        $this->assertStringContainsString("@font-face{font-family:'cairo'", $driver->html);
+        $this->assertStringContainsString("@font-face{font-family:'naskh'", $driver->html);
+        $this->assertStringNotContainsString("@font-face{font-family:'tajawal'", $driver->html);
+    }
+
+    public function test_a_paper_size_in_mm_needs_two_positive_numbers(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('[width, height] in mm');
+
+        Doc::html('<p>x</p>')->paper([100]);
+    }
+
     public function test_template_errors_are_not_hidden_by_the_fallback(): void
     {
         Doc::extend('fake', fn () => new FakeDriver);

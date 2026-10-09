@@ -219,7 +219,7 @@ class InvoiceDocumentsTest extends TestCase
 After `Doc::fake()`, every `->pdf()` and `->word()` call is recorded as a `GeneratedDocument` instead of rendered. The response still works: it carries a few placeholder bytes, with the real headers and file name. `data()` reads the data the template received, with dot notation, after the template has filled its defaults and computed its totals.
 
 ::: warning assertDownload() and Arabic file names
-Laravel's `assertDownload('فاتورة-INV-1024.pdf')` fails even when the name is right: it compares the plain `filename=` part of the header, which holds an ASCII fallback (`____________-INV-1024.pdf`); browsers use the UTF-8 `filename*=` part. Call `assertDownload()` without a name to check that the response is a download, and check the name with `Doc::assertDownloaded()`.
+Laravel's `assertDownload('فاتورة-INV-1024.pdf')` fails even when the name is right: it compares the plain `filename=` part of the header, which holds an ASCII fallback in Latin letters (`fator-INV-1024.pdf`); browsers use the UTF-8 `filename*=` part. Call `assertDownload()` without a name to check that the response is a download, and check the name with `Doc::assertDownloaded()`.
 :::
 
 ### 2. Invalid data
@@ -446,7 +446,7 @@ sudo apt-get install -y poppler-utils
 ```
 
 ::: tip What pdftotext cannot give back
-The word الله is drawn as one ligature, and `pdftotext` drops it: "فهد بن عبدالله السبيعي" comes out as "فهد بن عبد السبيعي". A watermark is drawn at an angle and comes out in pieces. Search for other words in such cases.
+A watermark is drawn at an angle and comes out of `pdftotext` in pieces, so search for other words on a page with one. The word الله comes out as one character (ﷲ), which `Normalizer::FORM_KC` turns back into its letters, so "فهد بن عبدالله السبيعي" is found as written.
 :::
 
 ## Variations {#variations}

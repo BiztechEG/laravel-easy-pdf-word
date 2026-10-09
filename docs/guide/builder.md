@@ -181,7 +181,7 @@ The second argument styles the whole paragraph: `->paragraph('نص', ['align' =>
 | `border` | Cells | A colour; draws a box around the cell |
 | `colspan` | Cells | The number of columns the cell spans |
 
-Use hex colours: Word reads only hex, while the PDF also takes `rgb()` and colour names. Invalid colours are ignored.
+Colours can be hex (`#0F766E`, or `#0F766E80` with the alpha dropped in Word), `rgb()` or `hsl()`, in the PDF and the Word file alike. Colour names such as `teal` work in the PDF only; Word leaves them out. Invalid colours are ignored.
 
 You rarely need `ltr` for numbers: a negative number such as `-2.5` keeps its minus sign in front in Arabic text by itself, and ranges like `2020 - 2021` stay as written. Use it for values mixing letters, digits and symbols, such as `INV-2026-1024` or `+20 100 000 0000`.
 

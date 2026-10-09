@@ -79,7 +79,7 @@ The data is validated before anything is drawn. Fields with a default can be lef
 | `details` | No | text | | An extra line under the course details. |
 | `from` | No | date | | The first day of the course. |
 | `to` | No | date, on or after `from` | | The last day of the course. |
-| `hours` | No | number, 0 or more | | Training hours, with the right Arabic word form. |
+| `hours` | No | number greater than 0 | | Training hours, with the right Arabic word form. Leave it out when there are none. |
 | `grade` | No | text | | The grade: بتقدير امتياز / with the grade Excellent. |
 | `issuer` | No | text | the theme's `company.name` | Who gives the certificate, at the top centre. |
 | `signatures` | No | list, at most 3 | empty | The signatures, side by side. |

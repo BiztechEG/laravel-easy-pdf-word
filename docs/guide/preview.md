@@ -62,7 +62,7 @@ public function boot(): void
 }
 ```
 
-Without the gate, or for anyone it refuses (including guests), the page answers 403. `DOC_PREVIEW=false` turns the page off in `local` too, and so does an empty `DOC_PREVIEW=`; remove the line to get the default back.
+Without the gate, or for anyone it refuses (including guests), the page answers 403. `DOC_PREVIEW=false` turns the page off in `local` too. An empty `DOC_PREVIEW=` is the same as no line: on in `local` only.
 
 The page only renders the templates' sample data, never your app's data. Rendering still costs CPU, so keep it behind the gate.
 
@@ -80,7 +80,7 @@ The page's address and middleware are set in `config/easy-pdf-word.php`:
 
 | Key | Default | Meaning |
 | --- | --- | --- |
-| `enabled` | `env('DOC_PREVIEW')` | `null`: on in `local` only. `true` or `false`: on or off everywhere. |
+| `enabled` | `env('DOC_PREVIEW')` | `null` or empty: on in `local` only. `true` or `false`: on or off everywhere. |
 | `path` | `'doc-preview'` | The URL of the page. |
 | `middleware` | `['web']` | Middleware for the page's routes. Add `auth` to send guests to your login page instead of a 403. |
 

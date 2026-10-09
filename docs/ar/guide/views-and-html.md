@@ -156,7 +156,7 @@ Doc::view('pdf.contract', ['contract' => $contract])
 Doc::view('pdf.contract', ['contract' => $contract])->locale('ar')->font('naskh')->pdf();
 ```
 
-ومع mPDF يمكنك أيضاً إعطاء عنصر واحد خطاً آخر من الخطوط المرفقة أو المسجّلة عبر CSS، مثل `font-family: 'naskh';`. أما Chromium وGotenberg فلا يتلقيان إلا خط المستند، فالعنصر الذي تعطيه خطاً آخر يعود معهما إلى خط مثبّت على الخادم، فاضبط الخط بـ `->font()` بدلاً من ذلك. راجع [الخطوط](/ar/guide/fonts) لتسجيل خطوطك.
+ويمكنك أيضاً إعطاء عنصر واحد خطاً آخر من الخطوط المرفقة أو المسجّلة عبر CSS، مثل `font-family: 'naskh';`، مع كل المحركات: فمع Chromium وGotenberg تضمّن الحزمة كل خط مسجل تذكره أنماط CSS في الصفحة. راجع [الخطوط](/ar/guide/fonts) لتسجيل خطوطك.
 
 ## لا تمرر مدخلات المستخدم في صورة HTML {#trust}
 

@@ -72,6 +72,7 @@ class EtaInvoicePrint
                 'issued_at' => $eta['dateTimeIssued'],          // UTC, printed in the app's time zone
                 'uuid' => $invoice->eta_uuid,
                 'long_id' => $invoice->eta_long_id,
+                'submission_uuid' => $invoice->eta_submission_uuid,
                 'purchase_order' => $eta['purchaseOrderReference'] ?? null,
                 'currency' => 'EGP',
             ],
@@ -174,7 +175,7 @@ class EtaInvoiceController extends Controller
 }
 ```
 
-The controller prints only documents ETA has accepted: before that there is no UUID and no portal link. With the UUID and long ID set, the template builds the QR as `https://invoicing.eta.gov.eg/documents/{uuid}/share/{longId}`, and prints the UUID near the top of the page. The PDF opens in the browser; the [template page](/templates/eg-invoice) shows what a full invoice looks like.
+The controller prints only documents ETA has accepted: before that there is no UUID and no portal link. With the UUID and long ID set, the template builds the QR as `https://invoicing.eta.gov.eg/documents/{uuid}/share/{longId}`, and prints the UUID and the submission ID near the top of the page. The PDF opens in the browser; the [template page](/templates/eg-invoice) shows what a full invoice looks like.
 
 ::: details An ETA document, as the mapping reads it
 Only the keys the mapping uses are shown. The full document also has `documentTypeVersion`, the line and document totals, and the signatures.

@@ -20,7 +20,7 @@ Images are the main way a document could reach outside itself, so they follow st
 - Local files are read only from the folders in `images.paths` (`public`, `storage/app` and `resources` by default), and only when they are real images. A path like `../../.env` in user data embeds nothing.
 - Other schemes (`file://`, `phar://`, `php://`, `ftp://`) and network shares are never read.
 - Image URLs are ignored unless you allow their hosts with `DOC_REMOTE_IMAGES`, so user data cannot make your server request internal addresses such as `http://169.254.169.254/`.
-- mPDF and Word files fetch allowed URLs without following redirects and give up after 10 seconds. Chromium and Gotenberg load images as a browser does and follow redirects, so allow only hosts whose redirects you trust.
+- Allowed URLs are fetched without following redirects and with a 10-second limit, for every engine and for Word files. For Chromium and Gotenberg the package fetches the image itself and inlines it, so the browser never requests a URL.
 - SVG images that refer to files, URLs, scripts or entities are left out.
 
 ### Colours, locales and fonts {#colours-locales-fonts}

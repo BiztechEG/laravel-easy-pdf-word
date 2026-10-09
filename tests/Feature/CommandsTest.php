@@ -46,6 +46,13 @@ class CommandsTest extends TestCase
         $this->assertStringContainsString('فاتورة ضريبية', $html);
     }
 
+    public function test_copying_an_unknown_template_explains_what_to_do(): void
+    {
+        $this->artisan('doc:template', ['name' => 'invoce'])
+            ->expectsOutputToContain('Template [invoce] was not found')
+            ->assertFailed();
+    }
+
     public function test_a_project_copy_overrides_the_original(): void
     {
         $this->artisan('doc:template', ['name' => 'letter'])->assertSuccessful();

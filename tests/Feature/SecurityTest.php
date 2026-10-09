@@ -204,6 +204,20 @@ class SecurityTest extends TestCase
         $this->assertCount(0, $word('/moved'));
     }
 
+    public function test_browser_engines_get_allowed_remote_images_without_redirects(): void
+    {
+        $host = $this->imageHost();
+        $chrome = new DocContext('en', 'ltr', 'cairo', [], 'latin', 'chromium', fontCss: '@font-face{}', remoteImages: ['127.0.0.1']);
+
+        // Chrome would follow the redirect itself, so the image is fetched here.
+        $this->assertStringStartsWith('data:image/png;base64,', (string) $chrome->image("http://{$host}/logo.png"));
+        $this->assertNull($chrome->image("http://{$host}/moved"));
+        $this->assertNull($chrome->image("http://{$host}/missing.png"));
+
+        // mPDF fetches the URL itself, also without redirects.
+        $this->assertSame("http://{$host}/moved", $this->context(remoteImages: ['127.0.0.1'])->image("http://{$host}/moved"));
+    }
+
     private function context(?array $imagePaths = [], bool|array $remoteImages = false): DocContext
     {
         return new DocContext('en', 'ltr', 'cairo', [], 'latin', '', imagePaths: $imagePaths, remoteImages: $remoteImages);

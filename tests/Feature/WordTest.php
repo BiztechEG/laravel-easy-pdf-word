@@ -142,6 +142,28 @@ class WordTest extends TestCase
         $this->assertSame(1, substr_count($xml, '<w:color '));
     }
 
+    public function test_rgb_hsl_and_transparent_colours_reach_word(): void
+    {
+        $xml = $this->documentXml(Doc::make()
+            ->paragraph('rgb', ['color' => 'rgb(29, 78, 216)'])
+            ->paragraph('hsl', ['color' => 'hsl(0, 100%, 50%)'])
+            ->paragraph('alpha', ['color' => '#0F766E80'])
+            ->word()
+            ->content());
+
+        $this->assertStringContainsString('<w:color w:val="1D4ED8"/>', $xml);
+        $this->assertStringContainsString('<w:color w:val="FF0000"/>', $xml);
+        $this->assertStringContainsString('<w:color w:val="0F766E"/>', $xml);
+    }
+
+    public function test_the_receipt_box_follows_the_theme_colour(): void
+    {
+        $receipt = Doc::template('receipt', Doc::templates()->get('receipt')->sample())->theme(['primary' => '#1D4ED8']);
+
+        $this->assertStringContainsString('#EFF3FC', $receipt->toHtml());
+        $this->assertStringContainsString('EFF3FC', $this->documentXml($receipt->word()->content()));
+    }
+
     public function test_page_settings_and_footer_page_numbers(): void
     {
         $content = Doc::make()
@@ -283,6 +305,39 @@ class WordTest extends TestCase
         $this->assertStringNotContainsString('data:image', $xml);
     }
 
+    public function test_docx_image_paths_that_cannot_be_read_are_not_printed(): void
+    {
+        $this->makeDocxTemplate('quote');
+
+        $xml = $this->documentXml(Doc::template('quote', [
+            'customer' => ['name' => '/etc/secret/logo.png'],
+            'items' => [['description' => 'x', 'price' => 1.5]],
+        ])->locale('ar')->word()->content());
+
+        $this->assertStringNotContainsString('logo.png', $xml);
+    }
+
+    public function test_docx_values_without_arabic_letters_keep_their_order(): void
+    {
+        $this->makeDocxTemplate('quote');
+
+        $word = Doc::template('quote', [
+            'customer' => ['name' => '+20 100 000 0000'],
+            'quote' => ['currency' => 'KWD'],
+            'items' => [['description' => 'تطوير (Laravel)', 'price' => 10.125], ['description' => 'INV-2026/10', 'price' => 3.5]],
+        ]);
+
+        $xml = $this->documentXml($word->locale('ar')->word()->content());
+
+        $this->assertStringContainsString("\u{202D}+20 100 000 0000\u{202C}", $xml);
+        $this->assertStringContainsString("\u{202D}INV-2026/10\u{202C}", $xml);
+        $this->assertStringContainsString("\u{202D}10.125\u{202C}", $xml);
+        $this->assertStringContainsString('>تطوير (Laravel)<', $xml);
+        $this->assertStringContainsString('<w:t xml:space="preserve">1</w:t>', $xml);
+
+        $this->assertStringNotContainsString("\u{202D}", $this->documentXml($word->locale('en')->word()->content()));
+    }
+
     public function test_a_failed_docx_fill_leaves_no_temp_files(): void
     {
         $this->makeDocxTemplate('quote');
@@ -372,6 +427,13 @@ class WordTest extends TestCase
         $this->expectException(WordNotSupported::class);
 
         Doc::template('pdf-only')->word();
+    }
+
+    public function test_word_checks_template_data_at_once_like_pdf(): void
+    {
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+
+        Doc::template('receipt', ['type' => 'refund'])->word();
     }
 
     public function test_views_and_html_cannot_make_word_files(): void

@@ -46,7 +46,7 @@
         "spatie/browsershot": "Chromium PDF engine via Puppeteer, highest rendering quality.",
         "phpoffice/phpword": "Word (.docx) output: Arabic right-to-left documents and Word-designed templates.",
         "ext-intl": "Required for Hijri dates and locale-aware number formatting.",
-        "ext-zip": "Required for Doc::zip()."
+        "ext-zip": "Required for Word files and Doc::zip()."
     },
     "conflict": {
         "mpdf/mpdf": "<8.2",

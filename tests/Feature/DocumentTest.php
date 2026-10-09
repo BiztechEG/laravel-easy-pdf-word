@@ -40,6 +40,31 @@ class DocumentTest extends TestCase
         $this->assertStringContainsString('١,٢٥٠.٥٠', $html('tajawal'));
     }
 
+    public function test_label_placeholders_that_share_a_prefix_are_replaced_whole(): void
+    {
+        $doc = new \BiztechEG\EasyPdfWord\Support\DocContext('ar', 'rtl', 'cairo', [], 'latin', '', translations: ['page' => 'صفحة :page من :pages']);
+
+        $this->assertSame('صفحة 3 من 5', $doc->t('page', ['page' => 3, 'pages' => 5]));
+        $this->assertSame('صفحة 3 من 5', $doc->t('page', ['pages' => 5, 'page' => 3]));
+    }
+
+    public function test_the_pdf_title_comes_from_title_or_the_template(): void
+    {
+        $this->assertStringContainsString('<title>Credit note</title>', Doc::template('credit-note', Doc::templates()->get('credit-note')->sample())->toHtml());
+        $this->assertStringContainsString('<title>عقد &amp; ملحق</title>', Doc::template('contract', Doc::templates()->get('contract')->sample())->title('عقد & ملحق')->toHtml());
+        $this->assertStringContainsString('<title>Mine $1</title>', Doc::html('<html><head><title>Old</title></head><body>x</body></html>')->title('Mine $1')->toHtml());
+        $this->assertStringContainsString('<title>Old</title>', Doc::html('<html><head><title>Old</title></head><body>x</body></html>')->toHtml());
+
+        if (is_executable('/usr/bin/pdfinfo')) {
+            $file = tempnam(sys_get_temp_dir(), 'pdf');
+            file_put_contents($file, Doc::template('receipt', Doc::templates()->get('receipt')->sample())->title('سند قبض 315')->pdf()->content());
+            $info = (string) shell_exec('/usr/bin/pdfinfo '.escapeshellarg($file));
+            @unlink($file);
+
+            $this->assertMatchesRegularExpression('/Title:\s+سند قبض 315/u', $info);
+        }
+    }
+
     public function test_formatted_numbers_are_read_whole(): void
     {
         $doc = new \BiztechEG\EasyPdfWord\Support\DocContext('en', 'ltr', 'cairo', [], 'latin', '');
@@ -85,6 +110,9 @@ class DocumentTest extends TestCase
         $this->assertSame('application/pdf', $download->headers->get('Content-Type'));
         $this->assertStringContainsString('attachment', $download->headers->get('Content-Disposition'));
         $this->assertStringContainsString("filename*=utf-8''", $download->headers->get('Content-Disposition'));
+        $this->assertStringContainsString('filename=fator-1024.pdf', $download->headers->get('Content-Disposition'));
+        $this->assertStringContainsString('filename=2026.pdf', $pdf->download('٢٠٢٦.pdf')->headers->get('Content-Disposition'));
+        $this->assertStringContainsString('filename=document.pdf', $pdf->download('📄.pdf')->headers->get('Content-Disposition'));
 
         $this->assertStringContainsString('inline', $pdf->stream('invoice')->headers->get('Content-Disposition'));
     }

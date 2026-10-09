@@ -60,7 +60,8 @@ class PendingDocument
 
     private ?string $font = null;
 
-    private ?string $paper = null;
+    /** @var string|array{0: float, 1: float}|null */
+    private string|array|null $paper = null;
 
     private ?string $orientation = null;
 
@@ -203,24 +204,49 @@ class PendingDocument
         return $this;
     }
 
-    public function paper(string $paper, ?string $orientation = null): static
+    /**
+     * @param  string|array{0: float, 1: float}  $paper  "A4", "A4-L" (landscape) or [width, height] in mm
+     */
+    public function paper(string|array $paper, ?string $orientation = null): static
     {
+        [$this->paper, $suffix] = self::splitPaper($paper);
+
+        if ($orientation ??= $suffix) {
+            $this->orientation = $orientation;
+        }
+
+        return $this;
+    }
+
+    /**
+     * A paper name or size checked, and the orientation an "-L" or "-P" suffix asks for.
+     *
+     * @return array{0: string|array{0: float, 1: float}, 1: ?string}
+     */
+    private static function splitPaper(string|array $paper): array
+    {
+        if (is_array($paper)) {
+            $size = array_values($paper);
+
+            if (count($size) !== 2 || ! is_numeric($size[0]) || ! is_numeric($size[1]) || $size[0] <= 0 || $size[1] <= 0) {
+                throw new InvalidArgumentException('A paper size must be [width, height] in mm, for example [100, 150].');
+            }
+
+            return [[(float) $size[0], (float) $size[1]], null];
+        }
+
+        $orientation = null;
+
         // "A4-L" as mPDF writes it: A4, landscape.
         if (preg_match('/^(.+)-([LP])$/i', $paper, $match)) {
-            [$paper, $orientation] = [$match[1], $orientation ?? (strtoupper($match[2]) === 'L' ? 'landscape' : 'portrait')];
+            [$paper, $orientation] = [$match[1], strtoupper($match[2]) === 'L' ? 'landscape' : 'portrait'];
         }
 
         if (! isset(PdfOptions::PAPER_SIZES[strtoupper($paper)])) {
             throw PdfOptions::unknownPaper($paper);
         }
 
-        $this->paper = $paper;
-
-        if ($orientation) {
-            $this->orientation = $orientation;
-        }
-
-        return $this;
+        return [$paper, $orientation];
     }
 
     public function landscape(): static
@@ -361,6 +387,8 @@ class PendingDocument
 
         $document = clone $this;
         $filename ??= ($this->template?->name ?? 'document').'.docx';
+        // Invalid data is reported here, as ->pdf() does, not when the file is first read.
+        $document->templateData();
 
         if ($document->fake !== null) {
             $generated = $document->generated('word', $document->options());
@@ -470,8 +498,14 @@ class PendingDocument
             default => $this->wrapHtml((string) $this->html, $data),
         };
 
+        $html = $this->withTitle($html, $options->title);
+
         if ($context->usesCssFonts() && ! str_contains($html, '@font-face')) {
             $html = preg_replace('/<\/head>/i', '<style>'.$context->fontCss.'</style></head>', $html, 1) ?? $html;
+        }
+
+        if ($context->usesCssFonts()) {
+            $html = $this->withNamedFonts($html, $options->font);
         }
 
         return $context->numerals === Numerals::ARABIC
@@ -502,9 +536,12 @@ class PendingDocument
             return $this->views->file($view, ['doc' => $context] + $data)->render();
         };
 
+        // The template's paper wins over the config's, and its own orientation over a suffix like "-L".
+        [$templatePaper, $templateSuffix] = self::splitPaper($this->template?->paper() ?? $config['pdf']['paper'] ?? 'A4');
+
         return new PdfOptions(
-            paper: $this->paper ?? $this->template?->paper() ?? $config['pdf']['paper'] ?? 'A4',
-            orientation: $this->orientation ?? $this->template?->orientation() ?? $config['pdf']['orientation'] ?? 'portrait',
+            paper: $this->paper ?? $templatePaper,
+            orientation: $this->orientation ?? $this->template?->orientation() ?? $templateSuffix ?? $config['pdf']['orientation'] ?? 'portrait',
             margins: self::expandMargins($this->margins ?? $this->template?->margins() ?? $config['pdf']['margins'] ?? [15, 15, 15, 15]),
             direction: $direction,
             locale: $locale,
@@ -673,6 +710,44 @@ class PendingDocument
             is_array($value) => $this->toArrays($value),
             default => $value,
         }, $data);
+    }
+
+    /**
+     * The PDF's title, which every engine reads from <title>: ->title() replaces
+     * the page's own title, the template's title fills an empty one.
+     */
+    private function withTitle(string $html, ?string $title): string
+    {
+        if ($title === null || $title === '') {
+            return $html;
+        }
+
+        $tag = '<title>'.e($title).'</title>';
+
+        if (! preg_match('/<title\b[^>]*>(.*?)<\/title>/is', $html, $match)) {
+            return preg_replace('/<\/head>/i', $tag.'</head>', $html, 1) ?? $html;
+        }
+
+        return $this->title !== null || trim($match[1]) === ''
+            ? (preg_replace('/<title\b[^>]*>.*?<\/title>/is', addcslashes($tag, '\\$'), $html, 1) ?? $html)
+            : $html;
+    }
+
+    /**
+     * Chrome only knows the fonts it is given: a registered font named in the
+     * page's CSS (font-family: 'naskh') gets its @font-face, as mPDF would find it.
+     */
+    private function withNamedFonts(string $html, string $documentFont): string
+    {
+        $named = array_filter(array_keys($this->fonts->all()), fn (string $name) => $name !== strtolower($documentFont)
+            && ! str_contains($html, "@font-face{font-family:'{$name}'")
+            && preg_match('/font-family\s*:[^;}<>]*?\b'.preg_quote($name, '/').'\b/i', $html) === 1);
+
+        if ($named === []) {
+            return $html;
+        }
+
+        return preg_replace('/<\/head>/i', '<style>'.addcslashes($this->fonts->cssFontFaces($named), '\\$').'</style></head>', $html, 1) ?? $html;
     }
 
     private function wrapHtml(string $html, array $data): string
