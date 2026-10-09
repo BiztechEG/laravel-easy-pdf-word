@@ -12,6 +12,7 @@ class PreviewEmptySettingTest extends TestCase
 
         // DOC_PREVIEW= in .env: the same as leaving it out.
         $app['env'] = 'local';
+        $app['config']->set('app.key', 'base64:'.base64_encode(str_repeat('k', 32)));
         $app['config']->set('easy-pdf-word.preview.enabled', '');
     }
 
