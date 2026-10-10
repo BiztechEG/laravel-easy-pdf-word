@@ -19,9 +19,9 @@ This creates `resources/doc-templates/packing-list/` from a starter that already
 ```text
 resources/doc-templates/packing-list/
 ├── template.php        title, fields, defaults, sample data
-├── pdf.blade.php       the PDF layout, in Blade
+├── pdf.html.php        the PDF layout, in HTML and PHP
 ├── word.php            the Word layout, in code
-├── footer.blade.php    a page footer with page numbers
+├── footer.html.php     a page footer with page numbers
 └── lang/
     ├── ar.php          Arabic labels
     └── en.php          English labels
@@ -35,20 +35,22 @@ Doc::template('packing-list', ['title' => 'قائمة التعبئة'])->locale(
 
 The name may use letters, digits, dots, dashes and underscores. If it is the name of a bundled template, the command warns that your new template replaces the bundled one in your app.
 
+The page and the footer are plain PHP, like the bundled templates, so the template also works outside Laravel. To write them in Blade instead, add `--blade`: you get `pdf.blade.php` and `footer.blade.php`.
+
 ## The template folder {#folder}
 
 | File | Required | What it is |
 | --- | --- | --- |
 | `template.php` | Recommended | The title, the fields with their validation rules, defaults, computed values and sample data |
-| `pdf.blade.php` | One layout is needed | The PDF layout in Blade, with HTML and CSS |
+| `pdf.html.php` or `pdf.blade.php` | One layout is needed | The PDF layout in HTML and CSS, as [plain PHP or Blade](#pdf-html) |
 | `layout.php` | One layout is needed | One layout in code that makes both the PDF and the Word file |
 | `word.php` | No | A Word layout in code, used instead of `layout.php` for Word |
 | `word.docx` | No | A Word file designed in Word with `${placeholders}`, used for Word before anything else |
-| `header.blade.php` | No | A page header, repeated on every page |
-| `footer.blade.php` | No | A page footer, repeated on every page; may print `{page}` and `{pages}` |
+| `header.html.php` or `header.blade.php` | No | A page header, repeated on every page |
+| `footer.html.php` or `footer.blade.php` | No | A page footer, repeated on every page; may print `{page}` and `{pages}` |
 | `lang/{language}.php` | No | Labels for each language: `lang/ar.php`, `lang/en.php`, `lang/fr.php` ... |
 
-A folder is found by `Doc::template()` as soon as it has `template.php`, `pdf.blade.php`, `layout.php`, `word.php` or `word.docx`. It is listed by `doc:templates` and on the preview page only when it has `template.php`.
+A folder is found by `Doc::template()` as soon as it has `template.php`, `pdf.html.php`, `pdf.blade.php`, `layout.php`, `word.php` or `word.docx`. It is listed by `doc:templates` and on the preview page only when it has `template.php`.
 
 ## template.php {#template-php}
 
@@ -70,13 +72,40 @@ A folder is found by `Doc::template()` as soon as it has `template.php`, `pdf.bl
 
 The data reaches the layout in this order: your data, with `defaults` merged under it, is checked against `fields`, then passed through `prepare`. The layout receives the result.
 
-## The PDF layout: pdf.blade.php {#pdf-blade}
+## The PDF layout: pdf.html.php {#pdf-html}
 
-`pdf.blade.php` is a Blade view. It receives `$doc`, the [document helpers](/reference/template-helpers), and every top-level key of the prepared data as a variable: data with `shipment`, `customer` and `packages` gives `$shipment`, `$customer` and `$packages`.
+The PDF page is HTML with values filled in. It receives `$doc`, the [document helpers](/reference/template-helpers), and every top-level key of the prepared data as a variable: data with `shipment`, `customer` and `packages` gives `$shipment`, `$customer` and `$packages`.
 
-Wrap the page in the layout component, which sets the direction, the font and the base styles, and add your CSS in its `styles` slot:
+Write it in one of two ways:
 
-```blade
+- `pdf.html.php`, plain PHP. This is what `doc:make-template` creates and what the bundled templates use. It works in Laravel and without it.
+- `pdf.blade.php`, a Blade view. It works only in Laravel. Create it with `doc:make-template --blade`.
+
+If a folder has both, `pdf.html.php` is used. The same goes for the header and the footer.
+
+::: code-group
+
+```php [pdf.html.php]
+<?php
+
+use BiztechEG\EasyPdfWord\View\PageLayout;
+
+ob_start();
+?>
+<style>
+    .title { font-size: 18pt; color: <?= $doc->e($doc->theme('primary')) ?>; }
+</style>
+<?php
+$styles = ob_get_clean();
+ob_start();
+?>
+<h1 class="title"><?= $doc->e($doc->t('title')) ?></h1>
+<p><?= $doc->e($doc->t('customer')) ?>: <?= $doc->e($customer['name']) ?></p>
+<?php
+echo PageLayout::render($doc, ob_get_clean(), $doc->t('title'), $styles);
+```
+
+```blade [pdf.blade.php]
 <x-doc::layout :doc="$doc" :title="$doc->t('title')">
     <x-slot:styles>
         <style>
@@ -89,7 +118,17 @@ Wrap the page in the layout component, which sets the direction, the font and th
 </x-doc::layout>
 ```
 
-The CSS has to work in mPDF, which supports CSS 2.1: lay out with tables, not flexbox or grid. [Blade views and HTML](/guide/views-and-html) covers the layout component, the helpers and the CSS that works on every engine. The [worked example](#blade-version) below has a complete `pdf.blade.php`.
+:::
+
+Both make the same page. `PageLayout::render()` and the `x-doc::layout` component wrap your content in the page skeleton: the language and direction, the font and the base styles. Your own `<style>` goes in the page head after them.
+
+In plain PHP:
+
+- Print every value through `$doc->e()`, which escapes it as `{{ }}` does in Blade. What `$doc->ltr()`, `$doc->number()` and `$doc->money()` return is HTML already and is printed as it is.
+- The first `ob_start()` collects your styles and the second the page body. `PageLayout::render($doc, $body, $title, $styles)` returns the whole page; `echo` it at the end.
+- Use `if`, `foreach` and the other PHP statements where Blade has `@if` and `@foreach`. [Plain PHP pages](/reference/template-helpers#plain-php) lists what replaces the Blade components and directives.
+
+The CSS has to work in mPDF, which supports CSS 2.1: lay out with tables, not flexbox or grid. [Blade views and HTML](/guide/views-and-html) covers the helpers and the CSS that works on every engine. The [worked example](#html-version) below has a complete page.
 
 ## Labels: lang files {#lang}
 
@@ -105,22 +144,32 @@ return [
 ];
 ```
 
-Read them with `$doc->t()` in Blade files and layouts, and with `${t.key}` in a `word.docx`:
+Read them with `$doc->t()` in pages and layouts, and with `${t.key}` in a `word.docx`:
 
-```blade
-{{ $doc->t('title') }}
-{{ $doc->t('units.box') }}
-{{ $doc->t('greeting', ['name' => $customer['name'], 'number' => $order['number']]) }}
+```php
+<?= $doc->e($doc->t('title')) ?>
+<?= $doc->e($doc->t('units.box')) ?>
+<?= $doc->e($doc->t('greeting', ['name' => $customer['name'], 'number' => $order['number']])) ?>
 ```
 
 Nested labels are read with dots, and `:name` placeholders are replaced by the values you pass. The file is chosen by the language of the locale (`ar_EG` reads `lang/ar.php`). A label missing there is taken from `lang/en.php`, and a label missing in both prints its key, which makes typos easy to spot.
 
 ## Header and footer {#header-footer}
 
-`header.blade.php` and `footer.blade.php` are Blade files with the same `$doc` and data variables as the layout. They are drawn on every page, and `{page}` and `{pages}` become the page number and the page count:
+`header.html.php` and `footer.html.php` (or `header.blade.php` and `footer.blade.php`) get the same `$doc` and data variables as the page. They hold only their own HTML, without `PageLayout`. They are drawn on every page, and `{page}` and `{pages}` become the page number and the page count:
 
-```blade
-{{-- footer.blade.php --}}
+::: code-group
+
+```php [footer.html.php]
+<table style="width: 100%; font-size: 8pt; color: #6B7280; border-top: 1px solid #E5E7EB;">
+    <tr>
+        <td style="text-align: <?= $doc->start() ?>; padding-top: 2mm;"><?= $doc->ltr($shipment['number']) ?></td>
+        <td style="text-align: <?= $doc->end() ?>; padding-top: 2mm;"><?= $doc->e($doc->t('page')) ?> {page} <?= $doc->e($doc->t('of')) ?> {pages}</td>
+    </tr>
+</table>
+```
+
+```blade [footer.blade.php]
 <table style="width: 100%; font-size: 8pt; color: #6B7280; border-top: 1px solid #E5E7EB;">
     <tr>
         <td style="text-align: {{ $doc->start() }}; padding-top: 2mm;">{{ $doc->ltr($shipment['number']) }}</td>
@@ -129,10 +178,12 @@ Nested labels are read with dots, and `:name` placeholders are replaced by the v
 </table>
 ```
 
+:::
+
 What to know:
 
 - They sit in the page margins. A header taller than a line or two needs a larger top margin, for example `'margins' => [28, 15, 15, 15]`.
-- Use inline styles. Chromium draws headers and footers apart from the page, so the CSS of `pdf.blade.php` does not reach them there.
+- Use inline styles. Chromium draws headers and footers apart from the page, so the CSS of the PDF page does not reach them there.
 - Digits follow `->numerals()`. Chromium prints `{page}` and `{pages}` in Latin digits even with Arabic digits.
 - In Word files, the header and footer become one centred line of small text, with real Word page numbers. Their styles, tables and images are left out.
 - `->header($html)` and `->footer($html)` on a document replace the template's files for that document.
@@ -153,26 +204,26 @@ return function (DocumentBuilder $list, array $data, DocContext $doc): void {
 };
 ```
 
-The function gets the builder, the prepared data, and `$doc` with the same helpers as in Blade. One layout makes both formats, which is how the quotation, purchase order, delivery note, credit note, receipt, payslip, contract and Egyptian e-invoice templates are built.
+The function gets the builder, the prepared data, and `$doc` with the same helpers as the PDF page. One layout makes both formats, which is how the quotation, purchase order, delivery note, credit note, receipt, payslip, contract and Egyptian e-invoice templates are built.
 
-`word.php` has exactly the same shape. Use it next to `pdf.blade.php` when the PDF is designed in Blade and the Word file in code, as the invoice, letter, report and certificate templates do.
+`word.php` has exactly the same shape. Use it next to `pdf.html.php` when the PDF is designed in HTML and the Word file in code, as the invoice, letter, report and certificate templates do.
 
 ### Which file makes which format {#precedence}
 
 | | PDF | Word |
 | --- | --- | --- |
-| First choice | `pdf.blade.php` | `word.docx` |
+| First choice | `pdf.html.php`, then `pdf.blade.php` | `word.docx` |
 | Then | `layout.php` | `word.php` |
 | Then | `word.php` | `layout.php` |
 
 So:
 
 - `layout.php` alone makes both formats from one layout.
-- `pdf.blade.php` with `layout.php` or `word.php`: Blade for the PDF, code for the Word file.
+- `pdf.html.php` with `layout.php` or `word.php`: HTML for the PDF, code for the Word file.
 - `word.docx` makes the Word file whatever else is there. See [Word files](/guide/word#word-docx).
-- `pdf.blade.php` alone makes PDFs only. `->word()` then throws `WordNotSupported`: "Template [packing-list] has no Word layout. Add layout.php, word.php or word.docx to its folder."
+- `pdf.html.php` alone makes PDFs only. `->word()` then throws `WordNotSupported`: "Template [packing-list] has no Word layout. Add layout.php, word.php or word.docx to its folder."
 
-Choose `layout.php` when one layout for both formats is enough, which it usually is for business documents built from tables. Choose `pdf.blade.php` when the PDF needs a design you can only express in HTML and CSS, and accept keeping a second layout for Word. Choose `word.docx` when someone who does not write code designs the Word file.
+Choose `layout.php` when one layout for both formats is enough, which it usually is for business documents built from tables. Choose `pdf.html.php` when the PDF needs a design you can only express in HTML and CSS, and accept keeping a second layout for Word. Choose `word.docx` when someone who does not write code designs the Word file.
 
 ## Where templates are found {#paths}
 
@@ -217,7 +268,7 @@ A packing list (قائمة التعبئة) for a shipment: the company, the ship
 php artisan doc:make-template packing-list
 ```
 
-This example uses one layout for both formats, so delete `pdf.blade.php` and `word.php` from the new folder. You will add `layout.php`.
+This example uses one layout for both formats, so delete `pdf.html.php` and `word.php` from the new folder. You will add `layout.php`.
 
 ### 2. template.php {#example-template}
 
@@ -425,11 +476,22 @@ return function (DocumentBuilder $list, array $data, DocContext $doc): void {
 };
 ```
 
-### 5. footer.blade.php {#example-footer}
+### 5. footer.html.php {#example-footer}
 
 Replace the starter's footer with the shipment number on one side and the page numbers on the other:
 
-```blade
+::: code-group
+
+```php [footer.html.php]
+<table style="width: 100%; font-size: 8pt; color: #6B7280; border-top: 1px solid #E5E7EB;">
+    <tr>
+        <td style="text-align: <?= $doc->start() ?>; padding-top: 2mm;"><?= $doc->ltr($shipment['number']) ?></td>
+        <td style="text-align: <?= $doc->end() ?>; padding-top: 2mm;"><?= $doc->e($doc->t('page')) ?> {page} <?= $doc->e($doc->t('of')) ?> {pages}</td>
+    </tr>
+</table>
+```
+
+```blade [footer.blade.php]
 <table style="width: 100%; font-size: 8pt; color: #6B7280; border-top: 1px solid #E5E7EB;">
     <tr>
         <td style="text-align: {{ $doc->start() }}; padding-top: 2mm;">{{ $doc->ltr($shipment['number']) }}</td>
@@ -437,6 +499,8 @@ Replace the starter's footer with the shipment number on one side and the page n
     </tr>
 </table>
 ```
+
+:::
 
 ### 6. Use it {#example-use}
 
@@ -461,11 +525,90 @@ The totals row shows 20 items and 43.10 kg, calculated by `prepare`. Pass `->loc
 
 A mistake in the data is reported by field. A package with `'quantity' => 0` fails with "The packages.0.quantity field must be at least 1."
 
-### 7. Optional: a Blade PDF {#blade-version}
+### 7. Optional: an HTML page for the PDF {#html-version}
 
-To design the PDF in HTML and CSS instead, add a `pdf.blade.php`. The PDF then uses it, and the Word file still comes from `layout.php`:
+To design the PDF in HTML and CSS instead, add a `pdf.html.php` (or a `pdf.blade.php`). The PDF then uses it, and the Word file still comes from `layout.php`:
 
-```blade
+::: code-group
+
+```php [pdf.html.php]
+<?php
+
+// resources/doc-templates/packing-list/pdf.html.php
+
+use BiztechEG\EasyPdfWord\Support\Dates;
+use BiztechEG\EasyPdfWord\View\PageLayout;
+
+$company = (array) $doc->theme('company', []);
+$logo = $doc->image($doc->theme('logo'));
+$primary = $doc->e($doc->theme('primary'));
+
+ob_start();
+?>
+<style>
+    .title { font-size: 18pt; font-weight: bold; color: <?= $primary ?>; }
+    .packages { margin-top: 4mm; }
+    .packages th { background-color: <?= $primary ?>; color: #FFFFFF; padding: 2mm; text-align: <?= $doc->start() ?>; }
+    .packages td { border-bottom: 1px solid <?= $doc->e($doc->theme('border')) ?>; padding: 2mm; }
+    .packages .num { text-align: <?= $doc->end() ?>; }
+    .packages .total td { font-weight: bold; }
+</style>
+<?php
+$styles = ob_get_clean();
+ob_start();
+?>
+<table>
+    <tr>
+        <td style="width: 55%;">
+            <?php if ($logo) { ?>
+                <img src="<?= $doc->e($logo) ?>" style="width: 30mm;"><br>
+            <?php } ?>
+            <strong><?= $doc->e($company['name'] ?? '') ?></strong>
+            <div class="muted"><?= $doc->e($company['address'] ?? '') ?></div>
+        </td>
+        <td style="width: 45%;">
+            <div class="title"><?= $doc->e($doc->t('title')) ?></div>
+            <div><?= $doc->e($doc->t('number')) ?>: <?= $doc->ltr($shipment['number']) ?></div>
+            <div><?= $doc->e($doc->t('date')) ?>: <?= $doc->e(Dates::parse($shipment['date'])->format('Y/m/d')) ?></div>
+        </td>
+    </tr>
+</table>
+
+<p style="margin-top: 5mm;"><strong><?= $doc->e($doc->t('customer')) ?>:</strong> <?= $doc->e($customer['name']) ?></p>
+
+<table class="packages">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th><?= $doc->e($doc->t('contents')) ?></th>
+            <th class="num"><?= $doc->e($doc->t('quantity')) ?></th>
+            <th class="num"><?= $doc->e($doc->t('weight')) ?></th>
+            <th><?= $doc->e($doc->t('size')) ?></th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php foreach ($packages as $i => $package) { ?>
+            <tr>
+                <td><?= $i + 1 ?></td>
+                <td><?= $doc->e($package['contents']) ?></td>
+                <td class="num"><?= $doc->e($package['quantity']) ?></td>
+                <td class="num"><?= $doc->number($package['weight']) ?></td>
+                <td><?= $doc->ltr($package['size'] ?? '') ?></td>
+            </tr>
+        <?php } ?>
+        <tr class="total">
+            <td colspan="2"><?= $doc->e($doc->t('total')) ?></td>
+            <td class="num"><?= $doc->e($totals['quantity']) ?></td>
+            <td class="num"><?= $doc->number($totals['weight']) ?></td>
+            <td></td>
+        </tr>
+    </tbody>
+</table>
+<?php
+echo PageLayout::render($doc, ob_get_clean(), $doc->t('title').' '.$shipment['number'], $styles);
+```
+
+```blade [pdf.blade.php]
 {{-- resources/doc-templates/packing-list/pdf.blade.php --}}
 @php
     $company = (array) $doc->theme('company', []);
@@ -532,3 +675,5 @@ To design the PDF in HTML and CSS instead, add a `pdf.blade.php`. The PDF then u
     </table>
 </x-doc::layout>
 ```
+
+:::
