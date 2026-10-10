@@ -47,6 +47,7 @@ class EasyPdfWordServiceProvider extends ServiceProvider
             validator: new LaravelValidator(fn () => $app->make('validator')),
             config: fn () => (array) $app['config']->get('easy-pdf-word', []),
             appLocale: fn () => $app['config']->get('app.locale', 'en'),
+            appTimezone: fn () => $app['config']->get('app.timezone'),
         ));
 
         $this->app->singleton(DocFactory::class);
