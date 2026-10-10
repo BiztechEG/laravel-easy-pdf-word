@@ -43,7 +43,7 @@ It takes no arguments or options, and lists every template: the bundled ones and
 | Name | What you pass to `Doc::template()` |
 | Title | `title` from the template's `template.php` |
 | Locales | `locales` from `template.php` (`ar, en` when it has none) |
-| Formats | `PDF` when the template has `pdf.blade.php`, `layout.php` or `word.php`; `Word` when it has `layout.php`, `word.php` or `word.docx` |
+| Formats | `PDF` when the template has `pdf.html.php`, `pdf.blade.php`, `layout.php` or `word.php`; `Word` when it has `layout.php`, `word.php` or `word.docx` |
 | Source | `project` for a template in your app, `package` for a bundled one |
 
 Your templates are listed first. A project template with the name of a bundled one replaces it, and the bundled one is no longer listed.
@@ -90,15 +90,16 @@ The third one comes from `--force` on a template that exists only in your projec
 
 ## doc:make-template {#doc-make-template}
 
-Creates a new template folder from a blank starter: `template.php`, `pdf.blade.php`, `word.php`, `footer.blade.php` and `lang/ar.php` and `lang/en.php`.
+Creates a new template folder from a blank starter: `template.php`, `pdf.html.php`, `word.php`, `footer.html.php` and `lang/ar.php` and `lang/en.php`. The PDF page and the footer are [plain PHP](/guide/custom-templates#pdf-html), like the bundled templates.
 
 ```bash
-php artisan doc:make-template {name}
+php artisan doc:make-template {name} [--blade]
 ```
 
-| Argument | Meaning |
+| Argument or option | Meaning |
 | --- | --- |
 | `name` | The folder name, which is also the template name, for example `packing-list`. Letters, digits, dots, dashes and underscores. |
+| `--blade` | Writes the PDF page and the footer in Blade instead: `pdf.blade.php` and `footer.blade.php`. They work only in Laravel. |
 
 ```bash
 php artisan doc:make-template packing-list

@@ -82,7 +82,7 @@ Doc::template('report', $data)
     ->pdf();
 ```
 
-- Given here, they replace the template's own `header.blade.php` and `footer.blade.php`. Most bundled templates have a footer with page numbers.
+- Given here, they replace the template's own header and footer files (`header.html.php`, `footer.html.php`). Most bundled templates have a footer with page numbers.
 - mPDF prints the header in the top margin and the footer in the bottom margin, so give those margins room for them, as `->margins(30, 15, 20, 15)` does above.
 - Chromium and Gotenberg draw the header and footer apart from the page, in the document font at a small size (9px). Inline styles in your HTML still apply.
 - In Word files, the header and footer become plain text, and `{page}` and `{pages}` become Word page fields (see [Word files](/guide/word)).
@@ -169,7 +169,7 @@ mPDF sets the author to the company name from the theme (`theme.company.name`, w
 Each setting is taken from the first place that has it:
 
 1. A call on the document: `->paper()`, `->landscape()`, `->margins()`, `->header()`, `->footer()`.
-2. The template's `template.php`: `paper`, `orientation` and `margins`, and its `header.blade.php` and `footer.blade.php`. The receipt template, for example, is A5 landscape and the certificate A4 landscape.
+2. The template's `template.php`: `paper`, `orientation` and `margins`, and its header and footer files. The receipt template, for example, is A5 landscape and the certificate A4 landscape.
 3. `config/easy-pdf-word.php`: `pdf.paper`, `pdf.orientation` and `pdf.margins`.
 4. A4, portrait, 15 mm on every side.
 
