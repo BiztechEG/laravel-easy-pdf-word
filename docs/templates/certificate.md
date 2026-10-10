@@ -147,7 +147,7 @@ Up to three signatures, each a line to sign on with the name and title under it,
 
 ## Word file {#word}
 
-The certificate has a `pdf.blade.php` for the PDF and a separate `word.php` for Word, built from the same data. The Word file is also A4 landscape, but it has no double frame: the logo, issuer, title, name, course and details are centred down the page, the signatures sit side by side, and the issue date, number and QR code come last at the bottom centre instead of in the top corners.
+The certificate has a `pdf.html.php` for the PDF and a separate `word.php` for Word, built from the same data. The Word file is also A4 landscape, but it has no double frame: the logo, issuer, title, name, course and details are centred down the page, the signatures sit side by side, and the issue date, number and QR code come last at the bottom centre instead of in the top corners.
 
 Word files need `phpoffice/phpword`. See [Word files](/guide/word).
 
@@ -160,11 +160,11 @@ php artisan doc:template certificate --as=my-certificate
 This copies the template to `resources/doc-templates/my-certificate/`:
 
 - `template.php`: the fields, the defaults (for example `'type' => 'attendance'`) and the page settings;
-- `pdf.blade.php`: the PDF design, with the frame and its CSS (colours, sizes, the frame style);
+- `pdf.html.php`: the PDF design, with the frame and its CSS (colours, sizes, the frame style);
 - `word.php`: the Word layout;
 - `lang/ar.php` and `lang/en.php`: the titles and the wording for each kind and gender.
 
-Edit `pdf.blade.php` and `word.php` together when you move things around, so both files stay alike. Use the copy with `Doc::template('my-certificate', $data)`. See [Your own templates](/guide/custom-templates).
+Edit `pdf.html.php` and `word.php` together when you move things around, so both files stay alike. Use the copy with `Doc::template('my-certificate', $data)`. See [Your own templates](/guide/custom-templates).
 
 ## Related {#related}
 

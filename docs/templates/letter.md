@@ -177,7 +177,7 @@ The letterhead and the footer come from the theme, so every letter from your app
 
 ## Word file {#word}
 
-The letter has a `pdf.blade.php` for the PDF and a separate `word.php` for Word, built from the same data. The Word file has the same parts in the same order: the letterhead with a line under it, the reference and date block (with the same Hijri rule), the recipient, the subject, the justified paragraphs, the stamp and signature, and the copies. The footer becomes a line of small grey text with Word page numbers.
+The letter has a `pdf.html.php` for the PDF and a separate `word.php` for Word, built from the same data. The Word file has the same parts in the same order: the letterhead with a line under it, the reference and date block (with the same Hijri rule), the recipient, the subject, the justified paragraphs, the stamp and signature, and the copies. The footer becomes a line of small grey text with Word page numbers.
 
 A Word file is useful when the letter needs a last edit before it is printed and signed by hand. Word files need `phpoffice/phpword`; see [Word files](/guide/word).
 
@@ -190,12 +190,12 @@ php artisan doc:template letter --as=my-letter
 This copies the template to `resources/doc-templates/my-letter/`:
 
 - `template.php`: the fields and defaults, for example `'show_hijri' => false`;
-- `pdf.blade.php`: the PDF layout and its CSS;
+- `pdf.html.php`: the PDF layout and its CSS;
 - `word.php`: the Word layout;
 - `footer.html.php`: the contact footer;
 - `lang/ar.php` and `lang/en.php`: the labels and the default greeting and closing.
 
-Edit `pdf.blade.php` and `word.php` together, so both files stay alike. Use the copy with `Doc::template('my-letter', $data)`. See [Your own templates](/guide/custom-templates).
+Edit `pdf.html.php` and `word.php` together, so both files stay alike. Use the copy with `Doc::template('my-letter', $data)`. See [Your own templates](/guide/custom-templates).
 
 ## Related {#related}
 

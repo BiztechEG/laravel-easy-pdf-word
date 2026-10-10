@@ -175,7 +175,7 @@ mPDF keeps the whole table in memory while it lays it out, so a report of more t
 
 ## Word file {#word}
 
-The report has a `pdf.blade.php` for the PDF and a separate `word.php` for Word, built from the same data. The Word file has the same title block, summary cards, numbered and striped rows and totals row, and its header row is marked to repeat on every page in Word too. Numbers are formatted the same way, and the page orientation follows `->landscape()`. The footer becomes a line of small grey text with Word page numbers.
+The report has a `pdf.html.php` for the PDF and a separate `word.php` for Word, built from the same data. The Word file has the same title block, summary cards, numbered and striped rows and totals row, and its header row is marked to repeat on every page in Word too. Numbers are formatted the same way, and the page orientation follows `->landscape()`. The footer becomes a line of small grey text with Word page numbers.
 
 Readers who want to add a comment or a chart can do it in the Word file. Word files need `phpoffice/phpword`; see [Word files](/guide/word).
 
@@ -188,12 +188,12 @@ php artisan doc:template report --as=my-report
 This copies the template to `resources/doc-templates/my-report/`:
 
 - `template.php`: the fields, the defaults and the page settings; add `'orientation' => 'landscape'` to make every report landscape;
-- `pdf.blade.php`: the PDF layout and its CSS;
+- `pdf.html.php`: the PDF layout and its CSS;
 - `word.php`: the Word layout;
 - `footer.html.php`: the footer with the title and page numbers;
 - `lang/ar.php` and `lang/en.php`: the labels الإجمالي، لا توجد بيانات and تاريخ الإنشاء.
 
-Edit `pdf.blade.php` and `word.php` together, so both files stay alike. Use the copy with `Doc::template('my-report', $data)`. See [Your own templates](/guide/custom-templates).
+Edit `pdf.html.php` and `word.php` together, so both files stay alike. Use the copy with `Doc::template('my-report', $data)`. See [Your own templates](/guide/custom-templates).
 
 ## Related {#related}
 

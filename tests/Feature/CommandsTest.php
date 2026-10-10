@@ -38,7 +38,7 @@ class CommandsTest extends TestCase
     {
         $this->artisan('doc:template', ['name' => 'invoice', '--as' => 'my-invoice'])->assertSuccessful();
 
-        $this->assertFileExists($this->projectTemplates.'/my-invoice/pdf.blade.php');
+        $this->assertFileExists($this->projectTemplates.'/my-invoice/pdf.html.php');
         $this->assertFileExists($this->projectTemplates.'/my-invoice/word.php');
         $this->assertFalse(Doc::templates()->isBundled('my-invoice'));
 
