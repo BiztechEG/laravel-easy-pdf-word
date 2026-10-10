@@ -112,7 +112,7 @@ GPOS Lookup Type 5, Format 3 not supported (ttfontsuni.php).
 
 ```bash
 python3 -m pip install fonttools
-python3 vendor/biztecheg/laravel-easy-pdf-word/bin/mpdf-font-fix.py resources/fonts/Almarai-*.ttf
+python3 vendor/biztecheg/easy-pdf-word/bin/mpdf-font-fix.py resources/fonts/Almarai-*.ttf
 ```
 
 ```text

@@ -112,7 +112,7 @@ The package includes a script that fixes the font files once. It needs Python 3 
 
 ```bash
 python3 -m pip install fonttools
-python3 vendor/biztecheg/laravel-easy-pdf-word/bin/mpdf-font-fix.py resources/fonts/Almarai-*.ttf
+python3 vendor/biztecheg/easy-pdf-word/bin/mpdf-font-fix.py resources/fonts/Almarai-*.ttf
 ```
 
 ```text
