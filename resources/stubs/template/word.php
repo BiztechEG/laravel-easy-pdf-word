@@ -8,7 +8,7 @@ use BiztechEG\EasyPdfWord\Support\DocContext;
 | replace it with a word.docx designed in Word with ${placeholders}.
 |
 | Blocks: heading, paragraph, table, image, qr, spacer, pageBreak, line.
-| If you delete pdf.blade.php, this layout makes the PDF too; rename it to
+| If you delete pdf.html.php, this layout makes the PDF too; rename it to
 | layout.php to make that clear.
 */
 

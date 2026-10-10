@@ -11,7 +11,9 @@ use Illuminate\Filesystem\Filesystem;
  */
 class MakeTemplateCommand extends Command
 {
-    protected $signature = 'doc:make-template {name : Folder name, e.g. packing-list}';
+    protected $signature = 'doc:make-template
+        {name : Folder name, e.g. packing-list}
+        {--blade : Write the PDF layout and footer in Blade instead of plain PHP}';
 
     protected $description = 'Create a new document template from a blank starter';
 
@@ -39,7 +41,16 @@ class MakeTemplateCommand extends Command
             $this->components->warn("This replaces the bundled [{$name}] template in your app. To start from it instead, run php artisan doc:template {$name}.");
         }
 
-        $files->copyDirectory(dirname(__DIR__, 2).'/resources/stubs/template', $target);
+        $stubs = dirname(__DIR__, 2).'/resources/stubs';
+        $files->copyDirectory($stubs.'/template', $target);
+
+        // Plain PHP works with or without Laravel; Blade only in Laravel.
+        if ($this->option('blade')) {
+            $files->delete([$target.'/pdf.html.php', $target.'/footer.html.php']);
+            $files->copy($stubs.'/blade/pdf.blade.php', $target.'/pdf.blade.php');
+            $files->copy($stubs.'/blade/footer.blade.php', $target.'/footer.blade.php');
+        }
+
         $files->put($target.'/template.php', str_replace('{{ name }}', $name, $files->get($target.'/template.php')));
 
         $this->components->info("Template created in {$target}");
