@@ -46,6 +46,7 @@
         "mpdf/mpdf": "Default PDF engine: pure PHP, native Arabic shaping and bidi (GPL-2.0).",
         "spatie/browsershot": "Chromium PDF engine via Puppeteer, highest rendering quality.",
         "phpoffice/phpword": "Word (.docx) output: Arabic right-to-left documents and Word-designed templates.",
+        "ext-curl": "Gotenberg engine outside Laravel (Laravel apps use its Http client).",
         "ext-intl": "Required for Hijri dates and locale-aware number formatting.",
         "ext-zip": "Required for Word files and Doc::zip()."
     },
