@@ -474,6 +474,8 @@ A document from `Doc::make()` also takes every [`DocumentBuilder`](#document-bui
 
 `forTemplate()`, `forView()`, `forHtml()`, `forBuilder()` (static constructors used by `Doc`), `recordTo()` (used by `Doc::fake()`), `toQueue()` and `fromQueue()` (used by the queued job) are *internal*.
 
+`PendingDocument` extends `BiztechEG\EasyPdfWord\Document`, the same document without Laravel; `PendingDocument` adds `->queue()`, `Doc::fake()` recording and Laravel collections and models as data.
+
 ## DocumentBuilder {#document-builder}
 
 `BiztechEG\EasyPdfWord\Builder\DocumentBuilder` describes a document in blocks. You use it through `Doc::make()`, and you receive one as the first argument of a template's `layout.php` or `word.php`. Every block method returns the builder. Guide: [Building in code](/guide/builder).
@@ -624,7 +626,7 @@ A cell is a string, or an array with these keys plus any [text style](#builder-s
 
 ## Rendered files {#rendered-files}
 
-`PdfDocument`, `WordDocument` and `ZipFile` extend the abstract `BiztechEG\EasyPdfWord\RenderedFile`, which implements Laravel's `Attachable` (mail) and `Responsable` (controller responses). The file is rendered once, on the first call that needs its bytes.
+`PdfDocument`, `WordDocument` and `ZipFile` extend the abstract `BiztechEG\EasyPdfWord\RenderedFile`, which implements Laravel's `Attachable` (mail) and `Responsable` (controller responses). The file is rendered once, on the first call that needs its bytes. `RenderedFile` extends `BiztechEG\EasyPdfWord\Output\File`, the file without Laravel.
 
 | Method | Returns | Description |
 | --- | --- | --- |
