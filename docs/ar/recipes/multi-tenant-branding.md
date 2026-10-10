@@ -210,16 +210,16 @@ class InvoicePolicy
 php artisan doc:template invoice --as=invoice.gulf-star
 ```
 
-يُنسخ القالب إلى `resources/doc-templates/invoice.gulf-star/`. أضف المربع إلى `pdf.blade.php` قبل الملاحظات مباشرة:
+يُنسخ القالب إلى `resources/doc-templates/invoice.gulf-star/`. أضف المربع إلى `pdf.html.php` قبل الملاحظات مباشرة:
 
-```blade
-    <div style="margin-top: 5mm; border: 1px solid {{ $border }}; padding: 3mm 4mm;">
-        <strong style="color: {{ $primary }};">Bank details</strong><br>
-        Al Rajhi Bank, Gulf Star Trading Co.<br>
-        IBAN: {{ $doc->ltr('SA03 8000 0000 6080 1016 7519') }}
-    </div>
+```php
+<div style="margin-top: 5mm; border: 1px solid <?= $doc->e($border) ?>; padding: 3mm 4mm;">
+    <strong style="color: <?= $doc->e($primary) ?>;">Bank details</strong><br>
+    Al Rajhi Bank, Gulf Star Trading Co.<br>
+    IBAN: <?= $doc->ltr('SA03 8000 0000 6080 1016 7519') ?>
+</div>
 
-    @if (! empty($invoice['notes']))
+<?php if (! empty($invoice['notes'])) { ?>
 ```
 
 ملف Word يبنيه `word.php` في المجلد نفسه، فأضف المربع هناك أيضاً، قبل `if (! empty($invoice['notes'])) {`:
@@ -342,7 +342,7 @@ $invoice->tenant
 
 ### الهوية في قوالبك الخاصة
 
-تحصل قوالبك الخاصة على الهوية نفسها. في Blade استخدم `$doc->theme('primary')` و`$doc->theme('company.name')`، وفي ملف `word.docx` المصمم في Word استخدم المتغيرين `${theme.company.name}` و`${theme.logo:150:60}`. وهكذا يطبّق `$tenant->document('price-offer', $data)` الهوية على قالب صممته بنفسك أيضاً.
+تحصل قوالبك الخاصة على الهوية نفسها. في صفحة PDF استخدم `$doc->theme('primary')` و`$doc->theme('company.name')`، وفي ملف `word.docx` المصمم في Word استخدم المتغيرين `${theme.company.name}` و`${theme.logo:150:60}`. وهكذا يطبّق `$tenant->document('price-offer', $data)` الهوية على قالب صممته بنفسك أيضاً.
 
 ## صفحات ذات صلة {#related}
 

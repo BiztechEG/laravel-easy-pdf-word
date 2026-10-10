@@ -208,7 +208,7 @@ Where a setting is not called, the value comes from the template's `template.php
 | Numerals | `easy-pdf-word.numerals` (`latin`) |
 | Font | `fonts.default` (`cairo`) for right-to-left documents, `fonts.default_ltr` (`cairo`) for the rest |
 | Paper, orientation, margins | `template.php`, then `pdf.paper` (`A4`), `pdf.orientation` (`portrait`), `pdf.margins` (`[15, 15, 15, 15]`) |
-| Header, footer | The template's `header.blade.php` and `footer.blade.php` |
+| Header, footer | The template's `header.html.php` and `footer.html.php` (or their `.blade.php` versions) |
 | Title | `template.php` `title` |
 | Theme | `easy-pdf-word.theme`, then `template.php` `theme`, then `->theme()` |
 | Engine | `pdf.driver` (`DOC_PDF_DRIVER`, `mpdf`) |
@@ -357,7 +357,7 @@ Page margins in millimetres, like CSS: one value for all sides, two for top and 
 header(string $html): static
 ```
 
-HTML printed at the top of every page. `{page}` and `{pages}` become the page number and the page count. Replaces the template's `header.blade.php`. In Word files the HTML becomes plain text with page fields.
+HTML printed at the top of every page. `{page}` and `{pages}` become the page number and the page count. Replaces the template's header file. In Word files the HTML becomes plain text with page fields.
 
 ### footer() {#pending-footer}
 
@@ -365,7 +365,7 @@ HTML printed at the top of every page. `{page}` and `{pages}` become the page nu
 footer(string $html): static
 ```
 
-The same at the bottom of every page; replaces the template's `footer.blade.php`.
+The same at the bottom of every page; replaces the template's footer file.
 
 ```php
 ->footer('<div style="text-align: center; font-size: 8pt;">صفحة {page} من {pages}</div>')
@@ -841,12 +841,12 @@ foreach (Doc::templates()->all() as $name => $template) {
 | `sample(): array` | `sample` (a closure is called) |
 | `theme(): array` | `theme` |
 | `paper()`, `orientation(): ?string`, `margins(): ?array` | Page settings, or `null`. `paper()` returns a name such as `'A4-L'` or `[width, height]` in mm |
-| `hasPdfView(): bool`, `pdfView(): string` | `pdf.blade.php`; `pdfView()` throws `RuntimeException` when it is missing |
+| `hasPdfView(): bool`, `pdfView(): string` | `pdf.html.php`, else `pdf.blade.php`; `pdfView()` throws `RuntimeException` when it is missing |
 | `wordFile(): ?string` | The path of `word.docx`, or `null` |
 | `wordLayout(): ?callable` | `word.php`, else `layout.php` |
-| `pdfLayout(): ?callable` | `layout.php`, else `word.php` (used when there is no `pdf.blade.php`) |
+| `pdfLayout(): ?callable` | `layout.php`, else `word.php` (used when there is no PDF page) |
 | `supportsPdf(): bool`, `supportsWord(): bool` | Which formats the folder can make |
-| `headerView(): ?string`, `footerView(): ?string` | Paths of `header.blade.php` and `footer.blade.php` |
+| `headerView(): ?string`, `footerView(): ?string` | Paths of the header and footer files: `.html.php`, else `.blade.php` |
 | `translations(string $locale): array` | The labels in `lang/{language}.php` |
 
 ## FontRegistry {#font-registry}

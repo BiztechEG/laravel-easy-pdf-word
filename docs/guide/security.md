@@ -8,7 +8,7 @@ The data you pass to a template, a view or `Doc::make()` often comes from users:
 
 ### Text is escaped {#escaping}
 
-- **Blade templates.** The bundled templates print values with Blade's escaped echo (double curly braces), so `<script>` in a customer name prints as text. Do the same in your own views.
+- **Templates and views.** The bundled templates print every value through `$doc->e()`, so `<script>` in a customer name prints as text. Do the same in your own plain PHP pages, and use Blade's escaped echo (double curly braces) in Blade views.
 - **Documents built in code.** Text in `Doc::make()` blocks (headings, paragraphs, table cells) is escaped.
 - **Word files.** Text is escaped for Word's XML. In a `word.docx` template, a value that contains `${...}` stays as text and is not filled as another placeholder.
 - **Headers and footers in Word files.** Only their text is used; tags, styles and scripts are dropped.
@@ -48,7 +48,7 @@ A document saved with `->queue()` travels through your queue as an encrypted job
 Some input is code you write, and the package uses it as it is:
 
 - **HTML you pass to `Doc::html()`.** It is rendered as written. Never build it from user input.
-- **Your own Blade views.** The double-curly-brace echo escapes, `{!! !!}` does not (see the example below). Never print user input with `{!! !!}`.
+- **Your own views and pages.** In Blade the double-curly-brace echo escapes and `{!! !!}` does not (see the example below); in plain PHP, `<?= $doc->e($value) ?>` escapes and a bare `<?= $value ?>` does not. Never print user input without escaping it.
 - **Templates.** `template.php`, `layout.php` and `word.php` are PHP files that run in your app. Copy or install templates only from sources you trust.
 - **Config.** Paths, fonts, hosts and engine settings in `config/easy-pdf-word.php` and `.env`.
 
@@ -60,7 +60,7 @@ Some input is code you write, and the package uses it as it is:
 <p>{!! $order->notes !!}</p>
 ```
 
-Raw HTML skips every check on this page: an `<img>` in it is loaded by the engine from any local path or URL the engine can reach, and with Chromium JavaScript on, a `<script>` in it runs. Keep `{!! !!}` and `Doc::html()` for HTML your own code builds.
+Raw HTML skips every check on this page: an `<img>` in it is loaded by the engine from any local path or URL the engine can reach, and with Chromium JavaScript on, a `<script>` in it runs. Keep `{!! !!}`, unescaped `<?= ?>` and `Doc::html()` for HTML your own code builds.
 
 ## Settings that open things on purpose {#settings}
 

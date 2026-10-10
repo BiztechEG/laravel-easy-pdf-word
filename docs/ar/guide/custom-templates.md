@@ -19,9 +19,9 @@ php artisan doc:make-template packing-list
 ```text
 resources/doc-templates/packing-list/
 ├── template.php        title, fields, defaults, sample data
-├── pdf.blade.php       the PDF layout, in Blade
+├── pdf.html.php        the PDF layout, in HTML and PHP
 ├── word.php            the Word layout, in code
-├── footer.blade.php    a page footer with page numbers
+├── footer.html.php     a page footer with page numbers
 └── lang/
     ├── ar.php          Arabic labels
     └── en.php          English labels
@@ -35,20 +35,22 @@ Doc::template('packing-list', ['title' => 'قائمة التعبئة'])->locale(
 
 يمكن أن يحتوي الاسم على حروف وأرقام ونقاط وشرطات وشرطات سفلية. وإذا كان اسمَ قالب مرفق، ينبهك الأمر إلى أن قالبك الجديد سيحل محل القالب المرفق في تطبيقك.
 
+ملف الصفحة والتذييل مكتوبان بلغة PHP العادية مثل القوالب المرفقة، فيعمل القالب خارج Laravel أيضاً. ولكتابتهما بلغة Blade بدلاً من ذلك أضف `--blade`، فتحصل على `pdf.blade.php` و`footer.blade.php`.
+
 ## مجلد القالب {#folder}
 
 | الملف | مطلوب؟ | ما هو |
 | --- | --- | --- |
 | `template.php` | يُنصح به | العنوان، والحقول مع قواعد التحقق، والقيم الافتراضية، والقيم المحسوبة، والبيانات التجريبية |
-| `pdf.blade.php` | يلزم تخطيط واحد على الأقل | تخطيط PDF بلغة Blade، مع HTML وCSS |
+| `pdf.html.php` أو `pdf.blade.php` | يلزم تخطيط واحد على الأقل | تخطيط PDF بـ HTML وCSS، [بلغة PHP العادية أو Blade](#pdf-html) |
 | `layout.php` | يلزم تخطيط واحد على الأقل | تخطيط واحد بالكود ينشئ ملف PDF وملف Word معاً |
 | `word.php` | لا | تخطيط Word بالكود، يُستخدم بدلاً من `layout.php` لملفات Word |
 | `word.docx` | لا | ملف Word مصمم في Word ومعه `${placeholders}`، يُقدَّم على كل ما عداه لملفات Word |
-| `header.blade.php` | لا | رأس الصفحة، يتكرر في كل صفحة |
-| `footer.blade.php` | لا | تذييل الصفحة، يتكرر في كل صفحة، ويمكنه طباعة `{page}` و`{pages}` |
+| `header.html.php` أو `header.blade.php` | لا | رأس الصفحة، يتكرر في كل صفحة |
+| `footer.html.php` أو `footer.blade.php` | لا | تذييل الصفحة، يتكرر في كل صفحة، ويمكنه طباعة `{page}` و`{pages}` |
 | `lang/{language}.php` | لا | التسميات لكل لغة: `lang/ar.php` و`lang/en.php` و`lang/fr.php` ... |
 
-يعثر `Doc::template()` على المجلد بمجرد أن يحتوي على `template.php` أو `pdf.blade.php` أو `layout.php` أو `word.php` أو `word.docx`. لكنه لا يظهر في `doc:templates` ولا في صفحة المعاينة إلا إذا احتوى على `template.php`.
+يعثر `Doc::template()` على المجلد بمجرد أن يحتوي على `template.php` أو `pdf.html.php` أو `pdf.blade.php` أو `layout.php` أو `word.php` أو `word.docx`. لكنه لا يظهر في `doc:templates` ولا في صفحة المعاينة إلا إذا احتوى على `template.php`.
 
 ## الملف template.php {#template-php}
 
@@ -70,13 +72,40 @@ Doc::template('packing-list', ['title' => 'قائمة التعبئة'])->locale(
 
 تصل البيانات إلى التخطيط بهذا الترتيب: بياناتك، بعد دمج `defaults` تحتها، تُفحص مقابل `fields`، ثم تمر عبر `prepare`. ويتلقى التخطيط الناتج.
 
-## تخطيط PDF: الملف pdf.blade.php {#pdf-blade}
+## تخطيط PDF: الملف pdf.html.php {#pdf-html}
 
-`pdf.blade.php` ملف view بلغة Blade. يتلقى `$doc`، أي [أدوات القوالب](/ar/reference/template-helpers)، وكل مفتاح من المستوى الأعلى في البيانات المجهزة متغيراً مستقلاً: فالبيانات التي فيها `shipment` و`customer` و`packages` تعطي `$shipment` و`$customer` و`$packages`.
+صفحة PDF هي HTML تُملأ فيها القيم. تتلقى `$doc`، أي [أدوات القوالب](/ar/reference/template-helpers)، وكل مفتاح من المستوى الأعلى في البيانات المجهزة متغيراً مستقلاً: فالبيانات التي فيها `shipment` و`customer` و`packages` تعطي `$shipment` و`$customer` و`$packages`.
 
-غلّف الصفحة بمكوّن التخطيط، الذي يضبط الاتجاه والخط والتنسيقات الأساسية، وأضف CSS الخاص بك في الـ slot المسمى `styles`:
+تُكتب الصفحة بإحدى طريقتين:
 
-```blade
+- `pdf.html.php` بلغة PHP العادية. وهو ما ينشئه `doc:make-template` وما تستخدمه القوالب المرفقة، ويعمل داخل Laravel وخارجه.
+- `pdf.blade.php`، ملف view بلغة Blade. لا يعمل إلا في Laravel، وينشئه `doc:make-template --blade`.
+
+وإذا احتوى المجلد على الملفين يُستخدم `pdf.html.php`. والأمر نفسه في رأس الصفحة وتذييلها.
+
+::: code-group
+
+```php [pdf.html.php]
+<?php
+
+use BiztechEG\EasyPdfWord\View\PageLayout;
+
+ob_start();
+?>
+<style>
+    .title { font-size: 18pt; color: <?= $doc->e($doc->theme('primary')) ?>; }
+</style>
+<?php
+$styles = ob_get_clean();
+ob_start();
+?>
+<h1 class="title"><?= $doc->e($doc->t('title')) ?></h1>
+<p><?= $doc->e($doc->t('customer')) ?>: <?= $doc->e($customer['name']) ?></p>
+<?php
+echo PageLayout::render($doc, ob_get_clean(), $doc->t('title'), $styles);
+```
+
+```blade [pdf.blade.php]
 <x-doc::layout :doc="$doc" :title="$doc->t('title')">
     <x-slot:styles>
         <style>
@@ -89,7 +118,17 @@ Doc::template('packing-list', ['title' => 'قائمة التعبئة'])->locale(
 </x-doc::layout>
 ```
 
-يجب أن يعمل CSS في mPDF الذي يدعم CSS 2.1: نسّق الصفحة بالجداول لا بـ flexbox أو grid. وتشرح صفحة [ملفات Blade و HTML](/ar/guide/views-and-html) مكوّن التخطيط والأدوات وCSS الذي يعمل على كل المحركات. وفي [المثال الكامل](#blade-version) أدناه ملف `pdf.blade.php` كامل.
+:::
+
+تنتج الطريقتان الصفحة نفسها. يغلّف `PageLayout::render()` ومكوّن `x-doc::layout` المحتوى بهيكل الصفحة: اللغة والاتجاه والخط والتنسيقات الأساسية، ثم يضعان وسم `<style>` الخاص بك في رأس الصفحة بعدها.
+
+في PHP العادية:
+
+- اطبع كل قيمة عبر `$doc->e()`، فهي تهرّبها كما يفعل `{{ }}` في Blade. أما ما تعيده `$doc->ltr()` و`$doc->number()` و`$doc->money()` فهو HTML جاهز ويُطبع كما هو.
+- يجمع أول `ob_start()` التنسيقات، ويجمع الثاني محتوى الصفحة. ويعيد `PageLayout::render($doc, $body, $title, $styles)` الصفحة كاملة، فاطبعها بـ `echo` في النهاية.
+- استخدم `if` و`foreach` وبقية جمل PHP حيث يستخدم Blade `@if` و`@foreach`. وتسرد [صفحات PHP العادية](/ar/reference/template-helpers#plain-php) ما يحل محل مكوّنات Blade وتوجيهاته.
+
+يجب أن يعمل CSS في mPDF الذي يدعم CSS 2.1: نسّق الصفحة بالجداول لا بـ flexbox أو grid. وتشرح صفحة [ملفات Blade و HTML](/ar/guide/views-and-html) الأدوات وCSS الذي يعمل على كل المحركات. وفي [المثال الكامل](#html-version) أدناه صفحة كاملة.
 
 ## التسميات: ملفات lang {#lang}
 
@@ -105,22 +144,32 @@ return [
 ];
 ```
 
-اقرأها بـ `$doc->t()` في ملفات Blade والتخطيطات، وبـ `${t.key}` في ملف `word.docx`:
+اقرأها بـ `$doc->t()` في الصفحات والتخطيطات، وبـ `${t.key}` في ملف `word.docx`:
 
-```blade
-{{ $doc->t('title') }}
-{{ $doc->t('units.box') }}
-{{ $doc->t('greeting', ['name' => $customer['name'], 'number' => $order['number']]) }}
+```php
+<?= $doc->e($doc->t('title')) ?>
+<?= $doc->e($doc->t('units.box')) ?>
+<?= $doc->e($doc->t('greeting', ['name' => $customer['name'], 'number' => $order['number']])) ?>
 ```
 
 تُقرأ التسميات المتداخلة بالنقاط، وتُستبدل المتغيرات مثل `:name` بالقيم التي تمررها. يُختار الملف بحسب لغة الـ locale (فاللغة `ar_EG` تقرأ `lang/ar.php`). والتسمية الناقصة هناك تؤخذ من `lang/en.php`، أما التسمية الناقصة في الملفين فيُطبع مفتاحها، فيسهل اكتشاف الأخطاء الإملائية.
 
 ## رأس الصفحة وتذييلها {#header-footer}
 
-`header.blade.php` و`footer.blade.php` ملفا Blade يتلقيان `$doc` ومتغيرات البيانات نفسها التي يتلقاها التخطيط. يُرسمان في كل صفحة، ويتحول `{page}` و`{pages}` إلى رقم الصفحة وعدد الصفحات:
+`header.html.php` و`footer.html.php` (أو `header.blade.php` و`footer.blade.php`) يتلقيان `$doc` ومتغيرات البيانات نفسها التي تتلقاها الصفحة. ويحتويان على HTML الخاص بهما فقط، بلا `PageLayout`. يُرسمان في كل صفحة، ويتحول `{page}` و`{pages}` إلى رقم الصفحة وعدد الصفحات:
 
-```blade
-{{-- footer.blade.php --}}
+::: code-group
+
+```php [footer.html.php]
+<table style="width: 100%; font-size: 8pt; color: #6B7280; border-top: 1px solid #E5E7EB;">
+    <tr>
+        <td style="text-align: <?= $doc->start() ?>; padding-top: 2mm;"><?= $doc->ltr($shipment['number']) ?></td>
+        <td style="text-align: <?= $doc->end() ?>; padding-top: 2mm;"><?= $doc->e($doc->t('page')) ?> {page} <?= $doc->e($doc->t('of')) ?> {pages}</td>
+    </tr>
+</table>
+```
+
+```blade [footer.blade.php]
 <table style="width: 100%; font-size: 8pt; color: #6B7280; border-top: 1px solid #E5E7EB;">
     <tr>
         <td style="text-align: {{ $doc->start() }}; padding-top: 2mm;">{{ $doc->ltr($shipment['number']) }}</td>
@@ -129,10 +178,12 @@ return [
 </table>
 ```
 
+:::
+
 ما يجب معرفته:
 
 - يقعان في هوامش الصفحة. فرأس الصفحة الأطول من سطر أو سطرين يحتاج إلى هامش علوي أكبر، مثل `'margins' => [28, 15, 15, 15]`.
-- استخدم التنسيقات المضمّنة (inline styles). يرسم Chromium رأس الصفحة وتذييلها بمعزل عن الصفحة، فلا يصل إليهما CSS الموجود في `pdf.blade.php` هناك.
+- استخدم التنسيقات المضمّنة (inline styles). يرسم Chromium رأس الصفحة وتذييلها بمعزل عن الصفحة، فلا يصل إليهما CSS الموجود في صفحة PDF هناك.
 - تتبع الأرقام `->numerals()`. لكن Chromium يطبع `{page}` و`{pages}` بالأرقام اللاتينية حتى مع الأرقام العربية.
 - في ملفات Word، يصبح رأس الصفحة وتذييلها سطراً واحداً من نص صغير في الوسط، مع أرقام صفحات Word حقيقية. وتُسقط تنسيقاتهما وجداولهما وصورهما.
 - يستبدل `->header($html)` و`->footer($html)` على المستند ملفاتِ القالب لذلك المستند.
@@ -153,26 +204,26 @@ return function (DocumentBuilder $list, array $data, DocContext $doc): void {
 };
 ```
 
-تتلقى الدالة كائن بناء المستند، والبيانات المجهزة، و`$doc` بالأدوات نفسها المتاحة في Blade. وتخطيط واحد ينتج الصيغتين، وهكذا بُنيت قوالب عرض السعر وأمر الشراء وإذن التسليم والإشعار الدائن والسند وقسيمة الراتب والعقد والفاتورة الإلكترونية المصرية.
+تتلقى الدالة كائن بناء المستند، والبيانات المجهزة، و`$doc` بالأدوات نفسها المتاحة في صفحة PDF. وتخطيط واحد ينتج الصيغتين، وهكذا بُنيت قوالب عرض السعر وأمر الشراء وإذن التسليم والإشعار الدائن والسند وقسيمة الراتب والعقد والفاتورة الإلكترونية المصرية.
 
-وللملف `word.php` الشكل نفسه تماماً. استخدمه بجانب `pdf.blade.php` عندما يُصمَّم ملف PDF بلغة Blade وملف Word بالكود، كما في قوالب الفاتورة والخطاب والتقرير والشهادة.
+وللملف `word.php` الشكل نفسه تماماً. استخدمه بجانب `pdf.html.php` عندما يُصمَّم ملف PDF بـ HTML وملف Word بالكود، كما في قوالب الفاتورة والخطاب والتقرير والشهادة.
 
 ### أي ملف ينتج أي صيغة {#precedence}
 
 | | PDF | Word |
 | --- | --- | --- |
-| الخيار الأول | `pdf.blade.php` | `word.docx` |
+| الخيار الأول | `pdf.html.php` ثم `pdf.blade.php` | `word.docx` |
 | ثم | `layout.php` | `word.php` |
 | ثم | `word.php` | `layout.php` |
 
 وبذلك:
 
 - `layout.php` وحده ينتج الصيغتين من تخطيط واحد.
-- `pdf.blade.php` مع `layout.php` أو `word.php`: ملف Blade لملف PDF، والكود لملف Word.
+- `pdf.html.php` مع `layout.php` أو `word.php`: HTML لملف PDF، والكود لملف Word.
 - `word.docx` ينتج ملف Word أياً كان ما بجانبه. راجع [ملفات Word](/ar/guide/word#word-docx).
-- `pdf.blade.php` وحده لا ينتج إلا ملفات PDF. وعندها يرمي `->word()` الاستثناء `WordNotSupported`: "Template [packing-list] has no Word layout. Add layout.php, word.php or word.docx to its folder."
+- `pdf.html.php` وحده لا ينتج إلا ملفات PDF. وعندها يرمي `->word()` الاستثناء `WordNotSupported`: "Template [packing-list] has no Word layout. Add layout.php, word.php or word.docx to its folder."
 
-اختر `layout.php` عندما يكفي تخطيط واحد للصيغتين، وهو ما يكفي غالباً لمستندات الأعمال المبنية من الجداول. واختر `pdf.blade.php` عندما يحتاج ملف PDF إلى تصميم لا تعبّر عنه إلا بـ HTML وCSS، مع قبول الاحتفاظ بتخطيط ثانٍ لملف Word. واختر `word.docx` عندما يصمم ملفَ Word شخصٌ لا يكتب الكود.
+اختر `layout.php` عندما يكفي تخطيط واحد للصيغتين، وهو ما يكفي غالباً لمستندات الأعمال المبنية من الجداول. واختر `pdf.html.php` عندما يحتاج ملف PDF إلى تصميم لا تعبّر عنه إلا بـ HTML وCSS، مع قبول الاحتفاظ بتخطيط ثانٍ لملف Word. واختر `word.docx` عندما يصمم ملفَ Word شخصٌ لا يكتب الكود.
 
 ## أين يُبحث عن القوالب {#paths}
 
@@ -217,7 +268,7 @@ public function boot(): void
 php artisan doc:make-template packing-list
 ```
 
-يستخدم هذا المثال تخطيطاً واحداً للصيغتين، فاحذف `pdf.blade.php` و`word.php` من المجلد الجديد، وستضيف `layout.php`.
+يستخدم هذا المثال تخطيطاً واحداً للصيغتين، فاحذف `pdf.html.php` و`word.php` من المجلد الجديد، وستضيف `layout.php`.
 
 ### 2. الملف template.php {#example-template}
 
@@ -425,11 +476,22 @@ return function (DocumentBuilder $list, array $data, DocContext $doc): void {
 };
 ```
 
-### 5. الملف footer.blade.php {#example-footer}
+### 5. الملف footer.html.php {#example-footer}
 
 استبدل تذييل قالب البداية بتذييل فيه رقم الشحنة في جانب وأرقام الصفحات في الجانب الآخر:
 
-```blade
+::: code-group
+
+```php [footer.html.php]
+<table style="width: 100%; font-size: 8pt; color: #6B7280; border-top: 1px solid #E5E7EB;">
+    <tr>
+        <td style="text-align: <?= $doc->start() ?>; padding-top: 2mm;"><?= $doc->ltr($shipment['number']) ?></td>
+        <td style="text-align: <?= $doc->end() ?>; padding-top: 2mm;"><?= $doc->e($doc->t('page')) ?> {page} <?= $doc->e($doc->t('of')) ?> {pages}</td>
+    </tr>
+</table>
+```
+
+```blade [footer.blade.php]
 <table style="width: 100%; font-size: 8pt; color: #6B7280; border-top: 1px solid #E5E7EB;">
     <tr>
         <td style="text-align: {{ $doc->start() }}; padding-top: 2mm;">{{ $doc->ltr($shipment['number']) }}</td>
@@ -437,6 +499,8 @@ return function (DocumentBuilder $list, array $data, DocContext $doc): void {
     </tr>
 </table>
 ```
+
+:::
 
 ### 6. الاستخدام {#example-use}
 
@@ -461,11 +525,90 @@ $packingList->word()->save(storage_path('app/shipments/SHP-2026-0412.docx'));
 
 ويُبلَّغ عن أي خطأ في البيانات بحسب الحقل. فالطرد الذي فيه `'quantity' => 0` يفشل بالرسالة "The packages.0.quantity field must be at least 1."
 
-### 7. اختياري: ملف PDF بلغة Blade {#blade-version}
+### 7. اختياري: صفحة HTML لملف PDF {#html-version}
 
-لتصميم ملف PDF بـ HTML وCSS بدلاً من ذلك، أضف `pdf.blade.php`. عندها يستخدمه ملف PDF، ويبقى ملف Word قادماً من `layout.php`:
+لتصميم ملف PDF بـ HTML وCSS بدلاً من ذلك، أضف `pdf.html.php` (أو `pdf.blade.php`). عندها يستخدمه ملف PDF، ويبقى ملف Word قادماً من `layout.php`:
 
-```blade
+::: code-group
+
+```php [pdf.html.php]
+<?php
+
+// resources/doc-templates/packing-list/pdf.html.php
+
+use BiztechEG\EasyPdfWord\Support\Dates;
+use BiztechEG\EasyPdfWord\View\PageLayout;
+
+$company = (array) $doc->theme('company', []);
+$logo = $doc->image($doc->theme('logo'));
+$primary = $doc->e($doc->theme('primary'));
+
+ob_start();
+?>
+<style>
+    .title { font-size: 18pt; font-weight: bold; color: <?= $primary ?>; }
+    .packages { margin-top: 4mm; }
+    .packages th { background-color: <?= $primary ?>; color: #FFFFFF; padding: 2mm; text-align: <?= $doc->start() ?>; }
+    .packages td { border-bottom: 1px solid <?= $doc->e($doc->theme('border')) ?>; padding: 2mm; }
+    .packages .num { text-align: <?= $doc->end() ?>; }
+    .packages .total td { font-weight: bold; }
+</style>
+<?php
+$styles = ob_get_clean();
+ob_start();
+?>
+<table>
+    <tr>
+        <td style="width: 55%;">
+            <?php if ($logo) { ?>
+                <img src="<?= $doc->e($logo) ?>" style="width: 30mm;"><br>
+            <?php } ?>
+            <strong><?= $doc->e($company['name'] ?? '') ?></strong>
+            <div class="muted"><?= $doc->e($company['address'] ?? '') ?></div>
+        </td>
+        <td style="width: 45%;">
+            <div class="title"><?= $doc->e($doc->t('title')) ?></div>
+            <div><?= $doc->e($doc->t('number')) ?>: <?= $doc->ltr($shipment['number']) ?></div>
+            <div><?= $doc->e($doc->t('date')) ?>: <?= $doc->e(Dates::parse($shipment['date'])->format('Y/m/d')) ?></div>
+        </td>
+    </tr>
+</table>
+
+<p style="margin-top: 5mm;"><strong><?= $doc->e($doc->t('customer')) ?>:</strong> <?= $doc->e($customer['name']) ?></p>
+
+<table class="packages">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th><?= $doc->e($doc->t('contents')) ?></th>
+            <th class="num"><?= $doc->e($doc->t('quantity')) ?></th>
+            <th class="num"><?= $doc->e($doc->t('weight')) ?></th>
+            <th><?= $doc->e($doc->t('size')) ?></th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php foreach ($packages as $i => $package) { ?>
+            <tr>
+                <td><?= $i + 1 ?></td>
+                <td><?= $doc->e($package['contents']) ?></td>
+                <td class="num"><?= $doc->e($package['quantity']) ?></td>
+                <td class="num"><?= $doc->number($package['weight']) ?></td>
+                <td><?= $doc->ltr($package['size'] ?? '') ?></td>
+            </tr>
+        <?php } ?>
+        <tr class="total">
+            <td colspan="2"><?= $doc->e($doc->t('total')) ?></td>
+            <td class="num"><?= $doc->e($totals['quantity']) ?></td>
+            <td class="num"><?= $doc->number($totals['weight']) ?></td>
+            <td></td>
+        </tr>
+    </tbody>
+</table>
+<?php
+echo PageLayout::render($doc, ob_get_clean(), $doc->t('title').' '.$shipment['number'], $styles);
+```
+
+```blade [pdf.blade.php]
 {{-- resources/doc-templates/packing-list/pdf.blade.php --}}
 @php
     $company = (array) $doc->theme('company', []);
@@ -532,3 +675,5 @@ $packingList->word()->save(storage_path('app/shipments/SHP-2026-0412.docx'));
     </table>
 </x-doc::layout>
 ```
+
+:::

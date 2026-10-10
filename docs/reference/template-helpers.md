@@ -1,12 +1,13 @@
 # Template helpers
 
-Everything you can use while writing a template or a document view: the `$doc` object, the Blade components and directives, the Arabic and ZATCA helpers, the keys of `template.php`, the layout closure and every `word.docx` placeholder. The outputs shown were produced by the package itself.
+Everything you can use while writing a template or a document view: the `$doc` object, the Blade components and directives, what plain PHP pages use instead, the Arabic and ZATCA helpers, the keys of `template.php`, the layout closure and every `word.docx` placeholder. The outputs shown were produced by the package itself.
 
 ## What each file gets {#overview}
 
 | File | What it can use |
 | --- | --- |
-| `pdf.blade.php`, `header.blade.php`, `footer.blade.php`, and views for `Doc::view()` | `$doc` (a [`DocContext`](#doc-context)), every top-level data key as a variable (`$invoice`, `$items` ...), the [components](#layout-component), [directives](#blade-directives) and [global helpers](#global-helpers) |
+| `pdf.html.php`, `header.html.php`, `footer.html.php` | `$doc` (a [`DocContext`](#doc-context)), every top-level data key as a variable (`$invoice`, `$items` ...), and the classes in [Plain PHP pages](#plain-php) |
+| `pdf.blade.php`, `header.blade.php`, `footer.blade.php`, and views for `Doc::view()` | The same variables, plus the [components](#layout-component), [directives](#blade-directives) and [global helpers](#global-helpers) |
 | `layout.php`, `word.php` | A closure that receives the builder, the data and `$doc`: see [layout.php and word.php](#layout-php) |
 | `word.docx` | [`${placeholders}`](#word-placeholders) |
 | `template.php` | The [manifest keys](#template-php) |
@@ -16,7 +17,7 @@ For a template, the data is what you passed merged over the template's `defaults
 
 ## The $doc object {#doc-context}
 
-`$doc` is a `BiztechEG\EasyPdfWord\Support\DocContext`. It is the same object in Blade (`$doc`) and in `layout.php` / `word.php` (the third argument), so one template works for Arabic and English, PDF and Word.
+`$doc` is a `BiztechEG\EasyPdfWord\Support\DocContext`. It is the same object in the PDF page (`$doc`) and in `layout.php` / `word.php` (the third argument), so one template works for Arabic and English, PDF and Word.
 
 ### Properties {#context-properties}
 
@@ -107,6 +108,21 @@ $doc->translations(): array
 ```
 
 All labels of the document's language, with English filling the gaps.
+
+### e() {#context-e}
+
+```php
+$doc->e(mixed $value): string
+```
+
+Escapes a value for HTML in a plain PHP page, as `{{ }}` does in Blade. HTML returned by `ltr()`, `number()` and `money()` is printed as it is.
+
+```php
+<?= $doc->e('<b>A & B</b>') ?>
+<!-- &lt;b&gt;A &amp; B&lt;/b&gt; -->
+<?= $doc->e($doc->ltr('+20 100 000 0000')) ?>
+<!-- <bdo dir="ltr">+20 100 000 0000</bdo> -->
+```
 
 ### ltr() {#context-ltr}
 
@@ -248,6 +264,30 @@ $doc->hijri(mixed $date = null, string $pattern = 'd MMMM y'): string
 @endif
 ```
 
+### monthName() / dayName() {#context-month-day}
+
+```php
+$doc->monthName(DateTimeInterface|string|int $date): string
+$doc->dayName(DateTimeInterface|string|int $date): string
+```
+
+The name of the month or the weekday in the document's language, without Carbon.
+
+| Call | Arabic | English |
+| --- | --- | --- |
+| `$doc->monthName('2026-10-08')` | `أكتوبر` | `October` |
+| `$doc->dayName('2026-10-08')` | `الخميس` | `Thursday` |
+
+Other languages need `ext-intl`; without it they get the English names.
+
+### timezone() {#context-timezone}
+
+```php
+$doc->timezone(): DateTimeZone
+```
+
+The time zone dates are shown in: the app's `app.timezone` in Laravel, PHP's default time zone otherwise. Convert a stored UTC time before printing it: `Dates::parse($issuedAt)->setTimezone($doc->timezone())`.
+
 ### image() {#context-image}
 
 ```php
@@ -338,6 +378,65 @@ Base styles: `body` at 10.5pt with line height 1.5, tables collapsed at full wid
 | `@hijri('2026-10-08')` | `Arabic::hijri('2026-10-08')`: `٢٧ ربيع الآخر ١٤٤٨ هـ` |
 
 Both print escaped text and take the same arguments as the `Arabic` methods. Unlike `$doc->tafqeet()`, `@tafqeet` does not add `فقط ... لا غير` unless you pass `only: true`, and `@hijri` prints Arabic digits even in a document with Latin digits. Inside document templates, prefer the `$doc` methods, which follow the document's settings.
+
+## Plain PHP pages {#plain-php}
+
+A `pdf.html.php`, `header.html.php` or `footer.html.php` is a PHP file that prints HTML. It gets the same `$doc` and data variables as a Blade view, and works with or without Laravel. What Blade gives you has a plain PHP equivalent:
+
+| In Blade | In plain PHP |
+| --- | --- |
+| `{{ $value }}` | `<?= $doc->e($value) ?>` |
+| `{!! $html !!}`, `{{ $doc->ltr($x) }}` | `<?= $html ?>`, `<?= $doc->ltr($x) ?>` |
+| `@if`, `@foreach`, `@php` | `<?php if (...) { ?>`, `<?php foreach (...) { ?>`, `<?php ... ?>` |
+| `$loop->iteration`, `$loop->first`, `$loop->last` | `foreach ($rows as $i => $row)` with `$i + 1`, `$i === 0`, `$i === count($rows) - 1` |
+| `<x-doc::layout>` | `PageLayout::render()`, below |
+| `<x-doc::qr :value="$url" size="25mm" />` | `<img src="<?= $doc->e(Qr::dataUri($url)) ?>" alt="QR" style="width: 25mm; height: 25mm;">` ([Qr](#qr)) |
+| `@tafqeet`, `@hijri` | `$doc->tafqeet()`, `$doc->hijri()`, or the [Arabic](#arabic) class |
+| `Carbon::parse($date)`, `now()` | `Dates::parse($date)`, `Dates::now()`, below |
+
+### PageLayout {#page-layout}
+
+```php
+BiztechEG\EasyPdfWord\View\PageLayout::render(DocContext $doc, string $body, ?string $title = null, string $styles = ''): string
+```
+
+The page skeleton of `x-doc::layout`, byte for byte: `lang` and `dir`, the document font, the base styles and classes, then `$styles` in the head and `$body` in the page. Collect the two with output buffering and print the result at the end:
+
+```php
+<?php
+
+use BiztechEG\EasyPdfWord\View\PageLayout;
+
+ob_start();
+?>
+<style>
+    .total { color: <?= $doc->e($doc->theme('primary')) ?>; font-weight: bold; }
+</style>
+<?php
+$styles = ob_get_clean();
+ob_start();
+?>
+<h1><?= $doc->e($doc->t('title')) ?></h1>
+<p class="text-end total"><?= $doc->money($totals['total'], $doc->currency($invoice['currency'])) ?></p>
+<?php
+echo PageLayout::render($doc, ob_get_clean(), $doc->t('title').' '.$invoice['number'], $styles);
+```
+
+Headers and footers are only a fragment of HTML, without `PageLayout`.
+
+### Dates {#dates}
+
+```php
+BiztechEG\EasyPdfWord\Support\Dates::parse(DateTimeInterface|string|int|null $date, ?string $timezone = null): DateTimeImmutable
+BiztechEG\EasyPdfWord\Support\Dates::now(): DateTimeImmutable
+```
+
+Dates without Carbon. `parse()` reads a `DateTime`, a date string (`'2026-10-08'`, `'2026/10/08 14:30'`) or a Unix timestamp; `null` and `''` give the current time. In Laravel, `now()` follows Carbon's test clock, so `$this->travelTo()` still applies.
+
+```php
+<?= $doc->e(Dates::parse($invoice['date'])->format('Y/m/d')) ?>
+<?= $doc->e($doc->monthName($invoice['date'])) ?>
+```
 
 ## Global helpers {#global-helpers}
 
@@ -542,11 +641,11 @@ Use it in a template's `prepare` callback so totals round like the printed amoun
 BiztechEG\EasyPdfWord\Support\Qr::dataUri(string $value, int $scale = 5): string
 ```
 
-A QR code of any text as a PNG data URI (`data:image/png;base64,...`) that every engine can show. `x-doc::qr` uses it.
+A QR code of any text as a PNG data URI (`data:image/png;base64,...`) that every engine can show. `x-doc::qr` uses it, and plain PHP pages print it in an `<img>`.
 
 ## template.php {#template-php}
 
-`template.php` returns an array. Every key is optional. A folder with only a `pdf.blade.php` already works with `Doc::template()`, but `doc:templates` and the preview page list only folders that have a `template.php`.
+`template.php` returns an array. Every key is optional. A folder with only a `pdf.html.php` or `pdf.blade.php` already works with `Doc::template()`, but `doc:templates` and the preview page list only folders that have a `template.php`.
 
 | Key | Type | Used for | Default |
 | --- | --- | --- | --- |
@@ -618,16 +717,16 @@ Both files return a closure that adds [builder blocks](/reference/api#document-b
 function (DocumentBuilder $builder, array $data, DocContext $doc): void
 ```
 
-The first argument is a `BiztechEG\EasyPdfWord\Builder\DocumentBuilder`, the second the prepared data, the third the same [`$doc`](#doc-context) as in Blade. Name the first one as you like (`$list`, `$word` ...).
+The first argument is a `BiztechEG\EasyPdfWord\Builder\DocumentBuilder`, the second the prepared data, the third the same [`$doc`](#doc-context) as in the PDF page. Name the first one as you like (`$list`, `$word` ...).
 
-Which file makes which format:
+Which file makes which format (`pdf.blade.php` counts as a PDF page like `pdf.html.php`; with both, `pdf.html.php` is used):
 
 | The folder has | PDF from | Word from |
 | --- | --- | --- |
 | `layout.php` | `layout.php` | `layout.php` |
-| `pdf.blade.php` and `word.php` | `pdf.blade.php` | `word.php` |
-| `pdf.blade.php` and `layout.php` | `pdf.blade.php` | `layout.php` |
-| `word.php` without `pdf.blade.php` | `word.php` | `word.php` |
+| `pdf.html.php` and `word.php` | `pdf.html.php` | `word.php` |
+| `pdf.html.php` and `layout.php` | `pdf.html.php` | `layout.php` |
+| `word.php` without a PDF page | `word.php` | `word.php` |
 | `word.docx` (with any of the above) | as above | `word.docx` |
 
 ```php
@@ -664,15 +763,27 @@ Builder text is escaped and is not HTML, so use `numberText()` rather than `numb
 
 ## Header and footer files {#header-footer}
 
-`header.blade.php` and `footer.blade.php` in a template folder are printed on every page. They get `$doc` and the data like `pdf.blade.php`, and `{page}` and `{pages}` become the page number and count. `->header()` and `->footer()` replace them for one document. In Word files they become plain text with page-number fields.
+`header.html.php` and `footer.html.php` (or `header.blade.php` and `footer.blade.php`) in a template folder are printed on every page. They get `$doc` and the data like the PDF page, and `{page}` and `{pages}` become the page number and count. `->header()` and `->footer()` replace them for one document. In Word files they become plain text with page-number fields.
 
-```blade
+::: code-group
+
+```php [plain PHP]
+<!-- header.html.php -->
+<div style="font-size: 8pt; color: #6B7280;"><?= $doc->e($sender) ?> | <?= $doc->ltr($shipment['number']) ?></div>
+
+<!-- footer.html.php -->
+<div style="text-align: center; font-size: 8pt;"><?= $doc->e($doc->t('page', ['current' => '{page}', 'total' => '{pages}'])) ?></div>
+```
+
+```blade [Blade]
 {{-- header.blade.php --}}
 <div style="font-size: 8pt; color: #6B7280;">{{ $sender }} | {{ $doc->ltr($shipment['number']) }}</div>
 
 {{-- footer.blade.php --}}
 <div style="text-align: center; font-size: 8pt;">{{ $doc->t('page', ['current' => '{page}', 'total' => '{pages}']) }}</div>
 ```
+
+:::
 
 With the packing list above, the English footer reads `Page 1 of 1`, and an Arabic document with `->numerals('arabic')` reads `صفحة ١ من ١`.
 

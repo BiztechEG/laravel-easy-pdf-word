@@ -120,7 +120,7 @@ return [
 - **التواريخ** (`Carbon` وغيرها من كائنات التاريخ) تُطبع بصيغة `Y/m/d`، والتاريخ المكتوب نصاً يُطبع كما تمرره.
 - تتبع الأرقام `->numerals()`، وتُهرَّب كل قيمة (escaping)، والقيمة التي تحتوي `${...}` تبقى نصاً عادياً.
 
-لا يحتوي المجلد على `pdf.blade.php`، فهذا القالب يُنتج ملفات Word فقط. وتجده الحزمة كأي قالب آخر: يُبحث في `resources/doc-templates` أولاً ثم في القوالب المرفقة بالحزمة.
+لا يحتوي المجلد على صفحة PDF (`pdf.html.php`) ولا على `layout.php`، فهذا القالب يُنتج ملفات Word فقط. وتجده الحزمة كأي قالب آخر: يُبحث في `resources/doc-templates` أولاً ثم في القوالب المرفقة بالحزمة.
 
 ### 4. املأه من controller
 
@@ -245,7 +245,7 @@ php artisan doc:template invoice
 
 ### ملف PDF من المجلد نفسه
 
-يفشل `->pdf()` على القالب `price-offer` برسالة "Template [price-offer] has no pdf.blade.php."، لأن ملفات Word لا تتحول إلى PDF. أضف `pdf.blade.php` أو `layout.php` إلى المجلد من أجل PDF، ويبقى `word.docx` مسؤولاً عن ملف Word. انظر [قوالبك الخاصة](/ar/guide/custom-templates).
+يفشل `->pdf()` على القالب `price-offer` برسالة "Template [price-offer] has no pdf.html.php or pdf.blade.php."، لأن ملفات Word لا تتحول إلى PDF. أضف `pdf.html.php` أو `layout.php` إلى المجلد من أجل PDF، ويبقى `word.docx` مسؤولاً عن ملف Word. انظر [قوالبك الخاصة](/ar/guide/custom-templates).
 
 ### عبارات بلغتين
 

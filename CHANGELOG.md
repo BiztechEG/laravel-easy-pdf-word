@@ -14,12 +14,13 @@ All notable changes to this package are listed here. The format follows
 - Templates may use plain PHP views: `pdf.html.php`, `footer.html.php` and `header.html.php` work in and out of Laravel; the `.blade.php` files keep working in Laravel.
 - `View\PageLayout::render()` prints the same page as `<x-doc::layout>` for plain PHP views.
 - `$doc->monthName()`, `$doc->dayName()` and `$doc->timezone()` for templates, without Carbon, and `$doc->e()` to escape values in plain PHP views.
+- `doc:make-template --blade` writes the new template's PDF page and footer in Blade.
 
 ### Changed
 
 - The PDF engine manager and the Gotenberg engine no longer need Laravel. Outside Laravel, Gotenberg is reached with the curl extension. In Laravel nothing changes: `Doc::extend()` callbacks still receive the app, `Http::fake()` still sees Gotenberg requests, and fallbacks are still logged as warnings. `PdfManager` no longer extends Laravel's `Manager`, but keeps `driver()`, `extend()`, `getDrivers()` and `forgetDrivers()`; `GotenbergDriver` now takes a `Contracts\HttpClient`.
 - `PendingDocument` and `DocFactory` now extend the framework-free `Document` and `DocumentFactory`, and take a `DocumentServices` object instead of the view factory and config. Code that only uses the `Doc` facade is not affected. HTML fragments and `Doc::make()` documents get their page from `View\PageLayout` (the same HTML as before), so the `easy-pdf-word::raw` view is gone.
-- The bundled templates are plain PHP: the invoice, letter, report and certificate pages are `pdf.html.php`, the footers are `footer.html.php`, and `layout.php`, `word.php` and `template.php` no longer use Carbon or Laravel helpers. All twelve make PDF and Word files without Laravel, and their output in Laravel is unchanged (the PDFs are pixel-identical). Copies made with `doc:template` are plain PHP too; Blade copies made before keep working in Laravel. The report's `generated_at` default is now a `DateTimeImmutable` instead of a Carbon date.
+- The bundled templates are plain PHP: the invoice, letter, report and certificate pages are `pdf.html.php`, the footers are `footer.html.php`, and `layout.php`, `word.php` and `template.php` no longer use Carbon or Laravel helpers. All twelve make PDF and Word files without Laravel, and their output in Laravel is unchanged (the PDFs are pixel-identical). Copies made with `doc:template` and new templates from `doc:make-template` are plain PHP too; Blade copies made before keep working in Laravel. The report's `generated_at` default is now a `DateTimeImmutable` instead of a Carbon date.
 - The Arabic helpers, the ZATCA QR, the document builder, Word templates, watermarks and the Chromium engine no longer use Laravel classes or helpers, the first step to a PHP core that works without Laravel. Behaviour is unchanged, and `Carbon::setTestNow()` / `travelTo()` still set today's date in documents.
 
 ## [1.3.0] - 2026-10-09

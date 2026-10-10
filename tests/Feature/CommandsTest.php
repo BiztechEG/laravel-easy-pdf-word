@@ -93,6 +93,36 @@ class CommandsTest extends TestCase
         $this->assertStringStartsWith('%PDF', $pdf->content());
         $this->assertStringStartsWith('PK', Doc::template('packing-list', ['title' => 'قائمة التعبئة'])->locale('ar')->word()->content());
         $this->artisan('doc:make-template', ['name' => 'packing-list'])->assertFailed();
+        $this->assertFileExists($this->projectTemplates.'/packing-list/pdf.html.php');
+        $this->assertFileExists($this->projectTemplates.'/packing-list/footer.html.php');
+        $this->assertFileDoesNotExist($this->projectTemplates.'/packing-list/pdf.blade.php');
+    }
+
+    public function test_make_a_new_template_in_blade(): void
+    {
+        $this->artisan('doc:make-template', ['name' => 'packing-list', '--blade' => true])->assertSuccessful();
+
+        $this->assertFileExists($this->projectTemplates.'/packing-list/pdf.blade.php');
+        $this->assertFileExists($this->projectTemplates.'/packing-list/footer.blade.php');
+        $this->assertFileDoesNotExist($this->projectTemplates.'/packing-list/pdf.html.php');
+        $this->assertFileDoesNotExist($this->projectTemplates.'/packing-list/footer.html.php');
+
+        $document = Doc::template('packing-list', ['title' => 'قائمة التعبئة'])->locale('ar');
+        $this->assertStringContainsString('قائمة التعبئة</h1>', $document->toHtml());
+        $this->assertStringContainsString('{page} / {pages}', $document->options()->footer);
+    }
+
+    public function test_both_starters_make_the_same_page(): void
+    {
+        $this->artisan('doc:make-template', ['name' => 'plain'])->assertSuccessful();
+        $this->artisan('doc:make-template', ['name' => 'blade', '--blade' => true])->assertSuccessful();
+
+        $plain = Doc::template('plain', ['title' => 'عنوان'])->locale('ar');
+        $blade = Doc::template('blade', ['title' => 'عنوان'])->locale('ar');
+        $normalize = fn (string $html) => preg_replace(['/\s+/', '/\s>/'], [' ', '>'], $html);
+
+        $this->assertSame($normalize($blade->toHtml()), $normalize($plain->toHtml()));
+        $this->assertSame(trim($blade->options()->footer), trim($plain->options()->footer));
     }
 
     public function test_a_new_template_named_like_a_bundled_one_warns_that_it_replaces_it(): void
