@@ -10,10 +10,14 @@ All notable changes to this package are listed here. The format follows
 
 - A template validator that works without Laravel (`Validation\RuleValidator`). It understands the rules templates use (required, required_if, present, nullable, string, numeric, integer, boolean, array, date, date_format, min, max, size, in, gt, after_or_equal, regex) with Laravel's meaning and messages; a test checks it against Laravel's validator on every bundled template. Laravel apps keep using Laravel's validator.
 - `Exceptions\ValidationFailed::withMessages()` for checks in a template's `prepare`. Laravel apps receive it as Laravel's `ValidationException`, as before.
+- `EasyPdfWord::create($config)` uses the library without Laravel: `->make()`, `->html()`, `->view()` and templates with plain PHP views give `Document` objects whose `->pdf()` and `->word()` files can be saved, sent to the browser or zipped. The settings are those of `config/easy-pdf-word.php` (`EasyPdfWord::defaults()`). The bundled templates still use Blade, so they need Laravel until they are converted.
+- Templates may use plain PHP views: `pdf.html.php`, `footer.html.php` and `header.html.php` work in and out of Laravel; the `.blade.php` files keep working in Laravel.
+- `View\PageLayout::render()` prints the same page as `<x-doc::layout>` for plain PHP views.
 
 ### Changed
 
 - The PDF engine manager and the Gotenberg engine no longer need Laravel. Outside Laravel, Gotenberg is reached with the curl extension. In Laravel nothing changes: `Doc::extend()` callbacks still receive the app, `Http::fake()` still sees Gotenberg requests, and fallbacks are still logged as warnings. `PdfManager` no longer extends Laravel's `Manager`, but keeps `driver()`, `extend()`, `getDrivers()` and `forgetDrivers()`; `GotenbergDriver` now takes a `Contracts\HttpClient`.
+- `PendingDocument` and `DocFactory` now extend the framework-free `Document` and `DocumentFactory`, and take a `DocumentServices` object instead of the view factory and config. Code that only uses the `Doc` facade is not affected. HTML fragments and `Doc::make()` documents get their page from `View\PageLayout` (the same HTML as before), so the `easy-pdf-word::raw` view is gone.
 - The Arabic helpers, the ZATCA QR, the document builder, Word templates, watermarks and the Chromium engine no longer use Laravel classes or helpers, the first step to a PHP core that works without Laravel. Behaviour is unchanged, and `Carbon::setTestNow()` / `travelTo()` still set today's date in documents.
 
 ## [1.3.0] - 2026-10-09
