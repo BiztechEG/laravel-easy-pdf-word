@@ -192,7 +192,7 @@ This copies the template to `resources/doc-templates/my-letter/`:
 - `template.php`: the fields and defaults, for example `'show_hijri' => false`;
 - `pdf.blade.php`: the PDF layout and its CSS;
 - `word.php`: the Word layout;
-- `footer.blade.php`: the contact footer;
+- `footer.html.php`: the contact footer;
 - `lang/ar.php` and `lang/en.php`: the labels and the default greeting and closing.
 
 Edit `pdf.blade.php` and `word.php` together, so both files stay alike. Use the copy with `Doc::template('my-letter', $data)`. See [Your own templates](/guide/custom-templates).

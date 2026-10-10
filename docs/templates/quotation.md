@@ -183,7 +183,7 @@ This copies the template to `resources/doc-templates/my-quotation`. Use it with 
 - `lang/ar.php` and `lang/en.php` for the labels: the opening sentence under `intro`, the closing under `closing`, the column names.
 - `template.php` for the fields and the defaults, for example `'quote' => ['currency' => 'SAR', 'tax_rate' => 15]` to always add Saudi VAT.
 - `layout.php` for the layout of both formats.
-- `footer.blade.php` for the footer.
+- `footer.html.php` for the footer.
 
 See [Your own templates](/guide/custom-templates).
 

@@ -204,7 +204,7 @@ To change a bundled template, copy it into your app under a new name:
 php artisan doc:template invoice --as=my-invoice
 ```
 
-This copies the whole folder to `resources/doc-templates/my-invoice/` (the first folder in `templates.paths`): `template.php`, `pdf.blade.php`, `word.php`, `footer.blade.php` and `lang/`. Edit any of them, then use the new name:
+This copies the whole folder to `resources/doc-templates/my-invoice/` (the first folder in `templates.paths`): `template.php`, `pdf.blade.php`, `word.php`, `footer.html.php` and `lang/`. Edit any of them, then use the new name:
 
 ```php
 Doc::template('my-invoice', $data)->locale('ar')->pdf();

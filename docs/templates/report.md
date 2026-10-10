@@ -190,7 +190,7 @@ This copies the template to `resources/doc-templates/my-report/`:
 - `template.php`: the fields, the defaults and the page settings; add `'orientation' => 'landscape'` to make every report landscape;
 - `pdf.blade.php`: the PDF layout and its CSS;
 - `word.php`: the Word layout;
-- `footer.blade.php`: the footer with the title and page numbers;
+- `footer.html.php`: the footer with the title and page numbers;
 - `lang/ar.php` and `lang/en.php`: the labels الإجمالي، لا توجد بيانات and تاريخ الإنشاء.
 
 Edit `pdf.blade.php` and `word.php` together, so both files stay alike. Use the copy with `Doc::template('my-report', $data)`. See [Your own templates](/guide/custom-templates).

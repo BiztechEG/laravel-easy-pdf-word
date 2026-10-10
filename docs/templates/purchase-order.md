@@ -180,7 +180,7 @@ This copies the template to `resources/doc-templates/my-purchase-order`. Use it 
 - `lang/ar.php` and `lang/en.php` for the labels: the opening sentence under `intro`, the signature names under `signatures` (add your own roles there to have them translated).
 - `template.php` for the fields, the defaults (currency, VAT rate) and the default signatures in `prepare()`.
 - `layout.php` for the layout of both formats.
-- `footer.blade.php` for the footer.
+- `footer.html.php` for the footer.
 
 See [Your own templates](/guide/custom-templates).
 

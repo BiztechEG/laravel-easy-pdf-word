@@ -241,7 +241,7 @@ This copies the template to `resources/doc-templates/my-invoice`. Use it with `D
 - `lang/ar.php` and `lang/en.php` for the labels, such as the title or the currency names.
 - `template.php` for the fields, the `defaults` (for example `'invoice' => ['currency' => 'SAR', 'tax_rate' => 15]` for Saudi Arabia) and the totals in `prepare()`.
 - `pdf.blade.php` for the PDF layout and `word.php` for the Word layout. Change both when you move or add something.
-- `footer.blade.php` for the footer; `{page}` and `{pages}` become page numbers.
+- `footer.html.php` for the footer; `{page}` and `{pages}` become page numbers.
 
 See [Your own templates](/guide/custom-templates) for the folder and the helpers available in a template.
 

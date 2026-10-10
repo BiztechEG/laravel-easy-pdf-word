@@ -263,7 +263,7 @@ php artisan doc:template eg-invoice --as=my-eg-invoice
 - `lang/ar.php` و `lang/en.php` للعناوين: أسماء المستندات تحت `types`، وأسماء الضرائب تحت `tax_types`، ونص رمز QR تحت `verify`.
 - `layout.php` لتخطيط الصيغتين: أعمدة جدول الأسطر وما تعرضه الخانات.
 - `template.php` للحقول وحساب الضرائب في `prepare()`.
-- `footer.blade.php` لتذييل الصفحة.
+- `footer.html.php` لتذييل الصفحة.
 
 انظر [قوالبك الخاصة](/ar/guide/custom-templates).
 

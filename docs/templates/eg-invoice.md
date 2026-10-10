@@ -263,7 +263,7 @@ This copies the template to `resources/doc-templates/my-eg-invoice`. Use it with
 - `lang/ar.php` and `lang/en.php` for the labels: the titles under `types`, the tax names under `tax_types`, the QR caption under `verify`.
 - `layout.php` for the layout of both formats: the columns of the lines table, what the boxes show.
 - `template.php` for the fields and the tax computation in `prepare()`.
-- `footer.blade.php` for the footer.
+- `footer.html.php` for the footer.
 
 See [Your own templates](/guide/custom-templates).
 
