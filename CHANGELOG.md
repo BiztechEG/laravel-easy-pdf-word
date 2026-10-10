@@ -6,6 +6,10 @@ All notable changes to this package are listed here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- The Arabic helpers, the ZATCA QR, the document builder, Word templates, watermarks and the Chromium engine no longer use Laravel classes or helpers, the first step to a PHP core that works without Laravel. Behaviour is unchanged, and `Carbon::setTestNow()` / `travelTo()` still set today's date in documents.
+
 ## [1.3.0] - 2026-10-09
 
 ### Added
