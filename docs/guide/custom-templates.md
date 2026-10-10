@@ -64,7 +64,7 @@ A folder is found by `Doc::template()` as soon as it has `template.php`, `pdf.bl
 | `margins` | `pdf.margins` in the config (15 mm) | Millimetres: `[top, right, bottom, left]`. Shorter lists work like `->margins()`: `[15]` for all sides, `[15, 12]` for top and bottom, then right and left. `->margins()` wins. |
 | `fields` | `[]` | Laravel validation rules for the data, keyed by dotted paths: `'items.*.quantity' => ['required', 'numeric']`. |
 | `defaults` | `[]` | Data merged under what the developer passes, key by key, before validation. |
-| `prepare` | none | `function (array $data, array $theme): array`. Runs after validation and returns the data with computed values added (totals, numbering, a QR code). It can throw `ValidationException::withMessages()` for checks rules cannot express. |
+| `prepare` | none | `function (array $data, array $theme): array`. Runs after validation and returns the data with computed values added (totals, numbering, a QR code). It can throw `ValidationException::withMessages()` for checks rules cannot express, or the package's `BiztechEG\EasyPdfWord\Exceptions\ValidationFailed::withMessages()`, which Laravel apps receive as a `ValidationException` too. The bundled templates use the latter. |
 | `sample` | `[]` | Example data for the preview page, `doc:sample` and your tests: an array, or a closure that returns one (useful for `now()`). |
 | `theme` | `[]` | Theme values for this template only, such as its own `primary` colour. They sit between the config theme and `->theme()`. |
 

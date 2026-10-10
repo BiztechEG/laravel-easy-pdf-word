@@ -6,6 +6,11 @@ All notable changes to this package are listed here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- A template validator that works without Laravel (`Validation\RuleValidator`). It understands the rules templates use (required, required_if, present, nullable, string, numeric, integer, boolean, array, date, date_format, min, max, size, in, gt, after_or_equal, regex) with Laravel's meaning and messages; a test checks it against Laravel's validator on every bundled template. Laravel apps keep using Laravel's validator.
+- `Exceptions\ValidationFailed::withMessages()` for checks in a template's `prepare`. Laravel apps receive it as Laravel's `ValidationException`, as before.
+
 ### Changed
 
 - The PDF engine manager and the Gotenberg engine no longer need Laravel. Outside Laravel, Gotenberg is reached with the curl extension. In Laravel nothing changes: `Doc::extend()` callbacks still receive the app, `Http::fake()` still sees Gotenberg requests, and fallbacks are still logged as warnings. `PdfManager` no longer extends Laravel's `Manager`, but keeps `driver()`, `extend()`, `getDrivers()` and `forgetDrivers()`; `GotenbergDriver` now takes a `Contracts\HttpClient`.
