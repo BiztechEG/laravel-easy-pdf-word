@@ -474,6 +474,8 @@ $options->orientation;  // 'landscape'
 
 الدوال `forTemplate()` و`forView()` و`forHtml()` و`forBuilder()` (منشئات ثابتة يستخدمها `Doc`) و`recordTo()` (يستخدمها `Doc::fake()`) و`toQueue()` و`fromQueue()` (يستخدمها الـ job) كلها *داخلية*.
 
+ترث `PendingDocument` الفئة `BiztechEG\EasyPdfWord\Document`، وهي المستند نفسه دون Laravel؛ وتضيف `PendingDocument` الدالة `->queue()` والتسجيل في `Doc::fake()` وقبول مجموعات Laravel ونماذجه بيانات.
+
 ## DocumentBuilder {#document-builder}
 
 الكائن `BiztechEG\EasyPdfWord\Builder\DocumentBuilder` يصف المستند على شكل كتل. تستخدمه عبر `Doc::make()`، وتستلمه معاملًا أول في ملف `layout.php` أو `word.php` للقالب. كل دالة كتلة تعيد الكائن نفسه. الدليل: [بناء المستند بالكود](/ar/guide/builder).
@@ -624,7 +626,7 @@ isEmpty(): bool
 
 ## الملفات الناتجة {#rendered-files}
 
-ترث `PdfDocument` و`WordDocument` و`ZipFile` الفئة المجردة `BiztechEG\EasyPdfWord\RenderedFile`، التي تطبّق الواجهتين `Attachable` (للبريد) و`Responsable` (لردود الـ controller) من Laravel. يُنشأ الملف مرة واحدة عند أول استدعاء يحتاج إلى محتواه.
+ترث `PdfDocument` و`WordDocument` و`ZipFile` الفئة المجردة `BiztechEG\EasyPdfWord\RenderedFile`، التي تطبّق الواجهتين `Attachable` (للبريد) و`Responsable` (لردود الـ controller) من Laravel. يُنشأ الملف مرة واحدة عند أول استدعاء يحتاج إلى محتواه. وترث `RenderedFile` الفئة `BiztechEG\EasyPdfWord\Output\File`، وهي الملف دون Laravel.
 
 | الدالة | تعيد | الوصف |
 | --- | --- | --- |

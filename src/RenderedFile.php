@@ -2,6 +2,7 @@
 
 namespace BiztechEG\EasyPdfWord;
 
+use BiztechEG\EasyPdfWord\Output\File;
 use BiztechEG\EasyPdfWord\Testing\GeneratedDocument;
 use Closure;
 use Illuminate\Contracts\Mail\Attachable;
@@ -14,54 +15,22 @@ use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * A rendered (or about to be rendered) file. Rendering happens once, on the
- * first call that needs the bytes.
+ * A rendered file in Laravel: saved to disks, returned as a download or a
+ * response, attached to mail. Rendering happens once, on the first call
+ * that needs the bytes.
  */
-abstract class RenderedFile implements Attachable, Responsable
+abstract class RenderedFile extends File implements Attachable, Responsable
 {
-    private ?string $content = null;
-
-    private ?string $engine = null;
-
     /**
      * @param  Closure(): array{0: string, 1: string}  $renderer  returns [bytes, engine name]
      * @param  GeneratedDocument|null  $fake  set under Doc::fake(): saves and responses are recorded there
      */
     public function __construct(
-        private Closure $renderer,
-        private string $filename = 'document',
+        Closure $renderer,
+        string $filename = 'document',
         private ?GeneratedDocument $fake = null,
-    ) {}
-
-    abstract public function mimeType(): string;
-
-    abstract public function extension(): string;
-
-    public function content(): string
-    {
-        if ($this->content === null) {
-            [$this->content, $this->engine] = ($this->renderer)();
-        }
-
-        return $this->content;
-    }
-
-    public function toString(): string
-    {
-        return $this->content();
-    }
-
-    public function base64(): string
-    {
-        return base64_encode($this->content());
-    }
-
-    /** The engine that produced the file, after a fallback too. */
-    public function engine(): string
-    {
-        $this->content();
-
-        return $this->engine;
+    ) {
+        parent::__construct($renderer, $filename);
     }
 
     public function download(?string $filename = null): Response
@@ -94,16 +63,7 @@ abstract class RenderedFile implements Attachable, Responsable
         }
 
         if ($disk === null && $this->isAbsolute($path)) {
-            // Another worker may create the folder at the same moment.
-            if (! is_dir(dirname($path)) && ! @mkdir(dirname($path), 0775, true) && ! is_dir(dirname($path))) {
-                throw new RuntimeException('Could not create the folder ['.dirname($path).'].');
-            }
-
-            if (@file_put_contents($path, $this->content()) === false) {
-                throw new RuntimeException("Could not write [{$path}].");
-            }
-
-            return $path;
+            return parent::save($path);
         }
 
         // Disks do not throw by default; a failed write must not look saved
@@ -129,12 +89,6 @@ abstract class RenderedFile implements Attachable, Responsable
         return Attachment::fromData(fn () => $this->content(), $this->filename())->withMime($this->mimeType());
     }
 
-    /** The file name used for downloads and mail attachments, with its extension. */
-    public function filename(): string
-    {
-        return $this->cleanFilename($this->filename);
-    }
-
     private function response(?string $filename, string $disposition): Response
     {
         $filename = $this->cleanFilename($filename ?? $this->filename);
@@ -151,15 +105,6 @@ abstract class RenderedFile implements Attachable, Responsable
             'Content-Type' => $this->mimeType(),
             'Content-Disposition' => HeaderUtils::makeDisposition($disposition, $filename, $fallback),
         ]);
-    }
-
-    protected function cleanFilename(string $filename): string
-    {
-        // Slashes are not allowed in a file name.
-        $filename = str_replace(['/', '\\'], '-', $filename);
-        $extension = '.'.$this->extension();
-
-        return str_ends_with(strtolower($filename), $extension) ? $filename : $filename.$extension;
     }
 
     private function isAbsolute(string $path): bool
