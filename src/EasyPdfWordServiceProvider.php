@@ -8,7 +8,9 @@ use BiztechEG\EasyPdfWord\Console\ListTemplatesCommand;
 use BiztechEG\EasyPdfWord\Console\MakeTemplateCommand;
 use BiztechEG\EasyPdfWord\Console\SampleCommand;
 use BiztechEG\EasyPdfWord\Fonts\FontRegistry;
+use BiztechEG\EasyPdfWord\Laravel\BladeViewRenderer;
 use BiztechEG\EasyPdfWord\Laravel\LaravelHttpClient;
+use BiztechEG\EasyPdfWord\Laravel\LaravelValidator;
 use BiztechEG\EasyPdfWord\Pdf\PdfManager;
 use BiztechEG\EasyPdfWord\Templates\TemplateRegistry;
 use Illuminate\Http\Client\Factory as HttpFactory;
@@ -36,6 +38,15 @@ class EasyPdfWordServiceProvider extends ServiceProvider
             http: new LaravelHttpClient(fn () => $app->make(HttpFactory::class)),
             warn: fn (string $message) => Log::warning($message),
             creatorArgument: $app,
+        ));
+
+        $this->app->singleton(DocumentServices::class, fn ($app) => new DocumentServices(
+            pdf: $app->make(PdfManager::class),
+            fonts: $app->make(FontRegistry::class),
+            views: new BladeViewRenderer(fn () => $app->make('view')),
+            validator: new LaravelValidator(fn () => $app->make('validator')),
+            config: fn () => (array) $app['config']->get('easy-pdf-word', []),
+            appLocale: fn () => $app['config']->get('app.locale', 'en'),
         ));
 
         $this->app->singleton(DocFactory::class);
