@@ -175,7 +175,7 @@ How values are written:
 - A placeholder with no value in the data is removed. So is an image placeholder whose image cannot be used (an SVG, a missing file, or a file outside the allowed folders): it is left empty, and the path is never printed.
 - In right-to-left documents, a value without Arabic letters, such as a phone number, a date or a code (`+20 100 000 0000`, `2026-10-08`, `INV-2026-1024`), is marked as left to right, so Word keeps its parts in order. Values made only of digits are left as they are.
 
-A `word.docx` makes the Word file only. For the PDF, add a `pdf.blade.php` or `layout.php` to the same folder; without one, `->pdf()` fails with "Template [quote-word] has no pdf.blade.php."
+A `word.docx` makes the Word file only. For the PDF, add a `pdf.html.php` or `layout.php` to the same folder; without one, `->pdf()` fails with "Template [quote-word] has no pdf.html.php or pdf.blade.php."
 
 ## Images in Word {#images}
 
@@ -192,9 +192,9 @@ In the builder, image widths are in millimetres; in a `word.docx`, sizes are in 
 | `->watermark()` | Left out: the Word file is made without it. |
 | `->password()` | Refused: `->word()` throws `LogicException` with "Word files cannot take a password; ->password() works for PDF files only." `->queue('….docx')` refuses it too. A file you meant to protect never goes out open. |
 | Blade views and HTML | Not possible: `->word()` throws `WordNotSupported`. Use a template or the builder. |
-| A template with only `pdf.blade.php` | Not possible: `WordNotSupported` asks you to add `layout.php`, `word.php` or `word.docx`. |
+| A template with only `pdf.html.php` (or `pdf.blade.php`) | Not possible: `WordNotSupported` asks you to add `layout.php`, `word.php` or `word.docx`. |
 | Fonts | Not embedded: the [Word font](#word-font) must be on the reader's computer. `->font()` is ignored. |
 | Header and footer | One centred line of small text, with page numbers. HTML styles, tables and images in them are left out. |
-| CSS | `pdf.blade.php` and its CSS are for the PDF only. The Word file comes from its own layout. |
+| CSS | `pdf.html.php` and its CSS are for the PDF only. The Word file comes from its own layout. |
 
 To protect a document, send the PDF with a password and the Word file only to people who may edit it.

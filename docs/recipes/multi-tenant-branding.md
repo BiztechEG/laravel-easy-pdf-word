@@ -210,16 +210,16 @@ Gulf Star wants its bank details under the totals. Copy the invoice template und
 php artisan doc:template invoice --as=invoice.gulf-star
 ```
 
-This copies the template to `resources/doc-templates/invoice.gulf-star/`. Add the box to `pdf.blade.php`, just before the notes:
+This copies the template to `resources/doc-templates/invoice.gulf-star/`. Add the box to `pdf.html.php`, just before the notes:
 
-```blade
-    <div style="margin-top: 5mm; border: 1px solid {{ $border }}; padding: 3mm 4mm;">
-        <strong style="color: {{ $primary }};">Bank details</strong><br>
-        Al Rajhi Bank, Gulf Star Trading Co.<br>
-        IBAN: {{ $doc->ltr('SA03 8000 0000 6080 1016 7519') }}
-    </div>
+```php
+<div style="margin-top: 5mm; border: 1px solid <?= $doc->e($border) ?>; padding: 3mm 4mm;">
+    <strong style="color: <?= $doc->e($primary) ?>;">Bank details</strong><br>
+    Al Rajhi Bank, Gulf Star Trading Co.<br>
+    IBAN: <?= $doc->ltr('SA03 8000 0000 6080 1016 7519') ?>
+</div>
 
-    @if (! empty($invoice['notes']))
+<?php if (! empty($invoice['notes'])) { ?>
 ```
 
 The Word file is built by `word.php` in the same folder, so add the box there too, before `if (! empty($invoice['notes'])) {`:
@@ -342,7 +342,7 @@ Add `->font('tajawal')` (or `cairo`, `naskh`, or a font you registered) after `d
 
 ### The brand in your own templates
 
-Your own templates get the same theme. In Blade, `$doc->theme('primary')` and `$doc->theme('company.name')`; in a Word-designed `word.docx`, the placeholders `${theme.company.name}` and `${theme.logo:150:60}`. So `$tenant->document('price-offer', $data)` brands a template you designed yourself, too.
+Your own templates get the same theme. In a PDF page, `$doc->theme('primary')` and `$doc->theme('company.name')`; in a Word-designed `word.docx`, the placeholders `${theme.company.name}` and `${theme.logo:150:60}`. So `$tenant->document('price-offer', $data)` brands a template you designed yourself, too.
 
 ## Related pages {#related}
 

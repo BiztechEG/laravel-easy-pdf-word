@@ -120,7 +120,7 @@ How values are printed in the Word file:
 - **Dates** (`Carbon` and other date objects) print as `Y/m/d`; a date string prints as you pass it.
 - Digits follow `->numerals()`, every value is escaped, and a value that contains `${...}` stays plain text.
 
-The folder has no `pdf.blade.php`, so this template makes Word files only. The package finds it like any other template: `resources/doc-templates` is searched first, then the bundled templates.
+The folder has no PDF page (`pdf.html.php`) or `layout.php`, so this template makes Word files only. The package finds it like any other template: `resources/doc-templates` is searched first, then the bundled templates.
 
 ### 4. Fill it from a controller
 
@@ -245,7 +245,7 @@ php artisan doc:template invoice
 
 ### A PDF from the same folder
 
-`->pdf()` on the `price-offer` template fails with "Template [price-offer] has no pdf.blade.php.", because Word files cannot be turned into PDFs. Add a `pdf.blade.php` or a `layout.php` to the folder for the PDF; `word.docx` stays in charge of the Word file. See [Your own templates](/guide/custom-templates).
+`->pdf()` on the `price-offer` template fails with "Template [price-offer] has no pdf.html.php or pdf.blade.php.", because Word files cannot be turned into PDFs. Add a `pdf.html.php` or a `layout.php` to the folder for the PDF; `word.docx` stays in charge of the Word file. See [Your own templates](/guide/custom-templates).
 
 ### Labels in two languages
 
