@@ -240,7 +240,7 @@ Styles: `bold`, `italic`, `size` (pt), `color`, `align` (`start`, `end`, `center
 A template folder can describe its layout in three ways:
 
 - `layout.php` returns `fn (DocumentBuilder $doc, array $data, DocContext $context)` and adds blocks. One layout makes both the PDF and the Word file; the quotation, purchase order, delivery note, credit note, receipt, payslip, contract and Egyptian e-invoice templates work this way.
-- `word.php` has the same shape and is used for Word only, next to a `pdf.blade.php` for the PDF, like the invoice, letter, report and certificate templates.
+- `word.php` has the same shape and is used for Word only, next to a `pdf.html.php` for the PDF, like the invoice, letter, report and certificate templates.
 - `word.docx` is a file you design in Word with placeholders. It wins over `word.php` and `layout.php` for Word.
 
 Placeholders in `word.docx`:
@@ -336,11 +336,11 @@ A template is a folder:
 ```
 resources/doc-templates/my-invoice/
   template.php        title, fields (validation rules), defaults, prepare(), sample data
-  pdf.blade.php       the PDF layout in Blade
+  pdf.html.php        the PDF layout in HTML and plain PHP (or pdf.blade.php in Blade)
   layout.php          or one code layout for PDF and Word
   word.php            optional Word layout (or word.docx designed in Word)
-  footer.blade.php    optional, may use {page} and {pages}
-  header.blade.php    optional
+  footer.html.php     optional, may use {page} and {pages} (or footer.blade.php)
+  header.html.php     optional (or header.blade.php)
   lang/ar.php         labels, read with $doc->t('key')
   lang/en.php
 ```
@@ -415,7 +415,7 @@ Word files take JPEG, PNG and GIF; WebP and BMP images are turned into PNG. SVG 
 
 The package treats the data you pass to a template as untrusted:
 
-- Text is escaped in Blade templates, `Doc::make()` blocks and Word files. `${...}` in a value stays text in `word.docx` templates.
+- Text is escaped in template pages (`$doc->e()` in plain PHP, `{{ }}` in Blade), `Doc::make()` blocks and Word files. `${...}` in a value stays text in `word.docx` templates.
 - Images follow the rules in [Images](#images); colours must be real colours (`#0F766E`, `rgb(...)`, `red`), so they cannot add CSS.
 - `->locale()` and `->font()` accept plain names only (`ar`, `ar_EG`, `cairo`).
 - Chromium (Browsershot and Gotenberg) renders with JavaScript off (`DOC_CHROME_JAVASCRIPT=true` turns it on). Allowed remote images are fetched without following redirects.
