@@ -43,7 +43,7 @@ php artisan doc:templates
 | Name | ما تمرره إلى `Doc::template()` |
 | Title | `title` من ملف `template.php` الخاص بالقالب |
 | Locales | `locales` من `template.php` (`ar, en` إن لم يحددها) |
-| Formats | `PDF` حين يحتوي القالب `pdf.blade.php` أو `layout.php` أو `word.php`؛ و`Word` حين يحتوي `layout.php` أو `word.php` أو `word.docx` |
+| Formats | `PDF` حين يحتوي القالب `pdf.html.php` أو `pdf.blade.php` أو `layout.php` أو `word.php`؛ و`Word` حين يحتوي `layout.php` أو `word.php` أو `word.docx` |
 | Source | `project` لقالب في تطبيقك، و`package` لقالب مرفق |
 
 تظهر قوالبك أولًا. والقالب في مشروعك الذي يحمل اسم قالب مرفق يحل محله، فلا يظهر القالب المرفق في القائمة.
@@ -90,15 +90,16 @@ php artisan doc:template letter --force
 
 ## doc:make-template {#doc-make-template}
 
-ينشئ مجلد قالب جديد من هيكل فارغ: `template.php` و`pdf.blade.php` و`word.php` و`footer.blade.php` و`lang/ar.php` و`lang/en.php`.
+ينشئ مجلد قالب جديد من هيكل فارغ: `template.php` و`pdf.html.php` و`word.php` و`footer.html.php` و`lang/ar.php` و`lang/en.php`. صفحة PDF والتذييل مكتوبان [بلغة PHP العادية](/ar/guide/custom-templates#pdf-html) مثل القوالب المرفقة.
 
 ```bash
-php artisan doc:make-template {name}
+php artisan doc:make-template {name} [--blade]
 ```
 
-| الوسيط | المعنى |
+| الوسيط أو الخيار | المعنى |
 | --- | --- |
 | `name` | اسم المجلد، وهو اسم القالب أيضًا، مثل `packing-list`. حروف وأرقام ونقاط وشرطات وشرطات سفلية. |
+| `--blade` | يكتب صفحة PDF والتذييل بلغة Blade بدلاً من ذلك: `pdf.blade.php` و`footer.blade.php`. ولا يعملان إلا في Laravel. |
 
 ```bash
 php artisan doc:make-template packing-list

@@ -208,7 +208,7 @@ Doc::pdfManager(): PdfManager
 | الأرقام | `easy-pdf-word.numerals` (`latin`) |
 | الخط | `fonts.default` (`cairo`) للمستندات من اليمين إلى اليسار، و`fonts.default_ltr` (`cairo`) لغيرها |
 | مقاس الورق والاتجاه والهوامش | `template.php`، ثم `pdf.paper` (`A4`) و`pdf.orientation` (`portrait`) و`pdf.margins` (`[15, 15, 15, 15]`) |
-| رأس الصفحة وتذييلها | الملفان `header.blade.php` و`footer.blade.php` في مجلد القالب |
+| رأس الصفحة وتذييلها | الملفان `header.html.php` و`footer.html.php` في مجلد القالب (أو نسختاهما `.blade.php`) |
 | العنوان | المفتاح `title` في `template.php` |
 | الهوية | `easy-pdf-word.theme`، ثم `theme` في `template.php`، ثم `->theme()` |
 | المحرك | `pdf.driver` (`DOC_PDF_DRIVER`، والافتراضي `mpdf`) |
@@ -357,7 +357,7 @@ margins(float $top, ?float $right = null, ?float $bottom = null, ?float $left = 
 header(string $html): static
 ```
 
-HTML يُطبع أعلى كل صفحة (رأس الصفحة). يتحول `{page}` و`{pages}` إلى رقم الصفحة وعدد الصفحات. يحل محل `header.blade.php` في القالب. في ملفات Word يتحول HTML إلى نص عادي مع حقول أرقام الصفحات.
+HTML يُطبع أعلى كل صفحة (رأس الصفحة). يتحول `{page}` و`{pages}` إلى رقم الصفحة وعدد الصفحات. يحل محل ملف رأس الصفحة في القالب. في ملفات Word يتحول HTML إلى نص عادي مع حقول أرقام الصفحات.
 
 ### footer() {#pending-footer}
 
@@ -365,7 +365,7 @@ HTML يُطبع أعلى كل صفحة (رأس الصفحة). يتحول `{page}
 footer(string $html): static
 ```
 
-مثل السابق أسفل كل صفحة (تذييل الصفحة)، ويحل محل `footer.blade.php` في القالب.
+مثل السابق أسفل كل صفحة (تذييل الصفحة)، ويحل محل ملف التذييل في القالب.
 
 ```php
 ->footer('<div style="text-align: center; font-size: 8pt;">صفحة {page} من {pages}</div>')
@@ -841,12 +841,12 @@ foreach (Doc::templates()->all() as $name => $template) {
 | `sample(): array` | `sample` (وإن كانت دالة تُستدعى) |
 | `theme(): array` | `theme` |
 | `paper()` و`orientation(): ?string` و`margins(): ?array` | إعدادات الصفحة، أو `null`. وتعيد `paper()` اسمًا مثل `'A4-L'` أو `[width, height]` بالمليمتر |
-| `hasPdfView(): bool` و`pdfView(): string` | `pdf.blade.php`، و`pdfView()` يرمي `RuntimeException` إن لم يوجد |
+| `hasPdfView(): bool` و`pdfView(): string` | `pdf.html.php`، وإلا `pdf.blade.php`، و`pdfView()` يرمي `RuntimeException` إن لم يوجد |
 | `wordFile(): ?string` | مسار `word.docx`، أو `null` |
 | `wordLayout(): ?callable` | `word.php`، وإلا `layout.php` |
-| `pdfLayout(): ?callable` | `layout.php`، وإلا `word.php` (يُستخدم حين لا يوجد `pdf.blade.php`) |
+| `pdfLayout(): ?callable` | `layout.php`، وإلا `word.php` (يُستخدم حين لا توجد صفحة PDF) |
 | `supportsPdf(): bool` و`supportsWord(): bool` | الصيغ التي يستطيع المجلد إنتاجها |
-| `headerView(): ?string` و`footerView(): ?string` | مسارا `header.blade.php` و`footer.blade.php` |
+| `headerView(): ?string` و`footerView(): ?string` | مسارا ملفي رأس الصفحة والتذييل: `.html.php`، وإلا `.blade.php` |
 | `translations(string $locale): array` | النصوص في `lang/{language}.php` |
 
 ## FontRegistry {#font-registry}
