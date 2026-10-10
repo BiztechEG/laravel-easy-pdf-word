@@ -7,6 +7,7 @@ use BiztechEG\EasyPdfWord\Arabic\Numerals;
 use BiztechEG\EasyPdfWord\Builder\DocumentBuilder;
 use BiztechEG\EasyPdfWord\Builder\HtmlRenderer;
 use BiztechEG\EasyPdfWord\Contracts\PdfDriver;
+use BiztechEG\EasyPdfWord\Exceptions\ValidationFailed;
 use BiztechEG\EasyPdfWord\Exceptions\WordNotSupported;
 use BiztechEG\EasyPdfWord\Fonts\FontRegistry;
 use BiztechEG\EasyPdfWord\Jobs\SaveDocument;
@@ -27,6 +28,7 @@ use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\View\Factory as ViewFactory;
 use Illuminate\Foundation\Bus\PendingDispatch;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 use InvalidArgumentException;
 use LogicException;
 
@@ -700,7 +702,12 @@ class PendingDocument
             Validator::make($data, $this->template->rules())->validate();
         }
 
-        return $this->prepared = $this->template->prepare($data, $this->resolvedTheme());
+        try {
+            return $this->prepared = $this->template->prepare($data, $this->resolvedTheme());
+        } catch (ValidationFailed $e) {
+            // Templates throw the framework-free exception; Laravel apps get their usual one.
+            throw ValidationException::withMessages($e->errors());
+        }
     }
 
     private function toArrays(array $data): array

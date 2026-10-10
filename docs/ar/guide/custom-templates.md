@@ -64,7 +64,7 @@ Doc::template('packing-list', ['title' => 'قائمة التعبئة'])->locale(
 | `margins` | `pdf.margins` في الإعدادات (15 مم) | بالمليمتر: `[top, right, bottom, left]`. والقوائم الأقصر تعمل كما في `->margins()`: ‏`[15]` لكل الجهات، و`[15, 12]` للأعلى والأسفل ثم لليمين واليسار. و`->margins()` تتقدم عليه. |
 | `fields` | `[]` | قواعد تحقق Laravel للبيانات، ومفاتيحها مسارات بالنقاط: `'items.*.quantity' => ['required', 'numeric']`. |
 | `defaults` | `[]` | بيانات تُدمج تحت ما يمرره المطور، مفتاحاً بمفتاح، قبل التحقق. |
-| `prepare` | لا شيء | `function (array $data, array $theme): array`. تعمل بعد التحقق وتعيد البيانات بعد إضافة القيم المحسوبة (الإجماليات، والترقيم، ورمز QR). ويمكنها رمي `ValidationException::withMessages()` لفحوص لا تعبّر عنها القواعد. |
+| `prepare` | لا شيء | `function (array $data, array $theme): array`. تعمل بعد التحقق وتعيد البيانات بعد إضافة القيم المحسوبة (الإجماليات، والترقيم، ورمز QR). ويمكنها رمي `ValidationException::withMessages()` لفحوص لا تعبّر عنها القواعد، أو `BiztechEG\EasyPdfWord\Exceptions\ValidationFailed::withMessages()` من الحزمة، وتصل إلى تطبيقات Laravel على هيئة `ValidationException` أيضًا. والقوالب المرفقة تستخدم الثانية. |
 | `sample` | `[]` | بيانات مثال لصفحة المعاينة والأمر `doc:sample` واختباراتك: مصفوفة، أو closure تعيد مصفوفة (مفيدة مع `now()`). |
 | `theme` | `[]` | قيم هوية لهذا القالب وحده، مثل لون `primary` خاص به. تقع بين هوية الإعدادات و`->theme()`. |
 
