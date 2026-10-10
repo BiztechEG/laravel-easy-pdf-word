@@ -176,7 +176,7 @@ This copies the template to `resources/doc-templates/my-delivery-note`. Use it w
 - `lang/ar.php` and `lang/en.php` for the labels: the acknowledgement under `acknowledgement`, the opening sentence under `intro`, the roles under `signatures`.
 - `template.php` for the fields, the remaining quantities and the default signatures in `prepare()`.
 - `layout.php` for the layout of both formats, for example to add a weight column.
-- `footer.blade.php` for the footer.
+- `footer.html.php` for the footer.
 
 See [Your own templates](/guide/custom-templates).
 

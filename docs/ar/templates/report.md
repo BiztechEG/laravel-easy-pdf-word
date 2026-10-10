@@ -190,7 +190,7 @@ php artisan doc:template report --as=my-report
 - `template.php`: الحقول والقيم الافتراضية وإعدادات الصفحة؛ أضف `'orientation' => 'landscape'` لتصبح كل التقارير بالعرض؛
 - `pdf.blade.php`: تخطيط PDF وتنسيقات CSS؛
 - `word.php`: تخطيط ملف Word؛
-- `footer.blade.php`: التذييل بالعنوان وأرقام الصفحات؛
+- `footer.html.php`: التذييل بالعنوان وأرقام الصفحات؛
 - `lang/ar.php` و`lang/en.php`: العناوين الإجمالي، ولا توجد بيانات، وتاريخ الإنشاء.
 
 عدّل `pdf.blade.php` و`word.php` معاً ليبقى الملفان متشابهين. واستخدم النسخة عبر `Doc::template('my-report', $data)`. انظر [قوالبك الخاصة](/ar/guide/custom-templates).

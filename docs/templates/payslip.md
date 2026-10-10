@@ -214,7 +214,7 @@ This copies the template to `resources/doc-templates/my-payslip/`:
 
 - `template.php`: the fields and defaults, for example `'currency' => 'SAR'`;
 - `layout.php`: the layout of both the PDF and the Word file;
-- `footer.blade.php`: the confidential footer;
+- `footer.html.php`: the confidential footer;
 - `lang/ar.php` and `lang/en.php`: the labels. In Saudi Arabia you might change `'national_id' => 'الرقم القومي'` to `'رقم الهوية / الإقامة'`.
 
 Use the copy with `Doc::template('my-payslip', $data)`. A new field needs a rule in `template.php` and a line in `layout.php` that prints it. See [Your own templates](/guide/custom-templates).

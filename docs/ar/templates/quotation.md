@@ -183,7 +183,7 @@ php artisan doc:template quotation --as=my-quotation
 - `lang/ar.php` و `lang/en.php` للعناوين: الجملة الافتتاحية تحت `intro`، والختام تحت `closing`، وأسماء الأعمدة.
 - `template.php` للحقول والقيم الافتراضية، مثلاً `'quote' => ['currency' => 'SAR', 'tax_rate' => 15]` لإضافة الضريبة السعودية دائماً.
 - `layout.php` لتخطيط الصيغتين.
-- `footer.blade.php` لتذييل الصفحة.
+- `footer.html.php` لتذييل الصفحة.
 
 انظر [قوالبك الخاصة](/ar/guide/custom-templates).
 

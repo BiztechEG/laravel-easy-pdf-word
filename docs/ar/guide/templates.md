@@ -204,7 +204,7 @@ php artisan doc:templates
 php artisan doc:template invoice --as=my-invoice
 ```
 
-ينسخ هذا الأمر المجلد كله إلى `resources/doc-templates/my-invoice/` (أول مجلد في `templates.paths`): ‏`template.php` و`pdf.blade.php` و`word.php` و`footer.blade.php` و`lang/`. عدّل ما شئت منها، ثم استخدم الاسم الجديد:
+ينسخ هذا الأمر المجلد كله إلى `resources/doc-templates/my-invoice/` (أول مجلد في `templates.paths`): ‏`template.php` و`pdf.blade.php` و`word.php` و`footer.html.php` و`lang/`. عدّل ما شئت منها، ثم استخدم الاسم الجديد:
 
 ```php
 Doc::template('my-invoice', $data)->locale('ar')->pdf();

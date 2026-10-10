@@ -179,7 +179,7 @@ This copies the template to `resources/doc-templates/my-credit-note`. Use it wit
 - `lang/ar.php` and `lang/en.php` for the labels: the titles under `title`, the closing sentences under `effect`, the QR caption under `verify`.
 - `template.php` for the fields, the defaults (currency and VAT rate) and the totals in `prepare()`.
 - `layout.php` for the layout of both formats.
-- `footer.blade.php` for the footer.
+- `footer.html.php` for the footer.
 
 See [Your own templates](/guide/custom-templates).
 

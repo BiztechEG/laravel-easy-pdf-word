@@ -179,7 +179,7 @@ php artisan doc:template credit-note --as=my-credit-note
 - `lang/ar.php` و `lang/en.php` للعناوين: أسماء الإشعار تحت `title`، والجمل الختامية تحت `effect`، ونص رمز QR تحت `verify`.
 - `template.php` للحقول والقيم الافتراضية (العملة ونسبة الضريبة) والإجماليات في `prepare()`.
 - `layout.php` لتخطيط الصيغتين.
-- `footer.blade.php` لتذييل الصفحة.
+- `footer.html.php` لتذييل الصفحة.
 
 انظر [قوالبك الخاصة](/ar/guide/custom-templates).
 

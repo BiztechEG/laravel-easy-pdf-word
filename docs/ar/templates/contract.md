@@ -185,7 +185,7 @@ php artisan doc:template contract --as=my-contract
 
 - `template.php`: الحقول والقيم الافتراضية، مثل `'copies' => 3`؛
 - `layout.php`: تخطيط ملف PDF وملف Word معاً؛
-- `footer.blade.php`: تذييل التوقيعات المختصرة وأرقام الصفحات؛
+- `footer.html.php`: تذييل التوقيعات المختصرة وأرقام الصفحات؛
 - `lang/ar.php` و`lang/en.php`: عبارتا الافتتاح والختام، وكلمات الترتيب، وكل العناوين. ففي عقد الإيجار مثلاً قد تغيّر `intro` لتبدأ بصيغتك الخاصة.
 
 استخدم النسخة عبر `Doc::template('my-contract', $data)`. انظر [قوالبك الخاصة](/ar/guide/custom-templates).

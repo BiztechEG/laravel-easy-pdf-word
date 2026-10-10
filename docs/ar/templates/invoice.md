@@ -241,7 +241,7 @@ php artisan doc:template invoice --as=my-invoice
 - `lang/ar.php` و `lang/en.php` للعناوين، مثل عنوان الفاتورة أو اختصارات العملات.
 - `template.php` للحقول والقيم الافتراضية `defaults` (مثلاً `'invoice' => ['currency' => 'SAR', 'tax_rate' => 15]` للسعودية) والإجماليات في `prepare()`.
 - `pdf.blade.php` لتخطيط PDF و `word.php` لتخطيط Word. عدّل الاثنين عندما تنقل شيئاً أو تضيفه.
-- `footer.blade.php` لتذييل الصفحة؛ يصبح `{page}` و `{pages}` أرقام الصفحات.
+- `footer.html.php` لتذييل الصفحة؛ يصبح `{page}` و `{pages}` أرقام الصفحات.
 
 انظر [قوالبك الخاصة](/ar/guide/custom-templates) لمحتويات المجلد والأدوات المتاحة داخل القالب.
 

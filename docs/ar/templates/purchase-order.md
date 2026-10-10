@@ -180,7 +180,7 @@ php artisan doc:template purchase-order --as=my-purchase-order
 - `lang/ar.php` و `lang/en.php` للعناوين: الجملة الافتتاحية تحت `intro`، وأسماء التوقيعات تحت `signatures` (أضف أدوارك هناك لتُترجم).
 - `template.php` للحقول والقيم الافتراضية (العملة ونسبة الضريبة) والتوقيعات الافتراضية في `prepare()`.
 - `layout.php` لتخطيط الصيغتين.
-- `footer.blade.php` لتذييل الصفحة.
+- `footer.html.php` لتذييل الصفحة.
 
 انظر [قوالبك الخاصة](/ar/guide/custom-templates).
 

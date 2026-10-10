@@ -176,7 +176,7 @@ php artisan doc:template delivery-note --as=my-delivery-note
 - `lang/ar.php` و `lang/en.php` للعناوين: جملة الإقرار تحت `acknowledgement`، والجملة الافتتاحية تحت `intro`، والأدوار تحت `signatures`.
 - `template.php` للحقول وحساب الكميات المتبقية والتوقيعات الافتراضية في `prepare()`.
 - `layout.php` لتخطيط الصيغتين، مثلاً لإضافة عمود للوزن.
-- `footer.blade.php` لتذييل الصفحة.
+- `footer.html.php` لتذييل الصفحة.
 
 انظر [قوالبك الخاصة](/ar/guide/custom-templates).
 

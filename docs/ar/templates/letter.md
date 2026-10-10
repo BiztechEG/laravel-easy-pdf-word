@@ -192,7 +192,7 @@ php artisan doc:template letter --as=my-letter
 - `template.php`: الحقول والقيم الافتراضية، مثل `'show_hijri' => false`؛
 - `pdf.blade.php`: تخطيط PDF وتنسيقات CSS؛
 - `word.php`: تخطيط ملف Word؛
-- `footer.blade.php`: تذييل بيانات الاتصال؛
+- `footer.html.php`: تذييل بيانات الاتصال؛
 - `lang/ar.php` و`lang/en.php`: العناوين، والتحية والختام الافتراضيان.
 
 عدّل `pdf.blade.php` و`word.php` معاً ليبقى الملفان متشابهين. واستخدم النسخة عبر `Doc::template('my-letter', $data)`. انظر [قوالبك الخاصة](/ar/guide/custom-templates).
