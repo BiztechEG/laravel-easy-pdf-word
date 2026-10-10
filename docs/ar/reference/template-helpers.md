@@ -1,12 +1,13 @@
 # أدوات القوالب
 
-كل ما يمكنك استخدامه أثناء كتابة قالب أو view لمستند: الكائن `$doc`، ومكونات Blade وتوجيهاته، والأدوات العربية وأدوات هيئة الزكاة والضريبة والجمارك، ومفاتيح `template.php`، ودالة التخطيط، وكل متغيرات `word.docx`. النتائج المعروضة في هذه الصفحة أنتجتها المكتبة نفسها.
+كل ما يمكنك استخدامه أثناء كتابة قالب أو view لمستند: الكائن `$doc`، ومكونات Blade وتوجيهاته، وما تستخدمه صفحات PHP العادية بدلاً منها، والأدوات العربية وأدوات هيئة الزكاة والضريبة والجمارك، ومفاتيح `template.php`، ودالة التخطيط، وكل متغيرات `word.docx`. النتائج المعروضة في هذه الصفحة أنتجتها المكتبة نفسها.
 
 ## ما يحصل عليه كل ملف {#overview}
 
 | الملف | ما يمكنه استخدامه |
 | --- | --- |
-| `pdf.blade.php` و`header.blade.php` و`footer.blade.php` وملفات view المستخدمة مع `Doc::view()` | `$doc` (كائن [`DocContext`](#doc-context))، وكل مفتاح أعلى في البيانات كمتغير (`$invoice` و`$items` ...)، و[المكونات](#layout-component) و[التوجيهات](#blade-directives) و[الدوال العامة](#global-helpers) |
+| `pdf.html.php` و`header.html.php` و`footer.html.php` | `$doc` (كائن [`DocContext`](#doc-context))، وكل مفتاح أعلى في البيانات كمتغير (`$invoice` و`$items` ...)، والفئات المذكورة في [صفحات PHP العادية](#plain-php) |
+| `pdf.blade.php` و`header.blade.php` و`footer.blade.php` وملفات view المستخدمة مع `Doc::view()` | المتغيرات نفسها، ومعها [المكونات](#layout-component) و[التوجيهات](#blade-directives) و[الدوال العامة](#global-helpers) |
 | `layout.php` و`word.php` | دالة تستقبل كائن البناء والبيانات و`$doc`: راجع [layout.php و word.php](#layout-php) |
 | `word.docx` | [`${placeholders}`](#word-placeholders) |
 | `template.php` | [مفاتيح الملف](#template-php) |
@@ -16,7 +17,7 @@
 
 ## الكائن $doc {#doc-context}
 
-`$doc` كائن من الفئة `BiztechEG\EasyPdfWord\Support\DocContext`. هو الكائن نفسه في Blade (`$doc`) وفي `layout.php` و`word.php` (المعامل الثالث)، فيعمل القالب الواحد بالعربية والإنجليزية وبصيغتي PDF و Word.
+`$doc` كائن من الفئة `BiztechEG\EasyPdfWord\Support\DocContext`. هو الكائن نفسه في صفحة PDF (`$doc`) وفي `layout.php` و`word.php` (المعامل الثالث)، فيعمل القالب الواحد بالعربية والإنجليزية وبصيغتي PDF و Word.
 
 ### الخصائص {#context-properties}
 
@@ -107,6 +108,21 @@ $doc->translations(): array
 ```
 
 كل نصوص لغة المستند، وتكمل الإنجليزية ما ينقص منها.
+
+### e() {#context-e}
+
+```php
+$doc->e(mixed $value): string
+```
+
+تهرّب القيمة لتُطبع في HTML داخل صفحة PHP عادية، كما يفعل `{{ }}` في Blade. أما HTML الذي تعيده `ltr()` و`number()` و`money()` فيُطبع كما هو.
+
+```php
+<?= $doc->e('<b>A & B</b>') ?>
+<!-- &lt;b&gt;A &amp; B&lt;/b&gt; -->
+<?= $doc->e($doc->ltr('+20 100 000 0000')) ?>
+<!-- <bdo dir="ltr">+20 100 000 0000</bdo> -->
+```
 
 ### ltr() {#context-ltr}
 
@@ -248,6 +264,30 @@ $doc->hijri(mixed $date = null, string $pattern = 'd MMMM y'): string
 @endif
 ```
 
+### monthName() / dayName() {#context-month-day}
+
+```php
+$doc->monthName(DateTimeInterface|string|int $date): string
+$doc->dayName(DateTimeInterface|string|int $date): string
+```
+
+اسم الشهر أو اسم يوم الأسبوع بلغة المستند، بدون Carbon.
+
+| الاستدعاء | بالعربية | بالإنجليزية |
+| --- | --- | --- |
+| `$doc->monthName('2026-10-08')` | `أكتوبر` | `October` |
+| `$doc->dayName('2026-10-08')` | `الخميس` | `Thursday` |
+
+اللغات الأخرى تحتاج إلى `ext-intl`، وبدونه تحصل على الأسماء الإنجليزية.
+
+### timezone() {#context-timezone}
+
+```php
+$doc->timezone(): DateTimeZone
+```
+
+المنطقة الزمنية التي تُعرض بها التواريخ: `app.timezone` الخاصة بالتطبيق في Laravel، والمنطقة الزمنية الافتراضية في PHP خارجه. حوّل الوقت المخزن بتوقيت UTC قبل طباعته: `Dates::parse($issuedAt)->setTimezone($doc->timezone())`.
+
 ### image() {#context-image}
 
 ```php
@@ -338,6 +378,65 @@ DocContext::toFloat(int|float|string|null $value): float
 | `@hijri('2026-10-08')` | `Arabic::hijri('2026-10-08')`: `٢٧ ربيع الآخر ١٤٤٨ هـ` |
 
 كلاهما يطبع نصًا مرمَّزًا ويقبل معاملات دوال `Arabic` نفسها. وبخلاف `$doc->tafqeet()` لا يضيف `@tafqeet` عبارة `فقط ... لا غير` إلا إن مررت `only: true`، ويطبع `@hijri` أرقامًا عربية حتى في مستند بالأرقام اللاتينية. داخل قوالب المستندات فضّل دوال `$doc` لأنها تتبع إعدادات المستند.
+
+## صفحات PHP العادية {#plain-php}
+
+الملفات `pdf.html.php` و`header.html.php` و`footer.html.php` ملفات PHP تطبع HTML. تحصل على `$doc` ومتغيرات البيانات نفسها التي يحصل عليها ملف Blade، وتعمل داخل Laravel وخارجه. ولكل ما يقدمه Blade مقابل في PHP العادية:
+
+| في Blade | في PHP العادية |
+| --- | --- |
+| `{{ $value }}` | `<?= $doc->e($value) ?>` |
+| `{!! $html !!}` و`{{ $doc->ltr($x) }}` | `<?= $html ?>` و`<?= $doc->ltr($x) ?>` |
+| `@if` و`@foreach` و`@php` | `<?php if (...) { ?>` و`<?php foreach (...) { ?>` و`<?php ... ?>` |
+| `$loop->iteration` و`$loop->first` و`$loop->last` | `foreach ($rows as $i => $row)` مع `$i + 1` و`$i === 0` و`$i === count($rows) - 1` |
+| `<x-doc::layout>` | `PageLayout::render()`، أدناه |
+| `<x-doc::qr :value="$url" size="25mm" />` | `<img src="<?= $doc->e(Qr::dataUri($url)) ?>" alt="QR" style="width: 25mm; height: 25mm;">` ([Qr](#qr)) |
+| `@tafqeet` و`@hijri` | `$doc->tafqeet()` و`$doc->hijri()`، أو الفئة [Arabic](#arabic) |
+| `Carbon::parse($date)` و`now()` | `Dates::parse($date)` و`Dates::now()`، أدناه |
+
+### PageLayout {#page-layout}
+
+```php
+BiztechEG\EasyPdfWord\View\PageLayout::render(DocContext $doc, string $body, ?string $title = null, string $styles = ''): string
+```
+
+هيكل الصفحة نفسه الذي ينتجه `x-doc::layout` حرفاً بحرف: `lang` و`dir`، وخط المستند، والتنسيقات والأصناف الأساسية، ثم `$styles` في رأس الصفحة و`$body` في متنها. اجمعهما بالتخزين المؤقت للمخرجات (output buffering) واطبع الناتج في النهاية:
+
+```php
+<?php
+
+use BiztechEG\EasyPdfWord\View\PageLayout;
+
+ob_start();
+?>
+<style>
+    .total { color: <?= $doc->e($doc->theme('primary')) ?>; font-weight: bold; }
+</style>
+<?php
+$styles = ob_get_clean();
+ob_start();
+?>
+<h1><?= $doc->e($doc->t('title')) ?></h1>
+<p class="text-end total"><?= $doc->money($totals['total'], $doc->currency($invoice['currency'])) ?></p>
+<?php
+echo PageLayout::render($doc, ob_get_clean(), $doc->t('title').' '.$invoice['number'], $styles);
+```
+
+أما رأس الصفحة وتذييلها فمجرد جزء من HTML، بلا `PageLayout`.
+
+### Dates {#dates}
+
+```php
+BiztechEG\EasyPdfWord\Support\Dates::parse(DateTimeInterface|string|int|null $date, ?string $timezone = null): DateTimeImmutable
+BiztechEG\EasyPdfWord\Support\Dates::now(): DateTimeImmutable
+```
+
+تواريخ بدون Carbon. تقرأ `parse()` كائن `DateTime` أو نص تاريخ (`'2026-10-08'` و`'2026/10/08 14:30'`) أو Unix timestamp، وتعطي `null` و`''` الوقت الحالي. وفي Laravel تتبع `now()` ساعة الاختبار في Carbon، فتظل `$this->travelTo()` تعمل.
+
+```php
+<?= $doc->e(Dates::parse($invoice['date'])->format('Y/m/d')) ?>
+<?= $doc->e($doc->monthName($invoice['date'])) ?>
+```
 
 ## الدوال العامة {#global-helpers}
 
@@ -542,11 +641,11 @@ Currency::round(int|float|string|null $amount, ?string $code): float
 BiztechEG\EasyPdfWord\Support\Qr::dataUri(string $value, int $scale = 5): string
 ```
 
-رمز QR لأي نص كـ data URI بصيغة PNG (`data:image/png;base64,...`) تعرضه كل المحركات. يستخدمها `x-doc::qr`.
+رمز QR لأي نص كـ data URI بصيغة PNG (`data:image/png;base64,...`) تعرضه كل المحركات. يستخدمها `x-doc::qr`، وتطبعها صفحات PHP العادية داخل `<img>`.
 
 ## template.php {#template-php}
 
-يعيد `template.php` مصفوفة، وكل مفاتيحها اختيارية. المجلد الذي فيه `pdf.blade.php` فقط يعمل مع `Doc::template()`، لكن الأمر `doc:templates` وصفحة المعاينة لا يعرضان إلا المجلدات التي فيها `template.php`.
+يعيد `template.php` مصفوفة، وكل مفاتيحها اختيارية. المجلد الذي فيه `pdf.html.php` أو `pdf.blade.php` فقط يعمل مع `Doc::template()`، لكن الأمر `doc:templates` وصفحة المعاينة لا يعرضان إلا المجلدات التي فيها `template.php`.
 
 | المفتاح | النوع | يُستخدم في | الافتراضي |
 | --- | --- | --- | --- |
@@ -618,16 +717,16 @@ return [
 function (DocumentBuilder $builder, array $data, DocContext $doc): void
 ```
 
-المعامل الأول كائن `BiztechEG\EasyPdfWord\Builder\DocumentBuilder`، والثاني البيانات بعد تجهيزها، والثالث [`$doc`](#doc-context) نفسه المستخدم في Blade. سمِّ المعامل الأول كما تشاء (`$list` أو `$word` ...).
+المعامل الأول كائن `BiztechEG\EasyPdfWord\Builder\DocumentBuilder`، والثاني البيانات بعد تجهيزها، والثالث [`$doc`](#doc-context) نفسه المستخدم في صفحة PDF. سمِّ المعامل الأول كما تشاء (`$list` أو `$word` ...).
 
-أي ملف ينتج أي صيغة:
+أي ملف ينتج أي صيغة (`pdf.blade.php` صفحة PDF مثل `pdf.html.php`، وإذا وُجد الملفان يُستخدم `pdf.html.php`):
 
 | في المجلد | ملف PDF من | ملف Word من |
 | --- | --- | --- |
 | `layout.php` | `layout.php` | `layout.php` |
-| `pdf.blade.php` و`word.php` | `pdf.blade.php` | `word.php` |
-| `pdf.blade.php` و`layout.php` | `pdf.blade.php` | `layout.php` |
-| `word.php` بدون `pdf.blade.php` | `word.php` | `word.php` |
+| `pdf.html.php` و`word.php` | `pdf.html.php` | `word.php` |
+| `pdf.html.php` و`layout.php` | `pdf.html.php` | `layout.php` |
+| `word.php` بدون صفحة PDF | `word.php` | `word.php` |
 | `word.docx` (مع أي مما سبق) | كما سبق | `word.docx` |
 
 ```php
@@ -664,15 +763,27 @@ return function (DocumentBuilder $list, array $data, DocContext $doc): void {
 
 ## ملفا رأس الصفحة وتذييلها {#header-footer}
 
-يُطبع `header.blade.php` و`footer.blade.php` الموجودان في مجلد القالب على كل صفحة. يحصلان على `$doc` والبيانات مثل `pdf.blade.php`، ويتحول `{page}` و`{pages}` إلى رقم الصفحة وعدد الصفحات. تحل `->header()` و`->footer()` محلهما لمستند واحد. وفي ملفات Word يصبحان نصًا عاديًا مع حقول أرقام الصفحات.
+يُطبع `header.html.php` و`footer.html.php` (أو `header.blade.php` و`footer.blade.php`) الموجودان في مجلد القالب على كل صفحة. يحصلان على `$doc` والبيانات مثل صفحة PDF، ويتحول `{page}` و`{pages}` إلى رقم الصفحة وعدد الصفحات. تحل `->header()` و`->footer()` محلهما لمستند واحد. وفي ملفات Word يصبحان نصًا عاديًا مع حقول أرقام الصفحات.
 
-```blade
+::: code-group
+
+```php [PHP العادية]
+<!-- header.html.php -->
+<div style="font-size: 8pt; color: #6B7280;"><?= $doc->e($sender) ?> | <?= $doc->ltr($shipment['number']) ?></div>
+
+<!-- footer.html.php -->
+<div style="text-align: center; font-size: 8pt;"><?= $doc->e($doc->t('page', ['current' => '{page}', 'total' => '{pages}'])) ?></div>
+```
+
+```blade [Blade]
 {{-- header.blade.php --}}
 <div style="font-size: 8pt; color: #6B7280;">{{ $sender }} | {{ $doc->ltr($shipment['number']) }}</div>
 
 {{-- footer.blade.php --}}
 <div style="text-align: center; font-size: 8pt;">{{ $doc->t('page', ['current' => '{page}', 'total' => '{pages}']) }}</div>
 ```
+
+:::
 
 مع قائمة التعبئة السابقة يظهر التذييل في المستند الإنجليزي `Page 1 of 1`، وفي المستند العربي مع `->numerals('arabic')` يظهر `صفحة ١ من ١`.
 
