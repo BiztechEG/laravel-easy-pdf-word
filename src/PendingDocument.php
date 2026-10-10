@@ -20,6 +20,7 @@ use BiztechEG\EasyPdfWord\Templates\Template;
 use BiztechEG\EasyPdfWord\Testing\DocFake;
 use BiztechEG\EasyPdfWord\Testing\FakePdfDriver;
 use BiztechEG\EasyPdfWord\Testing\GeneratedDocument;
+use BiztechEG\EasyPdfWord\View\PageLayout;
 use BiztechEG\EasyPdfWord\Word\DocxTemplateFiller;
 use BiztechEG\EasyPdfWord\Word\WordRenderer;
 use BadMethodCallException;
@@ -492,12 +493,12 @@ class PendingDocument
         $data = $this->viewData($context);
 
         $html = match (true) {
-            $this->builder !== null => $this->wrapHtml((new HtmlRenderer)->render($this->builder, $context), $data),
+            $this->builder !== null => $this->wrapHtml((new HtmlRenderer)->render($this->builder, $context), $context),
             $this->template !== null && ! $this->template->hasPdfView() && $this->template->supportsPdf()
-                => $this->wrapHtml((new HtmlRenderer)->render($this->runLayout($this->template->pdfLayout(), $data, $context), $context), $data),
+                => $this->wrapHtml((new HtmlRenderer)->render($this->runLayout($this->template->pdfLayout(), $data, $context), $context), $context),
             $this->template !== null => $this->views->file($this->template->pdfView(), $data)->render(),
             $this->view !== null => $this->views->make($this->view, $data)->render(),
-            default => $this->wrapHtml((string) $this->html, $data),
+            default => $this->wrapHtml((string) $this->html, $context),
         };
 
         $html = $this->withTitle($html, $options->title);
@@ -757,13 +758,10 @@ class PendingDocument
         return preg_replace('/<\/head>/i', '<style>'.addcslashes($this->fonts->cssFontFaces($named), '\\$').'</style></head>', $html, 1) ?? $html;
     }
 
-    private function wrapHtml(string $html, array $data): string
+    /** A body fragment gets the package's page around it; a whole page stays as it is. */
+    private function wrapHtml(string $html, DocContext $context): string
     {
-        if (preg_match('/<html[\s>]/i', $html)) {
-            return $html;
-        }
-
-        return $this->views->make('easy-pdf-word::raw', ['body' => $html] + $data)->render();
+        return preg_match('/<html[\s>]/i', $html) ? $html : PageLayout::render($context, $html);
     }
 
     private function resolvedLocale(): string
