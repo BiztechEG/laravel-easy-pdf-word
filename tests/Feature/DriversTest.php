@@ -190,7 +190,7 @@ class DriversTest extends TestCase
     {
         $font = sys_get_temp_dir().'/easy-pdf-word-tests/MyFont.ttf';
         @mkdir(dirname($font), 0775, true);
-        copy(dirname(__DIR__, 2).'/resources/fonts/Cairo-Regular.ttf', $font);
+        copy((new \BiztechEG\EasyPdfWord\Fonts\FontRegistry)->get('cairo')['regular'], $font);
 
         $fonts = new \BiztechEG\EasyPdfWord\Fonts\FontRegistry(['my-font' => ['regular' => $font]]);
         $before = $fonts->signature();
@@ -370,8 +370,8 @@ class DriversTest extends TestCase
         $dir = sys_get_temp_dir().'/easy-pdf-word-tests/fonts';
         @mkdir($dir.'/fa', 0775, true);
         @mkdir($dir.'/fb', 0775, true);
-        copy(__DIR__.'/../../resources/fonts/Cairo-Regular.ttf', $dir.'/fa/Regular.ttf');
-        copy(__DIR__.'/../../resources/fonts/Tajawal-Regular.ttf', $dir.'/fb/Regular.ttf');
+        copy((new \BiztechEG\EasyPdfWord\Fonts\FontRegistry)->get('cairo')['regular'], $dir.'/fa/Regular.ttf');
+        copy((new \BiztechEG\EasyPdfWord\Fonts\FontRegistry)->get('tajawal')['regular'], $dir.'/fb/Regular.ttf');
 
         $fonts = app(\BiztechEG\EasyPdfWord\Fonts\FontRegistry::class)
             ->register('fa', ['regular' => $dir.'/fa/Regular.ttf'])
