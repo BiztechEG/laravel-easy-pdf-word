@@ -25,7 +25,7 @@ The name in the first column is what you pass to `Doc::template()`.
 
 | Template | What it is | Paper | Word layout |
 | --- | --- | --- | --- |
-| `invoice` | Tax invoice: seller, buyer, items, discount, VAT, total in words, Hijri date, ZATCA or link QR | A4 portrait | Yes, `word.php` (PDF from `pdf.blade.php`) |
+| `invoice` | Tax invoice: seller, buyer, items, discount, VAT, total in words, Hijri date, ZATCA or link QR | A4 portrait | Yes, `word.php` (PDF from `pdf.html.php`) |
 | `eg-invoice` | Egyptian Tax Authority (ETA) e-invoice, credit or debit note, with item codes and ETA tax types | A4 portrait | Yes, `layout.php` (one layout for both) |
 | `credit-note` | Credit or debit note against an issued invoice, with the reason, VAT and an optional QR | A4 portrait | Yes, `layout.php` |
 | `quotation` | Price quotation with optional VAT, validity date, terms and the sender's signature | A4 portrait | Yes, `layout.php` |
@@ -34,9 +34,9 @@ The name in the first column is what you pass to `Doc::template()`.
 | `receipt` | Receipt voucher or payment voucher: amount in figures and words, cash, cheque, transfer or card | A5 landscape | Yes, `layout.php` |
 | `payslip` | Monthly payslip: earnings and deductions, net pay in words, attendance, signatures | A4 portrait | Yes, `layout.php` |
 | `contract` | Contract between two or more parties: preamble, numbered clauses, copies, signatures, witnesses | A4 portrait | Yes, `layout.php` |
-| `certificate` | Certificate of completion, attendance, participation or appreciation, with a verification QR | A4 landscape | Yes, `word.php` (PDF from `pdf.blade.php`) |
-| `letter` | Official letter: letterhead, reference number, Gregorian and Hijri dates, signature and stamp | A4 portrait | Yes, `word.php` (PDF from `pdf.blade.php`) |
-| `report` | Table report from any rows: chosen columns, totals row, summary cards, header on every page | A4 portrait | Yes, `word.php` (PDF from `pdf.blade.php`) |
+| `certificate` | Certificate of completion, attendance, participation or appreciation, with a verification QR | A4 landscape | Yes, `word.php` (PDF from `pdf.html.php`) |
+| `letter` | Official letter: letterhead, reference number, Gregorian and Hijri dates, signature and stamp | A4 portrait | Yes, `word.php` (PDF from `pdf.html.php`) |
+| `report` | Table report from any rows: chosen columns, totals row, summary cards, header on every page | A4 portrait | Yes, `word.php` (PDF from `pdf.html.php`) |
 
 Every template has a Word layout, so `->word()` works for all of them. Word files need `phpoffice/phpword`; see [Word files](/guide/word). The paper size is the template's default: change it per document with `->paper()` and `->landscape()` (see [Page settings](/guide/page-settings)).
 
