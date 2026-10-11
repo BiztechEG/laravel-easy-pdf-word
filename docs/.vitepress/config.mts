@@ -26,6 +26,9 @@ const en: Labels = {
   security: 'Security',
   configuration: 'Configuration',
   troubleshooting: 'Troubleshooting',
+  'plain-php': 'Plain PHP',
+  wordpress: 'WordPress',
+  symfony: 'Symfony',
   // Templates
   'invoice:t': 'Tax invoice',
   'eg-invoice:t': 'Egyptian e-invoice',
@@ -78,6 +81,9 @@ const ar: Labels = {
   security: 'الأمان',
   configuration: 'الإعدادات',
   troubleshooting: 'حل المشكلات',
+  'plain-php': 'PHP بدون إطار عمل',
+  wordpress: 'WordPress',
+  symfony: 'Symfony',
   'invoice:t': 'الفاتورة الضريبية',
   'eg-invoice:t': 'الفاتورة الإلكترونية المصرية',
   'credit-note:t': 'إشعار دائن ومدين',
@@ -116,6 +122,7 @@ function sidebar(prefix: string, l: Labels, sections: Labels): DefaultTheme.Side
     { text: sections.arabic, items: ['arabic', 'fonts', 'images'].map(p => item('guide', p)) },
     { text: sections.tools, items: ['preview', 'commands', 'testing'].map(p => item('guide', p)) },
     { text: sections.production, items: ['security', 'configuration', 'troubleshooting'].map(p => item('guide', p)) },
+    { text: sections.php, items: ['plain-php', 'wordpress', 'symfony'].map(p => item('guide', p)) },
     { text: sections.reference, items: ['api', 'template-helpers'].map(p => item('reference', p)) },
   ]
 
@@ -159,6 +166,7 @@ const enSections: Labels = {
   tools: 'Tools', production: 'Production', reference: 'Reference', templates: 'Templates', overview: 'Overview',
   sales: 'Sales and billing', supply: 'Purchasing and delivery', hr: 'HR and office', recipes: 'Recipes',
   billing: 'Invoices and billing', bulk: 'Bulk and reports', custom: 'Custom documents', quality: 'Quality',
+  php: 'Without Laravel',
 }
 
 const arSections: Labels = {
@@ -166,6 +174,7 @@ const arSections: Labels = {
   tools: 'أدوات', production: 'بيئة الإنتاج', reference: 'المرجع', templates: 'القوالب', overview: 'نظرة عامة',
   sales: 'المبيعات والفواتير', supply: 'المشتريات والتسليم', hr: 'الموارد البشرية والمكاتبات', recipes: 'حالات الاستخدام',
   billing: 'الفواتير', bulk: 'الدفعات والتقارير', custom: 'مستندات مخصصة', quality: 'الجودة',
+  php: 'بدون Laravel',
 }
 
 export default defineConfig({

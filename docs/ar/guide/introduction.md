@@ -123,6 +123,10 @@ Doc::template('invoice', $data)
 - **[حالات الاستخدام](/ar/recipes/)**: حلول كاملة لمهام شائعة، مثل [إرسال فاتورة بالبريد](/ar/recipes/email-invoice) و[فاتورة هيئة الزكاة السعودية](/ar/recipes/zatca-invoice) و[قسائم الرواتب الشهرية في ملف ZIP](/ar/recipes/payslips-zip).
 - **المرجع**: كل دوال [واجهة Doc](/ar/reference/api) وكل [أدوات القوالب](/ar/reference/template-helpers) المتاحة على `$doc`.
 
+## بدون Laravel {#without-laravel}
+
+كل ما لا يحتاج إلى Laravel موجود في حزمة مستقلة هي [biztecheg/easy-pdf-word](https://github.com/BiztechEG/easy-pdf-word)، وهذه الحزمة مبنية عليها وتثبّتها تلقائياً. تعمل الحزمة المستقلة في سكريبت PHP عادي وفي WordPress وSymfony وأي إطار عمل آخر، بالقوالب والمحركات ودعم العربية وملفات Word نفسها. راجع [PHP بدون إطار عمل](/ar/guide/plain-php) و[WordPress](/ar/guide/wordpress) و[Symfony](/ar/guide/symfony).
+
 ## الترخيص {#licence}
 
 الحزمة مفتوحة المصدر بترخيص MIT. أما محرك mPDF الاختياري فمرخص بترخيص GPL-2.0: تأكد من أن ذلك يناسب مشروعك، أو استخدم محرك Chromium أو Gotenberg بدلاً منه. والخطوط المرفقة (Cairo وTajawal وNoto Naskh Arabic) مرخصة بترخيص SIL Open Font License.
