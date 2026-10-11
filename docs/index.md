@@ -52,3 +52,5 @@ return Doc::template('invoice', $data)
 ```
 
 The same call with `->word()` gives a Word file, and `->locale('en')` an English one. See the [quick start](/guide/quick-start) for the full example, or the [template gallery](/templates/) for what each template looks like.
+
+Not using Laravel? The same library works in plain PHP, [WordPress](/guide/wordpress) and [Symfony](/guide/symfony). See [Plain PHP](/guide/plain-php).

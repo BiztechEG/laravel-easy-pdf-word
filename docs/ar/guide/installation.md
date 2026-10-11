@@ -2,6 +2,10 @@
 
 تثبّت هذه الصفحة الحزمة ومحرك PDF ودعم ملفات Word، ثم تتأكد من أن كل شيء يعمل. يستغرق ذلك دقائق قليلة على أي خادم يشغّل Laravel.
 
+::: tip لا تستخدم Laravel؟
+ثبّت `biztecheg/easy-pdf-word` بدلاً منها واتبع صفحة [PHP بدون إطار عمل](/ar/guide/plain-php) أو [WordPress](/ar/guide/wordpress) أو [Symfony](/ar/guide/symfony).
+:::
+
 ## تثبيت الحزمة {#install}
 
 ```bash

@@ -2,6 +2,10 @@
 
 This page installs the package, a PDF engine and Word support, and checks that everything works. It takes a few minutes on any server that runs Laravel.
 
+::: tip Not using Laravel?
+Install `biztecheg/easy-pdf-word` instead and follow [Plain PHP](/guide/plain-php), [WordPress](/guide/wordpress) or [Symfony](/guide/symfony).
+:::
+
 ## Install the package {#install}
 
 ```bash

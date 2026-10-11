@@ -52,3 +52,5 @@ return Doc::template('invoice', $data)
 ```
 
 نفس الاستدعاء مع `->word()` ينتج ملف Word، ومع `->locale('en')` ينتج نسخة إنجليزية. راجع [البداية السريعة](/ar/guide/quick-start) للمثال الكامل، أو [معرض القوالب](/ar/templates/) لترى شكل كل قالب.
+
+لا تستخدم Laravel؟ تعمل المكتبة نفسها في PHP العادي و[WordPress](/ar/guide/wordpress) و[Symfony](/ar/guide/symfony). راجع [PHP بدون إطار عمل](/ar/guide/plain-php).

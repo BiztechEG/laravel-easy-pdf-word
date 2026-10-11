@@ -123,6 +123,10 @@ Other settings include `->font()`, `->header()` and `->footer()` with page numbe
 - **[Recipes](/recipes/)**: complete solutions to common tasks, such as [emailing an invoice](/recipes/email-invoice), a [Saudi ZATCA invoice](/recipes/zatca-invoice) or [monthly payslips in one ZIP](/recipes/payslips-zip).
 - **Reference**: every method of the [Doc API](/reference/api) and every [template helper](/reference/template-helpers) on `$doc`.
 
+## Without Laravel {#without-laravel}
+
+Everything that does not need Laravel is in its own package, [biztecheg/easy-pdf-word](https://github.com/BiztechEG/easy-pdf-word), which this one is built on and installs for you. It works in a plain PHP script, WordPress, Symfony or any other framework, with the same templates, engines, Arabic support and Word files. See [Plain PHP](/guide/plain-php), [WordPress](/guide/wordpress) and [Symfony](/guide/symfony).
+
 ## Licence {#licence}
 
 The package is open source under the MIT licence. Its optional mPDF engine is licensed under GPL-2.0: check that this fits your project, or use the Chromium or Gotenberg engine instead. The bundled fonts (Cairo, Tajawal and Noto Naskh Arabic) are under the SIL Open Font License.
