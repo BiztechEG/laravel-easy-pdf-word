@@ -6,6 +6,8 @@ All notable changes to this package are listed here. The format follows
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-11
+
 ### Added
 
 - A template validator that works without Laravel (`Validation\RuleValidator`). It understands the rules templates use (required, required_if, present, nullable, string, numeric, integer, boolean, array, date, date_format, min, max, size, in, gt, after_or_equal, regex) with Laravel's meaning and messages; a test checks it against Laravel's validator on every bundled template. Laravel apps keep using Laravel's validator.
@@ -151,7 +153,8 @@ The first release.
 - Colour values, fonts and locales are checked before they reach HTML, CSS or file paths.
 - Chromium runs without JavaScript unless it is turned on in config.
 
-[Unreleased]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.0.0...v1.1.0
