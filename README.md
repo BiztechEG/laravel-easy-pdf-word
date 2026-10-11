@@ -9,6 +9,8 @@ Generate PDF and Word (.docx) documents from Laravel in any language, with first
 
 **Documentation:** [easypdf.biztech-eg.com](https://easypdf.biztech-eg.com) (guides, every template, recipes and the API, in English and Arabic).
 
+The package is built on [biztecheg/easy-pdf-word](https://github.com/BiztechEG/easy-pdf-word), the same library without Laravel, which Composer installs with it. Use that one directly in WordPress, Symfony or plain PHP.
+
 - Arabic that renders correctly: joined letters, right-to-left layout, mixed Arabic and English, Arabic or Latin digits.
 - Two PDF engines you can switch between: **mPDF** (pure PHP, works on shared hosting) and **Chromium** (via Browsershot or Gotenberg), with automatic fallback.
 - Word files with real right-to-left paragraphs and tables, from the same templates, from code, or from a .docx you design in Word.
@@ -449,7 +451,7 @@ With Arabic digits, Naskh uses the Arabic decimal and thousands separators (١٢
 mPDF cannot read some recent fonts and stops with "This font [...] contains MarkGlyphSets - Not tested yet" or "Lookup Type 5, SubstFormat 3 not tested". Fix the font files once with the included script (needs `pip install fonttools`):
 
 ```bash
-python3 vendor/biztecheg/laravel-easy-pdf-word/bin/mpdf-font-fix.py resources/fonts/MyFont-*.ttf
+python3 vendor/biztecheg/easy-pdf-word/bin/mpdf-font-fix.py resources/fonts/MyFont-*.ttf
 ```
 
 The bundled fonts are already fixed this way.
@@ -505,6 +507,8 @@ MIT. mPDF, an optional dependency, is GPL-2.0; check that it fits your project, 
 مكتبة Laravel لإنشاء ملفات PDF و Word بأي لغة، مع دعم كامل للعربي وقوالب جاهزة.
 
 **التوثيق بالعربي:** [easypdf.biztech-eg.com/ar](https://easypdf.biztech-eg.com/ar/) (شرح، وكل القوالب، وأمثلة استخدام، والـ API).
+
+المكتبة مبنية على [biztecheg/easy-pdf-word](https://github.com/BiztechEG/easy-pdf-word)، نفس المكتبة من غير Laravel، وComposer بينزّلها معاها. استخدمها مباشرة في WordPress أو Symfony أو PHP عادي.
 
 - العربي بيطلع صح: الحروف متشبكة، الاتجاه من اليمين للشمال، والنص المختلط عربي وإنجليزي، وأرقام عربية أو لاتينية.
 - محركين PDF تقدر تبدل بينهم: **mPDF** (PHP بس، شغال على الاستضافة المشتركة) و **Chromium** (عن طريق Browsershot أو Gotenberg)، ولو المحرك المختار مش موجود بيرجع للتاني تلقائياً.

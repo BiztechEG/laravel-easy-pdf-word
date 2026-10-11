@@ -48,7 +48,7 @@ The font uses features that mPDF cannot read, which is common in recent fonts an
 
 ```bash
 python3 -m pip install fonttools
-python3 vendor/biztecheg/laravel-easy-pdf-word/bin/mpdf-font-fix.py resources/fonts/Almarai-*.ttf
+python3 vendor/biztecheg/easy-pdf-word/bin/mpdf-font-fix.py resources/fonts/Almarai-*.ttf
 ```
 
 Other font errors:

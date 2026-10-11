@@ -32,8 +32,8 @@
         "php": "^8.2",
         "ext-mbstring": "*",
         "ext-gd": "*",
-        "laravel/framework": "^12.0|^13.0",
-        "chillerlan/php-qrcode": "^5.0"
+        "biztecheg/easy-pdf-word": "^1.0",
+        "laravel/framework": "^12.0|^13.0"
     },
     "require-dev": {
         "mpdf/mpdf": "^8.2",
@@ -46,7 +46,6 @@
         "mpdf/mpdf": "Default PDF engine: pure PHP, native Arabic shaping and bidi (GPL-2.0).",
         "spatie/browsershot": "Chromium PDF engine via Puppeteer, highest rendering quality.",
         "phpoffice/phpword": "Word (.docx) output: Arabic right-to-left documents and Word-designed templates.",
-        "ext-curl": "Gotenberg engine outside Laravel (Laravel apps use its Http client).",
         "ext-intl": "Required for Hijri dates and locale-aware number formatting.",
         "ext-zip": "Required for Word files and Doc::zip()."
     },
@@ -58,10 +57,7 @@
     "autoload": {
         "psr-4": {
             "BiztechEG\\EasyPdfWord\\": "src/"
-        },
-        "files": [
-            "src/helpers.php"
-        ]
+        }
     },
     "autoload-dev": {
         "psr-4": {
