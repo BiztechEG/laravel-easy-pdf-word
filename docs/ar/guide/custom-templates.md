@@ -23,8 +23,8 @@ resources/doc-templates/packing-list/
 ├── word.php            the Word layout, in code
 ├── footer.html.php     a page footer with page numbers
 └── lang/
-    ├── ar.php          Arabic labels
-    └── en.php          English labels
+    ├── ar.json         Arabic labels
+    └── en.json         English labels
 ```
 
 ```php
@@ -48,7 +48,7 @@ Doc::template('packing-list', ['title' => 'قائمة التعبئة'])->locale(
 | `word.docx` | لا | ملف Word مصمم في Word ومعه `${placeholders}`، يُقدَّم على كل ما عداه لملفات Word |
 | `header.html.php` أو `header.blade.php` | لا | رأس الصفحة، يتكرر في كل صفحة |
 | `footer.html.php` أو `footer.blade.php` | لا | تذييل الصفحة، يتكرر في كل صفحة، ويمكنه طباعة `{page}` و`{pages}` |
-| `lang/{language}.php` | لا | التسميات لكل لغة: `lang/ar.php` و`lang/en.php` و`lang/fr.php` ... |
+| `lang/{language}.json` | لا | التسميات لكل لغة: `lang/ar.json` و`lang/en.json` و`lang/tr.json` و`lang/fr.json` ... |
 
 يعثر `Doc::template()` على المجلد بمجرد أن يحتوي على `template.php` أو `pdf.html.php` أو `pdf.blade.php` أو `layout.php` أو `word.php` أو `word.docx`. لكنه لا يظهر في `doc:templates` ولا في صفحة المعاينة إلا إذا احتوى على `template.php`.
 
@@ -132,17 +132,23 @@ echo PageLayout::render($doc, ob_get_clean(), $doc->t('title'), $styles);
 
 ## التسميات: ملفات lang {#lang}
 
-يعيد كل ملف في `lang/` تسميات لغة واحدة:
+يحتوي كل ملف في `lang/` تسميات لغة واحدة بصيغة JSON:
 
-```php
-// lang/ar.php
-return [
-    'title' => 'قائمة التعبئة',
-    'customer' => 'العميل',
-    'greeting' => 'مرحباً :name، رقم طلبك :number',
-    'units' => ['box' => 'صندوق', 'pallet' => 'طبلية'],
-];
+::: code-group
+
+```json [lang/ar.json]
+{
+    "title": "قائمة التعبئة",
+    "customer": "العميل",
+    "greeting": "مرحباً :name، رقم طلبك :number",
+    "units": {
+        "box": "صندوق",
+        "pallet": "طبلية"
+    }
+}
 ```
+
+:::
 
 اقرأها بـ `$doc->t()` في الصفحات والتخطيطات، وبـ `${t.key}` في ملف `word.docx`:
 
@@ -152,7 +158,9 @@ return [
 <?= $doc->e($doc->t('greeting', ['name' => $customer['name'], 'number' => $order['number']])) ?>
 ```
 
-تُقرأ التسميات المتداخلة بالنقاط، وتُستبدل المتغيرات مثل `:name` بالقيم التي تمررها. يُختار الملف بحسب لغة الـ locale (فاللغة `ar_EG` تقرأ `lang/ar.php`). والتسمية الناقصة هناك تؤخذ من `lang/en.php`، أما التسمية الناقصة في الملفين فيُطبع مفتاحها، فيسهل اكتشاف الأخطاء الإملائية.
+تُقرأ التسميات المتداخلة بالنقاط، وتُستبدل المتغيرات مثل `:name` بالقيم التي تمررها. يُختار الملف بحسب لغة الـ locale (فاللغة `ar_EG` تقرأ `lang/ar.json`). والتسمية الناقصة هناك تؤخذ من `lang/en.json`، أما التسمية الناقصة في الملفين فيُطبع مفتاحها، فيسهل اكتشاف الأخطاء الإملائية.
+
+ويعمل أيضاً ملف `lang/ar.php` يعيد مصفوفة، كما في القوالب المنسوخة قبل الإصدار 1.5؛ وإذا وُجد الملفان في المجلد نفسه تتقدّم تسميات `.php`. واخترنا JSON افتراضياً لأن نسخ المكتبة بلغات البرمجة الأخرى تقرأ الملفات نفسها. وتتبع التواريخ والأرقام والمبلغ كتابةً اللغةَ أيضاً؛ راجع [التركية واللغات الأخرى](/ar/guide/languages).
 
 ## رأس الصفحة وتذييلها {#header-footer}
 
@@ -333,48 +341,44 @@ return [
 
 ::: code-group
 
-```php [lang/ar.php]
-<?php
-
-return [
-    'title' => 'قائمة التعبئة',
-    'number' => 'رقم الشحنة',
-    'date' => 'التاريخ',
-    'order_number' => 'رقم الطلب',
-    'customer' => 'العميل',
-    'contents' => 'المحتويات',
-    'quantity' => 'الكمية',
-    'weight' => 'الوزن (كجم)',
-    'size' => 'المقاس (سم)',
-    'total' => 'الإجمالي',
-    'notes' => 'ملاحظات',
-    'packed_by' => 'أعدّه',
-    'received_by' => 'استلمه',
-    'page' => 'صفحة',
-    'of' => 'من',
-];
+```json [lang/ar.json]
+{
+    "title": "قائمة التعبئة",
+    "number": "رقم الشحنة",
+    "date": "التاريخ",
+    "order_number": "رقم الطلب",
+    "customer": "العميل",
+    "contents": "المحتويات",
+    "quantity": "الكمية",
+    "weight": "الوزن (كجم)",
+    "size": "المقاس (سم)",
+    "total": "الإجمالي",
+    "notes": "ملاحظات",
+    "packed_by": "أعدّه",
+    "received_by": "استلمه",
+    "page": "صفحة",
+    "of": "من"
+}
 ```
 
-```php [lang/en.php]
-<?php
-
-return [
-    'title' => 'Packing List',
-    'number' => 'Shipment no.',
-    'date' => 'Date',
-    'order_number' => 'Order no.',
-    'customer' => 'Customer',
-    'contents' => 'Contents',
-    'quantity' => 'Qty',
-    'weight' => 'Weight (kg)',
-    'size' => 'Size (cm)',
-    'total' => 'Total',
-    'notes' => 'Notes',
-    'packed_by' => 'Packed by',
-    'received_by' => 'Received by',
-    'page' => 'Page',
-    'of' => 'of',
-];
+```json [lang/en.json]
+{
+    "title": "Packing List",
+    "number": "Shipment no.",
+    "date": "Date",
+    "order_number": "Order no.",
+    "customer": "Customer",
+    "contents": "Contents",
+    "quantity": "Qty",
+    "weight": "Weight (kg)",
+    "size": "Size (cm)",
+    "total": "Total",
+    "notes": "Notes",
+    "packed_by": "Packed by",
+    "received_by": "Received by",
+    "page": "Page",
+    "of": "of"
+}
 ```
 
 :::
@@ -390,7 +394,6 @@ return [
 
 use BiztechEG\EasyPdfWord\Builder\DocumentBuilder;
 use BiztechEG\EasyPdfWord\Support\DocContext;
-use Illuminate\Support\Carbon;
 
 /*
 | One layout for the PDF and the Word file.
@@ -407,7 +410,7 @@ return function (DocumentBuilder $list, array $data, DocContext $doc): void {
     $details = [
         ['text' => $doc->t('title'), 'bold' => true, 'size' => 18, 'color' => $primary],
         [$doc->t('number').': ', ['text' => $shipment['number'], 'ltr' => true]],
-        $doc->t('date').': '.Carbon::parse($shipment['date'])->format('Y/m/d'),
+        $doc->t('date').': '.$doc->date($shipment['date']),
     ];
 
     if (! empty($shipment['order_number'])) {
@@ -536,7 +539,6 @@ $packingList->word()->save(storage_path('app/shipments/SHP-2026-0412.docx'));
 
 // resources/doc-templates/packing-list/pdf.html.php
 
-use BiztechEG\EasyPdfWord\Support\Dates;
 use BiztechEG\EasyPdfWord\View\PageLayout;
 
 $company = (array) $doc->theme('company', []);
@@ -569,7 +571,7 @@ ob_start();
         <td style="width: 45%;">
             <div class="title"><?= $doc->e($doc->t('title')) ?></div>
             <div><?= $doc->e($doc->t('number')) ?>: <?= $doc->ltr($shipment['number']) ?></div>
-            <div><?= $doc->e($doc->t('date')) ?>: <?= $doc->e(Dates::parse($shipment['date'])->format('Y/m/d')) ?></div>
+            <div><?= $doc->e($doc->t('date')) ?>: <?= $doc->e($doc->date($shipment['date'])) ?></div>
         </td>
     </tr>
 </table>
@@ -638,7 +640,7 @@ echo PageLayout::render($doc, ob_get_clean(), $doc->t('title').' '.$shipment['nu
             <td style="width: 45%;">
                 <div class="title">{{ $doc->t('title') }}</div>
                 <div>{{ $doc->t('number') }}: {{ $doc->ltr($shipment['number']) }}</div>
-                <div>{{ $doc->t('date') }}: {{ \Illuminate\Support\Carbon::parse($shipment['date'])->format('Y/m/d') }}</div>
+                <div>{{ $doc->t('date') }}: {{ $doc->date($shipment['date']) }}</div>
             </td>
         </tr>
     </table>
