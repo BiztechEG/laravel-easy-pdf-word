@@ -381,7 +381,7 @@ Chromium and Gotenberg print `{page}` and `{pages}` in Latin digits, even with `
 driver(string $driver): static
 ```
 
-The PDF engine for this document: `mpdf`, `chromium` (or `browsershot`, `chrome`), `gotenberg`, or a name registered with `Doc::extend()`. When the engine is not installed or fails, the `pdf.fallback` engine renders the file and a warning is logged. Any other name throws `InvalidArgumentException` when the PDF is rendered: `Unknown PDF engine [chromuim]. Use mpdf, chromium, gotenberg or a name added with Doc::extend().`
+The PDF engine for this document: `mpdf`, `chromium` (or `browsershot`, `chrome`), `gotenberg`, or a name registered with `Doc::extend()`. When the engine is not installed or fails, the `pdf.fallback` engine renders the file and a warning is logged. Any other name throws `InvalidArgumentException` when the PDF is rendered: `Unknown PDF engine [chromuim]. Use mpdf, chromium, gotenberg or a name added with extend() (Doc::extend() in Laravel).`
 
 ### watermark() {#pending-watermark}
 

@@ -48,7 +48,7 @@ return Doc::view('pdf.contract', ['contract' => $contract])
 
 Each key of the data becomes a variable, as in any view, and the package adds `$doc`. A data key named `doc` does not replace it. All the document settings work with views: `->locale()`, `->numerals()`, `->theme()`, `->font()`, `->paper()`, `->header()`, `->footer()`, `->watermark()` and the rest.
 
-Views make PDFs only. `->word()` on a view or on HTML throws `WordNotSupported`: "Word files are made from a template with word.php or word.docx, or from Doc::make(). Blade views and HTML only make PDFs." For a Word file, use [a template](/guide/custom-templates) or [the builder](/guide/builder).
+Views make PDFs only. `->word()` on a view or on HTML throws `WordNotSupported`: "Word files are made from a template with word.php or word.docx, or from make() (Doc::make() in Laravel). Views and HTML only make PDFs." For a Word file, use [a template](/guide/custom-templates) or [the builder](/guide/builder).
 
 ## The layout component {#layout-component}
 

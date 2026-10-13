@@ -381,7 +381,7 @@ footer(string $html): static
 driver(string $driver): static
 ```
 
-محرك PDF لهذا المستند: `mpdf` أو `chromium` (أو `browsershot` أو `chrome`) أو `gotenberg` أو اسم سجلته بـ `Doc::extend()`. إن لم يكن المحرك مثبتًا أو فشل، ينشئ المحرك الاحتياطي `pdf.fallback` الملف ويُسجَّل تحذير في السجلات. وأي اسم آخر يرمي `InvalidArgumentException` عند إنشاء ملف PDF: `Unknown PDF engine [chromuim]. Use mpdf, chromium, gotenberg or a name added with Doc::extend().`
+محرك PDF لهذا المستند: `mpdf` أو `chromium` (أو `browsershot` أو `chrome`) أو `gotenberg` أو اسم سجلته بـ `Doc::extend()`. إن لم يكن المحرك مثبتًا أو فشل، ينشئ المحرك الاحتياطي `pdf.fallback` الملف ويُسجَّل تحذير في السجلات. وأي اسم آخر يرمي `InvalidArgumentException` عند إنشاء ملف PDF: `Unknown PDF engine [chromuim]. Use mpdf, chromium, gotenberg or a name added with extend() (Doc::extend() in Laravel).`
 
 ### watermark() {#pending-watermark}
 

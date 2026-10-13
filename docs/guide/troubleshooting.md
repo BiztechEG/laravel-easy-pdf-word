@@ -107,8 +107,8 @@ The full message also contains the whole Browsershot command; the useful part is
 | `cURL error 7: Failed to connect to localhost port 3000` | Gotenberg is not running, or not at that address. Check `DOC_GOTENBERG_URL`; inside Docker Compose use the service name, such as `http://gotenberg:3000`. |
 | `cURL error 28: Operation timed out` | Gotenberg did not answer within `pdf.drivers.gotenberg.timeout` (60 seconds). |
 | `Gotenberg returned HTTP 404: ...` | The URL points to something else, or has an extra path. Use the server's base address only. |
-| `Gotenberg did not return a PDF; check DOC_GOTENBERG_URL. It returned: ...` | Something answered with a web page, such as a proxy's sign-in page. The message ends with the start of that page's text. |
-| `The [gotenberg] engine needs the URL of a Gotenberg server in DOC_GOTENBERG_URL.` | The URL is empty. |
+| `Gotenberg did not return a PDF; check its URL (pdf.drivers.gotenberg.url, DOC_GOTENBERG_URL in Laravel). It returned: ...` | Something answered with a web page, such as a proxy's sign-in page. The message ends with the start of that page's text. |
+| `The [gotenberg] engine needs the URL of a Gotenberg server in the pdf.drivers.gotenberg.url setting (DOC_GOTENBERG_URL in Laravel).` | The URL is empty. |
 
 ## Images are missing {#images}
 
@@ -153,7 +153,7 @@ str_contains(Doc::make()->image($path)->toHtml(), '<img');   // false: the image
 | --- | --- |
 | `The [word] engine needs the phpoffice/phpword package. Run: composer require phpoffice/phpword` | Install PhpWord. |
 | `Template [name] has no Word layout. Add layout.php, word.php or word.docx to its folder.` | The template makes PDFs only. See [Word files](/guide/word). |
-| `Word files are made from a template with word.php or word.docx, or from Doc::make(). Blade views and HTML only make PDFs.` | Views and HTML cannot become Word files. Build the document with [`Doc::make()`](/guide/builder). |
+| `Word files are made from a template with word.php or word.docx, or from make() (Doc::make() in Laravel). Views and HTML only make PDFs.` | Views and HTML cannot become Word files. Build the document with [`Doc::make()`](/guide/builder). |
 | `Word files cannot take a password; ->password() works for PDF files only.` | Remove `->password()` for the Word file, or send a PDF. |
 
 ## Hijri dates fail {#hijri}
@@ -223,9 +223,9 @@ The render took longer than the worker's `--timeout` (60 seconds by default). Gi
 | Message | Fix |
 | --- | --- |
 | `The [mpdf] engine needs the mpdf/mpdf package. Run: composer require mpdf/mpdf` | Install mPDF, or choose another engine with `DOC_PDF_DRIVER`. |
-| `Unknown PDF engine [chromuim]. Use mpdf, chromium, gotenberg or a name added with Doc::extend().` | A misspelt engine name in `->driver()`, `DOC_PDF_DRIVER` or `doc:sample --driver`. Fix the spelling; there is no fallback for a name that is not an engine. |
+| `Unknown PDF engine [chromuim]. Use mpdf, chromium, gotenberg or a name added with extend() (Doc::extend() in Laravel).` | A misspelt engine name in `->driver()`, `DOC_PDF_DRIVER` or `doc:sample --driver`. Fix the spelling; there is no fallback for a name that is not an engine. |
 | `PDF passwords need the mpdf/mpdf package, also with Chromium. Run: composer require mpdf/mpdf` | `->password()` with Chromium or Gotenberg needs mPDF to encrypt the file. |
-| `Cannot create the mPDF temp folder [...]` or `The mPDF temp folder [...] is not writable.` | Set a folder the web server and workers can write to in `pdf.drivers.mpdf.temp_dir`. |
+| `Cannot create the mPDF temp folder [...]. Set a writable folder in the pdf.drivers.mpdf.temp_dir setting.` or `The mPDF temp folder [...] is not writable. Set a writable folder in the pdf.drivers.mpdf.temp_dir setting.` | Set a folder the web server and workers can write to in `pdf.drivers.mpdf.temp_dir`. |
 | `Could not write [invoices/INV-2026-1024.pdf] to the [s3] disk.` | Check the disk's settings and permissions. See [Output and delivery](/guide/output#save-failures). |
 | `Unknown paper size [Foolscap].` | Use a listed size, or `[width, height]` in mm. See [Page settings](/guide/page-settings#paper). |
 | `Unknown currency [GBP]. Register it with Tafqeet::registerCurrency().` | Add the currency under `currencies` in the config. See [Arabic support](/guide/arabic#currencies). |

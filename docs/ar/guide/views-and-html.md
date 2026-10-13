@@ -48,7 +48,7 @@ return Doc::view('pdf.contract', ['contract' => $contract])
 
 يصبح كل مفتاح في البيانات متغيراً، كما في أي view، وتضيف الحزمة `$doc`. ولا يستبدله مفتاح في البيانات اسمه `doc`. وتعمل كل إعدادات المستند مع ملفات الـ view: ‏`->locale()` و`->numerals()` و`->theme()` و`->font()` و`->paper()` و`->header()` و`->footer()` و`->watermark()` وغيرها.
 
-تنتج ملفات الـ view ملفات PDF فقط. فاستدعاء `->word()` على view أو على HTML يرمي `WordNotSupported`: "Word files are made from a template with word.php or word.docx, or from Doc::make(). Blade views and HTML only make PDFs." ولملف Word، استخدم [قالباً](/ar/guide/custom-templates) أو [بناء المستند بالكود](/ar/guide/builder).
+تنتج ملفات الـ view ملفات PDF فقط. فاستدعاء `->word()` على view أو على HTML يرمي `WordNotSupported`: "Word files are made from a template with word.php or word.docx, or from make() (Doc::make() in Laravel). Views and HTML only make PDFs." ولملف Word، استخدم [قالباً](/ar/guide/custom-templates) أو [بناء المستند بالكود](/ar/guide/builder).
 
 ## مكوّن التخطيط {#layout-component}
 

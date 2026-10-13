@@ -119,7 +119,7 @@ Settings, under `pdf.drivers.gotenberg`:
 | `javascript` | `DOC_CHROME_JAVASCRIPT` | `false` | Run JavaScript in the page, as for Chromium. |
 | `timeout` | | `60` | Seconds to wait for Gotenberg's answer. |
 
-The package sends the page to Gotenberg's `/forms/chromium/convert/html` route. An answer that is not a PDF (a sign-in page from a proxy, say) is treated as a failure: `Gotenberg did not return a PDF; check DOC_GOTENBERG_URL. It returned: ...`, followed by the start of the page's text.
+The package sends the page to Gotenberg's `/forms/chromium/convert/html` route. An answer that is not a PDF (a sign-in page from a proxy, say) is treated as a failure: `Gotenberg did not return a PDF; check its URL (pdf.drivers.gotenberg.url, DOC_GOTENBERG_URL in Laravel). It returned: ...`, followed by the start of the page's text.
 
 ## Choose the default engine {#default}
 
@@ -164,7 +164,7 @@ if ($pdf->engine() !== 'browsershot') {
 What to know:
 
 - Errors in the document itself, such as a Blade error or data that fails validation, are thrown as they are. Only engine failures are retried.
-- An engine name that does not exist, such as a typo like `chromuim`, is not retried: it throws `InvalidArgumentException` with `Unknown PDF engine [chromuim]. Use mpdf, chromium, gotenberg or a name added with Doc::extend().`
+- An engine name that does not exist, such as a typo like `chromuim`, is not retried: it throws `InvalidArgumentException` with `Unknown PDF engine [chromuim]. Use mpdf, chromium, gotenberg or a name added with extend() (Doc::extend() in Laravel).`
 - When the fallback engine is the same as the chosen one, or is not installed either, you get the original error, not a message about the fallback.
 - Turn the fallback off with `DOC_PDF_FALLBACK=null`, so that an engine problem throws instead of producing a PDF from another engine.
 - A fallback render happens in the same request or job, so it adds its time to the first attempt. Keep that in mind for [queue worker timeouts](/guide/output#queue-timeouts).
