@@ -428,7 +428,7 @@ Returns the PDF as a [`PdfDocument`](#rendered-files). `$filename` is the name u
 word(?string $filename = null): WordDocument
 ```
 
-Returns the Word file as a [`WordDocument`](#rendered-files), built from the template's `word.docx`, `word.php` or `layout.php`, or from the `Doc::make()` blocks. The name defaults to `invoice.docx` or `document.docx`. As with `pdf()`, template data is validated now and the file is rendered when its bytes are first needed. Throws [`WordNotSupported`](#exceptions) for Blade views, HTML and templates without a Word layout, and `LogicException` when a password is set. Needs `phpoffice/phpword`.
+Returns the Word file as a [`WordDocument`](#rendered-files), built from the template's `word.docx`, `word.php` or `layout.php`, or from the `Doc::make()` blocks. The name defaults to `invoice.docx` or `document.docx`. As with `pdf()`, template data is validated now and the file is rendered when its bytes are first needed. Throws [`WordNotSupported`](#exceptions) for Blade views, HTML and templates without a Word layout, and `LogicException` when a password is set. Needs `phpoffice/phpword` and the PHP `zip` extension; without the extension it throws `RuntimeException` (`Word files need the PHP zip extension (ext-zip).`).
 
 ### queue() {#pending-queue}
 
@@ -1000,7 +1000,7 @@ Other exceptions you may meet:
 | `InvalidArgumentException` | An invalid locale, font name, paper size, numerals style, an unknown PDF engine name, empty watermark, unknown password permission, a `->queue()` path not ending in `.pdf` or `.docx`, an empty or wrong `Doc::zip()` list |
 | `LogicException` | `->word()` or `->queue('….docx')` on a document with a password; `GeneratedDocument::html()` on a Word file |
 | `BadMethodCallException` | A block method (`heading`, `table` ...) on a template, view or HTML document, or a method that does not exist |
-| `RuntimeException` | A save that could not be written, a ZIP without `ext-zip`, a Hijri date without `ext-intl`, an mPDF temp folder that cannot be written, an engine error with no fallback |
+| `RuntimeException` | A save that could not be written, a ZIP or Word file without `ext-zip`, a Hijri date without `ext-intl`, an mPDF temp folder that cannot be written, an engine error with no fallback |
 
 ::: tip
 An engine name that is neither built in nor registered with `Doc::extend()`, such as a typo, throws instead of falling back. The fallback is only for engines that exist but are not installed or fail; check `->pdf()->engine()` if you are not sure which engine ran.

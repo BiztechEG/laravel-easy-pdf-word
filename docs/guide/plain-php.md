@@ -97,7 +97,7 @@ $file->filename();                               // INV-1024.pdf
 $file->engine();                                 // the engine that made it: mpdf, browsershot ...
 ```
 
-`send()` sets the `Content-Type`, `Content-Length` and `Content-Disposition` headers and prints the file. Call it before anything else is printed, and stop the script after it. An Arabic file name is kept for browsers, with a Latin fallback for old clients.
+`send()` sets the `Content-Type`, `Content-Length` and `Content-Disposition` headers and prints the file. Call it before anything else is printed, and stop the script after it. Output still waiting in PHP's output buffers (a stray newline or a notice) is discarded first, so it does not end up in the file. Output that has already gone to the browser cannot be taken back: then `send()` throws `RuntimeException` with `Cannot send the file: output already started at ...` and the file and line. An Arabic file name is kept for browsers, with a Latin fallback for old clients.
 
 Several files go in one ZIP archive. The keys are the names inside the archive:
 

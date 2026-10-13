@@ -168,10 +168,10 @@ Install and enable the `intl` extension for the PHP that runs your app (for exam
 
 ```text
 ZIP files need the PHP zip extension (ext-zip).
-Class "ZipArchive" not found
+Word files need the PHP zip extension (ext-zip).
 ```
 
-The first comes from `Doc::zip()`, the second from Word files, since a `.docx` is a ZIP archive too. Install and enable the `zip` extension (`sudo apt install php8.3-zip`). Composer checks for it when you install PhpWord, so when it works on the command line but not on the website, the web server's PHP (PHP-FPM) is missing the extension: check its `phpinfo()`.
+The first comes from `Doc::zip()` when the archive is built. The second comes from `->word()` and `->queue('….docx')`, since a `.docx` is a ZIP archive too. Install and enable the `zip` extension (`sudo apt install php8.3-zip`). Composer checks for it when you install PhpWord, so when it works on the command line but not on the website, the web server's PHP (PHP-FPM) is missing the extension: check its `phpinfo()`.
 
 ## Template data is refused {#validation}
 

@@ -168,10 +168,10 @@ Hijri dates need the PHP intl extension.
 
 ```text
 ZIP files need the PHP zip extension (ext-zip).
-Class "ZipArchive" not found
+Word files need the PHP zip extension (ext-zip).
 ```
 
-الرسالة الأولى من `Doc::zip()`، والثانية من ملفات Word، لأن ملف `.docx` أرشيف ZIP أيضًا. ثبّت الإضافة `zip` وفعّلها (`sudo apt install php8.3-zip`). ويتحقق Composer منها حين تثبّت PhpWord، فإن عملت في سطر الأوامر ولم تعمل في الموقع، فإن PHP الخاص بخادم الويب (PHP-FPM) يفتقد الإضافة: افحص `phpinfo()` الخاص به.
+الرسالة الأولى من `Doc::zip()` عند بناء الأرشيف. والثانية من `->word()` و`->queue('….docx')`، لأن ملف `.docx` أرشيف ZIP أيضًا. ثبّت الإضافة `zip` وفعّلها (`sudo apt install php8.3-zip`). ويتحقق Composer منها حين تثبّت PhpWord، فإن عملت في سطر الأوامر ولم تعمل في الموقع، فإن PHP الخاص بخادم الويب (PHP-FPM) يفتقد الإضافة: افحص `phpinfo()` الخاص به.
 
 ## بيانات القالب مرفوضة {#validation}
 

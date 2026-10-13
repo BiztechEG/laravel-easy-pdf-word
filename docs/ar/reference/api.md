@@ -428,7 +428,7 @@ pdf(?string $filename = null): PdfDocument
 word(?string $filename = null): WordDocument
 ```
 
-يعيد ملف Word ككائن [`WordDocument`](#rendered-files)، مبنيًا من `word.docx` أو `word.php` أو `layout.php` في القالب، أو من كتل `Doc::make()`. الاسم الافتراضي `invoice.docx` أو `document.docx`. وكما في `pdf()`، يجري التحقق من بيانات القالب في هذه اللحظة، ويُنشأ الملف حين تُطلب بياناته أول مرة. يرمي [`WordNotSupported`](#exceptions) لملفات Blade و HTML والقوالب التي لا تخطيط Word لها، و`LogicException` إن وُجدت كلمة مرور. يحتاج `phpoffice/phpword`.
+يعيد ملف Word ككائن [`WordDocument`](#rendered-files)، مبنيًا من `word.docx` أو `word.php` أو `layout.php` في القالب، أو من كتل `Doc::make()`. الاسم الافتراضي `invoice.docx` أو `document.docx`. وكما في `pdf()`، يجري التحقق من بيانات القالب في هذه اللحظة، ويُنشأ الملف حين تُطلب بياناته أول مرة. يرمي [`WordNotSupported`](#exceptions) لملفات Blade و HTML والقوالب التي لا تخطيط Word لها، و`LogicException` إن وُجدت كلمة مرور. يحتاج `phpoffice/phpword` وإضافة `zip` في PHP؛ وبدون الإضافة يرمي `RuntimeException` ‏(`Word files need the PHP zip extension (ext-zip).`).
 
 ### queue() {#pending-queue}
 
@@ -1000,7 +1000,7 @@ Doc::template('invoice', $data)->driver('pdf-service')->pdf()->engine();   // 'p
 | `InvalidArgumentException` | لغة أو اسم خط أو مقاس ورق أو نمط أرقام غير صالح، أو اسم محرك PDF غير معروف، أو علامة مائية فارغة، أو صلاحية كلمة مرور غير معروفة، أو مسار `->queue()` لا ينتهي بـ `.pdf` أو `.docx`، أو قائمة `Doc::zip()` فارغة أو خاطئة |
 | `LogicException` | `->word()` أو `->queue('….docx')` لمستند له كلمة مرور، أو `GeneratedDocument::html()` لملف Word |
 | `BadMethodCallException` | دالة كتلة (`heading` و`table` ...) على قالب أو view أو HTML، أو دالة غير موجودة |
-| `RuntimeException` | حفظ لم يمكن كتابته، أو ZIP بدون `ext-zip`، أو تاريخ هجري بدون `ext-intl`، أو مجلد mPDF المؤقت غير قابل للكتابة، أو خطأ محرك بلا محرك احتياطي |
+| `RuntimeException` | حفظ لم يمكن كتابته، أو ملف ZIP أو Word بدون `ext-zip`، أو تاريخ هجري بدون `ext-intl`، أو مجلد mPDF المؤقت غير قابل للكتابة، أو خطأ محرك بلا محرك احتياطي |
 
 ::: tip ملاحظة
 اسم المحرك غير المدمج وغير المسجل بـ `Doc::extend()`، كخطأ إملائي، يرمي استثناءً بدلًا من اللجوء إلى المحرك الاحتياطي. فالمحرك الاحتياطي للمحركات الموجودة غير المثبتة أو التي تفشل فقط؛ استخدم `->pdf()->engine()` إن لم تكن متأكدًا من المحرك الذي عمل.
