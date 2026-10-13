@@ -60,7 +60,7 @@ services:
 
 - `documents/` holds your own templates; see [Your own templates](/guide/custom-templates).
 - mPDF keeps its font cache under `var/cache`, which `cache:clear` empties.
-- When an engine fails and mPDF takes over, the warning goes to Symfony's logger.
+- When an engine fails and mPDF takes over, or an image is left out because of `images.paths` or `images.remote`, the warning goes to Symfony's logger.
 
 ## Download or show a file {#responses}
 
@@ -109,7 +109,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[IsGranted('ROLE_USER')]
 final class InvoiceController extends AbstractController
 {
     public function __construct(private DocumentFactory $docs) {}
@@ -143,7 +145,8 @@ final class InvoiceController extends AbstractController
 
     private function invoice(string $number): array
     {
-        // Read the invoice from your database here.
+        // Read the invoice from your database here, then check that the user may see it:
+        // $this->denyAccessUnlessGranted('view', $invoice);
         return [
             'invoice' => ['number' => $number, 'date' => '2026-10-08', 'currency' => 'EGP', 'tax_rate' => 14],
             'buyer' => ['name' => 'مؤسسة النور', 'address' => 'مدينة نصر، القاهرة'],
@@ -157,6 +160,7 @@ final class InvoiceController extends AbstractController
 ```
 
 - `/ar/invoices/INV-7.pdf` downloads the Arabic invoice and `/en/invoices/INV-7.pdf` the English one; `?view` shows it in the browser. `->locale($request->getLocale())` follows the `{_locale}` in the address. Without it, every document uses the factory's `locale`. Symfony's request locale is `en` unless a route or `framework.default_locale` sets it, so pass it only when your app sets it.
+- `#[IsGranted('ROLE_USER')]` on the class (from `symfony/security-bundle`) means every route needs a logged-in user. That is not enough on its own: a logged-in user could change the number in the address and download someone else's invoice. In `invoice()`, check that the user may see this invoice, for example with a [voter](https://symfony.com/doc/current/security/voters.html) on your invoice entity and `$this->denyAccessUnlessGranted('view', $invoice)`, which answers with a 403.
 - The seller is the `company` from the service's theme.
 - With an Arabic file name, browsers save `فاتورة-INV-7.pdf`; old clients get `fatwrt-INV-7.pdf`.
 
@@ -216,9 +220,13 @@ Symfony Mailer attaches the bytes directly:
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 
-#[Route('/invoices/{number}/send', name: 'invoice_send')]
-public function send(string $number, MailerInterface $mailer): Response
+#[Route('/invoices/{number}/send', name: 'invoice_send', methods: ['POST'])]
+public function send(string $number, Request $request, MailerInterface $mailer): Response
 {
+    if (! $this->isCsrfTokenValid('send-invoice-'.$number, $request->request->getString('_token'))) {
+        throw $this->createAccessDeniedException();
+    }
+
     $file = $this->docs->template('invoice', $this->invoice($number))->pdf("invoice-{$number}.pdf");
 
     $mailer->send((new Email())
@@ -230,6 +238,15 @@ public function send(string $number, MailerInterface $mailer): Response
 
     return new Response('sent');
 }
+```
+
+Sending an email changes something, so the route takes `POST` only and checks a CSRF token (`symfony/security-csrf`); a link or an image on another site cannot send it. The button is a small form:
+
+```twig
+<form method="post" action="{{ path('invoice_send', {number: number}) }}">
+    <input type="hidden" name="_token" value="{{ csrf_token('send-invoice-' ~ number) }}">
+    <button>Email the invoice</button>
+</form>
 ```
 
 For many documents, make them in a Messenger handler instead of during the request, and `->save()` each file or send it from there.

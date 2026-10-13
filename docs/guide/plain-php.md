@@ -8,7 +8,7 @@ The library also works without Laravel: in a plain PHP script, WordPress, Symfon
 composer require biztecheg/easy-pdf-word mpdf/mpdf phpoffice/phpword
 ```
 
-This installs the library, the mPDF engine and PhpWord for Word files. You need PHP 8.2 or newer with `mbstring` and `gd`; `intl` for Hijri dates and `zip` for Word files and ZIP archives. For Chromium instead of mPDF, see [PDF engines](/guide/engines); the engines work the same way here.
+This installs the library, the mPDF engine and PhpWord for Word files. You need PHP 8.2 or newer with `mbstring` and `gd`; `intl` for Hijri dates, `zip` for Word files and ZIP archives, and `curl` for the Gotenberg engine (the Laravel package sends through Laravel's HTTP client instead). For Chromium instead of mPDF, see [PDF engines](/guide/engines); the engines work the same way here.
 
 ## Create the factory {#create}
 
@@ -27,6 +27,7 @@ $docs = EasyPdfWord::create([
         'company' => ['name' => 'شركة بيزتك', 'tax_number' => '123-456-789'],
     ],
     'images' => ['paths' => [__DIR__.'/assets']],
+    'views' => ['paths' => [__DIR__.'/views']],
 ]);
 ```
 
@@ -88,8 +89,8 @@ Templates and documents built in code make both PDF and Word files. HTML and vie
 $file = $invoice->pdf('INV-1024.pdf');
 
 $file->save(__DIR__.'/storage/INV-1024.pdf');   // write it to a folder (created if missing)
-$file->send();                                  // send it to the browser as a download
-$file->send('فاتورة-1024.pdf', inline: true);   // or show it in the browser, under another name
+$file->send();                                  // send it to the browser as a download, or:
+// $file->send('فاتورة-1024.pdf', inline: true); // show it in the browser, under another name
 $bytes = $file->content();                       // the bytes, for an email or an upload
 $file->base64();                                 // the bytes in base64, for an API
 $file->mimeType();                               // application/pdf
@@ -97,7 +98,7 @@ $file->filename();                               // INV-1024.pdf
 $file->engine();                                 // the engine that made it: mpdf, browsershot ...
 ```
 
-`send()` sets the `Content-Type`, `Content-Length` and `Content-Disposition` headers and prints the file. Call it before anything else is printed, and stop the script after it. An Arabic file name is kept for browsers, with a Latin fallback for old clients.
+A response carries one file, so call `send()` once, in one of the two ways above. `send()` sets the `Content-Type`, `Content-Length` and `Content-Disposition` headers and prints the file. Call it before anything else is printed, and stop the script after it. Output still waiting in PHP's output buffers (a stray newline or a notice) is discarded first, so it does not end up in the file. Output that has already gone to the browser cannot be taken back: then `send()` throws `RuntimeException` with `Cannot send the file: output already started at ...` and the file and line. An Arabic file name is kept for browsers, with a Latin fallback for old clients.
 
 Several files go in one ZIP archive. The keys are the names inside the archive:
 
@@ -158,7 +159,7 @@ $docs->template('letter', $letter->sample())->pdf()->save(__DIR__.'/letter.pdf')
 
 ## Engine warnings {#warnings}
 
-When an engine fails and the library falls back to mPDF, it calls a `warn` function you pass as a second argument. Without one, the warning goes to PHP's `error_log()`.
+When an engine fails and the library falls back to mPDF, or an image is left out because its folder is not in `images.paths` or its host is not allowed, the library calls a `warn` function you pass as a second argument. Without one, the warning goes to PHP's `error_log()`.
 
 ```php
 $docs = EasyPdfWord::create($config, [
@@ -173,7 +174,7 @@ These come from the Laravel package. Outside Laravel, use the plain PHP way:
 | Laravel | Plain PHP |
 | --- | --- |
 | `Doc::template()` and the `Doc` facade | `$docs->template()` on the factory from `create()` |
-| Blade views and `.blade.php` templates | `.html.php` views and templates, which also work in Laravel |
+| Blade views and `.blade.php` templates | `.html.php` views and templates. A template folder with `.html.php` files also works in Laravel, but `Doc::view()` there finds only Laravel views (`.blade.php` or `.php`), not `.html.php` |
 | `config/easy-pdf-word.php` and `.env` | The array you pass to `create()` |
 | `->download()`, `->stream()`, returning the file from a controller | `->send()`, or `->content()` in your framework's response |
 | `->save($path, 's3')` on a storage disk | `->save($path)` to a local folder, or `->content()` to your storage |

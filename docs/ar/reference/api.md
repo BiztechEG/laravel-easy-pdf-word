@@ -381,7 +381,7 @@ footer(string $html): static
 driver(string $driver): static
 ```
 
-محرك PDF لهذا المستند: `mpdf` أو `chromium` (أو `browsershot` أو `chrome`) أو `gotenberg` أو اسم سجلته بـ `Doc::extend()`. إن لم يكن المحرك مثبتًا أو فشل، ينشئ المحرك الاحتياطي `pdf.fallback` الملف ويُسجَّل تحذير في السجلات. وأي اسم آخر يرمي `InvalidArgumentException` عند إنشاء ملف PDF: `Unknown PDF engine [chromuim]. Use mpdf, chromium, gotenberg or a name added with Doc::extend().`
+محرك PDF لهذا المستند: `mpdf` أو `chromium` (أو `browsershot` أو `chrome`) أو `gotenberg` أو اسم سجلته بـ `Doc::extend()`. إن لم يكن المحرك مثبتًا أو فشل، ينشئ المحرك الاحتياطي `pdf.fallback` الملف ويُسجَّل تحذير في السجلات. وأي اسم آخر يرمي `InvalidArgumentException` عند إنشاء ملف PDF: `Unknown PDF engine [chromuim]. Use mpdf, chromium, gotenberg or a name added with extend() (Doc::extend() in Laravel).`
 
 ### watermark() {#pending-watermark}
 
@@ -428,7 +428,7 @@ pdf(?string $filename = null): PdfDocument
 word(?string $filename = null): WordDocument
 ```
 
-يعيد ملف Word ككائن [`WordDocument`](#rendered-files)، مبنيًا من `word.docx` أو `word.php` أو `layout.php` في القالب، أو من كتل `Doc::make()`. الاسم الافتراضي `invoice.docx` أو `document.docx`. وكما في `pdf()`، يجري التحقق من بيانات القالب في هذه اللحظة، ويُنشأ الملف حين تُطلب بياناته أول مرة. يرمي [`WordNotSupported`](#exceptions) لملفات Blade و HTML والقوالب التي لا تخطيط Word لها، و`LogicException` إن وُجدت كلمة مرور. يحتاج `phpoffice/phpword`.
+يعيد ملف Word ككائن [`WordDocument`](#rendered-files)، مبنيًا من `word.docx` أو `word.php` أو `layout.php` في القالب، أو من كتل `Doc::make()`. الاسم الافتراضي `invoice.docx` أو `document.docx`. وكما في `pdf()`، يجري التحقق من بيانات القالب في هذه اللحظة، ويُنشأ الملف حين تُطلب بياناته أول مرة. يرمي [`WordNotSupported`](#exceptions) لملفات Blade و HTML والقوالب التي لا تخطيط Word لها، و`LogicException` إن وُجدت كلمة مرور. يحتاج `phpoffice/phpword` وإضافة `zip` في PHP؛ وبدون الإضافة يرمي `RuntimeException` ‏(`Word files need the PHP zip extension (ext-zip).`).
 
 ### queue() {#pending-queue}
 
@@ -877,12 +877,12 @@ Doc::template('letter', $letter)->font('amiri')->pdf();
 
 ## PdfManager {#pdf-manager}
 
-يعيد `Doc::pdfManager()` النسخة الوحيدة من `BiztechEG\EasyPdfWord\Pdf\PdfManager`، وهو `Manager` من Laravel.
+يعيد `Doc::pdfManager()` النسخة الوحيدة من `BiztechEG\EasyPdfWord\Pdf\PdfManager`، وهو الذي ينشئ محركات PDF ويحتفظ بكل محرك بعد إنشائه. وهو صنف من المكتبة الأساسية نفسها، وليس `Manager` من Laravel.
 
 | الدالة | الوصف |
 | --- | --- |
-| `driver($driver = null)` | كائن `PdfDriver` بالاسم (بأي حالة أحرف، و`chromium` و`chrome` تعنيان `browsershot`)، أو المحرك الافتراضي |
-| `extend($driver, Closure $callback)` | ما تستدعيه `Doc::extend()` |
+| `driver(?string $driver = null): PdfDriver` | كائن `PdfDriver` بالاسم (بأي حالة أحرف، و`chromium` و`chrome` تعنيان `browsershot`)، أو المحرك الافتراضي |
+| `extend(string $driver, Closure $callback): static` | ما تستدعيه `Doc::extend()` |
 | `getDefaultDriver(): string` | `pdf.driver` من الإعدادات |
 | `normalize(?string $driver): string` | الاسم كما يُخزَّن: بأحرف صغيرة وبعد حل الأسماء البديلة |
 | `engineConfig(string $name): array` | `pdf.drivers.{name}` من الإعدادات |
@@ -913,7 +913,8 @@ interface PdfDriver
 ```
 
 - تستلم `render()` نص HTML النهائي (بعد تحويل الأرقام) وكائن [`PdfOptions`](#pdf-options). عليها تطبيق مقاس الورق والهوامش ورأس الصفحة وتذييلها (مع استبدال `{page}` و`{pages}`)، والعلامة المائية إن دعمتها. تضيف `BiztechEG\EasyPdfWord\Pdf\Watermark::inject($html, $options)` العلامة المائية بالطريقة التي تستخدمها محركات Chromium.
-- إن أعادت `usesCssFonts()` القيمة `true` تضيف المكتبة إلى HTML قواعد `@font-face` لخط المستند ولكل خط مسجل تذكره أنماط CSS في الصفحة (`font-family: 'naskh'`)، وتنزّل بنفسها الصور البعيدة المسموح بها وتضمّنها في الصفحة، فلا يحمّل محركك أي رابط.
+- إن أعادت `usesCssFonts()` القيمة `true` تضيف المكتبة إلى HTML قواعد `@font-face` لخط المستند ولكل خط مسجل تذكره أنماط CSS في الصفحة (`font-family: 'naskh'`).
+- وأيًّا كانت قيمة `usesCssFonts()`، تنزّل المكتبة بنفسها الصور البعيدة المسموح بها وتضمّنها في الصفحة، فلا يحمّل محركك أي رابط.
 - تضيف mPDF كلمة المرور بعد `render()`، فلا يحتاج محركك إلى التشفير.
 - إن أعادت `isAvailable()` القيمة `false` أو رمت `render()` استثناءً، ينشئ المحرك الاحتياطي المستند.
 
@@ -990,6 +991,7 @@ Doc::template('invoice', $data)->driver('pdf-service')->pdf()->engine();   // 'p
 | `TemplateNotFound` | `InvalidArgumentException` | لا يجد `Doc::template($name)` أو `Doc::templates()->get($name)` مجلدًا بهذا الاسم (أو في الاسم أحرف غير الحروف والأرقام و`.` و`-` و`_`). تذكر الرسالة المجلدات التي بُحث فيها |
 | `WordNotSupported` | `LogicException` | استدعاء `->word()` أو `->queue('….docx')` على view أو HTML، أو على قالب ليس فيه `layout.php` أو `word.php` أو `word.docx` |
 | `DriverNotAvailable` | `RuntimeException` | محرك PDF المختار غير مثبت أو غير مضبوط (`mpdf/mpdf` أو `spatie/browsershot` أو `DOC_GOTENBERG_URL`، أو أعادت `isAvailable()` في محركك `false`) ولم يستطع المحرك الاحتياطي الإنشاء أيضًا؛ أو إنشاء ملف Word بدون `phpoffice/phpword`؛ أو تحديد كلمة مرور مع Chromium أو Gotenberg مع غياب `mpdf/mpdf` |
+| `ValidationFailed` | `InvalidArgumentException` | بيانات القالب لا تجتاز قواعده خارج Laravel. وترميه دالة `prepare` في القالب بـ `ValidationFailed::withMessages(['items.0.discount' => '...'])` لفحوص لا تعبّر عنها القواعد. وتعيد `errors()` الرسائل مرتبة حسب الحقل. وفي Laravel تحوّله الحزمة إلى `Illuminate\Validation\ValidationException` بالرسائل نفسها، فالتقط ذلك الاستثناء بدلًا منه |
 
 استثناءات أخرى قد تقابلها:
 
@@ -999,7 +1001,7 @@ Doc::template('invoice', $data)->driver('pdf-service')->pdf()->engine();   // 'p
 | `InvalidArgumentException` | لغة أو اسم خط أو مقاس ورق أو نمط أرقام غير صالح، أو اسم محرك PDF غير معروف، أو علامة مائية فارغة، أو صلاحية كلمة مرور غير معروفة، أو مسار `->queue()` لا ينتهي بـ `.pdf` أو `.docx`، أو قائمة `Doc::zip()` فارغة أو خاطئة |
 | `LogicException` | `->word()` أو `->queue('….docx')` لمستند له كلمة مرور، أو `GeneratedDocument::html()` لملف Word |
 | `BadMethodCallException` | دالة كتلة (`heading` و`table` ...) على قالب أو view أو HTML، أو دالة غير موجودة |
-| `RuntimeException` | حفظ لم يمكن كتابته، أو ZIP بدون `ext-zip`، أو تاريخ هجري بدون `ext-intl`، أو مجلد mPDF المؤقت غير قابل للكتابة، أو خطأ محرك بلا محرك احتياطي |
+| `RuntimeException` | حفظ لم يمكن كتابته، أو ملف ZIP أو Word بدون `ext-zip`، أو تاريخ هجري بدون `ext-intl`، أو مجلد mPDF المؤقت غير قابل للكتابة، أو خطأ محرك بلا محرك احتياطي |
 
 ::: tip ملاحظة
 اسم المحرك غير المدمج وغير المسجل بـ `Doc::extend()`، كخطأ إملائي، يرمي استثناءً بدلًا من اللجوء إلى المحرك الاحتياطي. فالمحرك الاحتياطي للمحركات الموجودة غير المثبتة أو التي تفشل فقط؛ استخدم `->pdf()->engine()` إن لم تكن متأكدًا من المحرك الذي عمل.

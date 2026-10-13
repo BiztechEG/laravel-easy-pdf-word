@@ -179,7 +179,7 @@ A `word.docx` makes the Word file only. For the PDF, add a `pdf.html.php` or `la
 
 ## Images in Word {#images}
 
-Images in Word files follow the same rules as in PDFs: local files only from the allowed folders (`public/`, `storage/app` and `resources/` by default), and URLs only from the hosts you allow in `DOC_REMOTE_IMAGES`, fetched without following redirects and with a 10-second limit. See [Images](/guide/images).
+Images in Word files follow the same rules as in PDFs: local files only from the allowed folders (`public/`, `storage/app` and `resources/` by default), and URLs only from the hosts you allow in `DOC_REMOTE_IMAGES`, fetched by the package without following redirects, with a 10-second and 10 MB limit. See [Images](/guide/images).
 
 Word itself shows JPEG, PNG and GIF. The package turns WebP and BMP images into PNG for it. SVG images are left out of Word files, because PHP cannot draw them, while PDFs show them. If a logo is an SVG, keep a PNG copy for documents you make as Word files.
 

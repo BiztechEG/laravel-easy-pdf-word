@@ -107,18 +107,25 @@ production.WARNING: easy-pdf-word: [gotenberg] failed, falling back to [mpdf]: c
 | `cURL error 7: Failed to connect to localhost port 3000` | Gotenberg لا يعمل، أو ليس على هذا العنوان. تحقق من `DOC_GOTENBERG_URL`؛ وداخل Docker Compose استخدم اسم الخدمة، مثل `http://gotenberg:3000`. |
 | `cURL error 28: Operation timed out` | لم يُجب Gotenberg خلال `pdf.drivers.gotenberg.timeout` (‏60 ثانية). |
 | `Gotenberg returned HTTP 404: ...` | يشير الرابط إلى شيء آخر، أو فيه مسار زائد. استخدم العنوان الأساسي للخادم فقط. |
-| `Gotenberg did not return a PDF; check DOC_GOTENBERG_URL. It returned: ...` | أجاب شيء آخر بصفحة ويب، مثل صفحة تسجيل الدخول في proxy. وتنتهي الرسالة ببداية نص تلك الصفحة. |
-| `The [gotenberg] engine needs the URL of a Gotenberg server in DOC_GOTENBERG_URL.` | الرابط فارغ. |
+| `Gotenberg did not return a PDF; check its URL (pdf.drivers.gotenberg.url, DOC_GOTENBERG_URL in Laravel). It returned: ...` | أجاب شيء آخر بصفحة ويب، مثل صفحة تسجيل الدخول في proxy. وتنتهي الرسالة ببداية نص تلك الصفحة. |
+| `The [gotenberg] engine needs the URL of a Gotenberg server in the pdf.drivers.gotenberg.url setting (DOC_GOTENBERG_URL in Laravel).` | الرابط فارغ. |
 
 ## الصور لا تظهر {#images}
 
-الصور التي لا تجتاز [قواعد الصور](/ar/guide/images) تُترك دون خطأ. افحص ما يلي بالترتيب:
+الصور التي لا تجتاز [قواعد الصور](/ar/guide/images) تُترك دون خطأ. والصورة التي تُترك بسبب مجلدها أو نطاقها يُكتب لها تحذير في السجل يذكر الصورة والإعداد:
+
+```text
+production.WARNING: easy-pdf-word: image [/var/www/app/uploads/logo.png] was left out: it is outside the folders in the images.paths setting.
+production.WARNING: easy-pdf-word: image [https://files.example.com/stamp.png] was left out: its host is not allowed in the images.remote setting.
+```
+
+افحص ما يلي بالترتيب:
 
 1. **ملف محلي خارج المجلدات المسموح بها.** المسموح افتراضيًا `public` و`storage/app` و`resources` فقط. أضف مجلدك إلى `images.paths`.
 2. **ملف ليس صورة،** كصفحة خطأ HTML محفوظة باسم `logo.png`. تفحص الحزمة المحتوى، لا الاسم.
 3. **مسار على قرص سحابي** مثل `tenants/14/logo.png` على S3. هذا ليس مسارًا محليًا: مرّر رابط الملف أو data URI.
 4. **رابط نطاقه غير مسموح به.** أضف النطاق إلى `DOC_REMOTE_IMAGES`، ثم شغّل `php artisan config:cache` مجددًا في بيئة الإنتاج.
-5. **رابط يعيد التوجيه.** لا تُتبع إعادة التوجيه: يعرض mPDF بدلًا من الصورة أيقونة صغيرة تعني "الصورة غير موجودة"، ويتركها Chromium وGotenberg وملفات Word. استخدم الرابط النهائي.
+5. **رابط يعيد التوجيه.** لا تُتبع إعادة التوجيه، فتُترك الصورة مع كل المحركات وفي ملفات Word. استخدم الرابط النهائي.
 6. **صورة SVG تشير إلى ملفات أو روابط**، أو فيها سطر `<!DOCTYPE>`. صدّرها مجددًا بصيغة SVG عادية، أو استخدم PNG.
 7. **صورة SVG في ملف Word.** تُترك صور SVG في ملفات Word. استخدم PNG أو JPEG.
 
@@ -146,7 +153,7 @@ str_contains(Doc::make()->image($path)->toHtml(), '<img');   // false: الصو�
 | --- | --- |
 | `The [word] engine needs the phpoffice/phpword package. Run: composer require phpoffice/phpword` | ثبّت PhpWord. |
 | `Template [name] has no Word layout. Add layout.php, word.php or word.docx to its folder.` | القالب ينشئ ملفات PDF فقط. انظر [ملفات Word](/ar/guide/word). |
-| `Word files are made from a template with word.php or word.docx, or from Doc::make(). Blade views and HTML only make PDFs.` | لا يمكن أن تصبح الـ views والـ HTML ملفات Word. ابنِ المستند بـ [`Doc::make()`](/ar/guide/builder). |
+| `Word files are made from a template with word.php or word.docx, or from make() (Doc::make() in Laravel). Views and HTML only make PDFs.` | لا يمكن أن تصبح الـ views والـ HTML ملفات Word. ابنِ المستند بـ [`Doc::make()`](/ar/guide/builder). |
 | `Word files cannot take a password; ->password() works for PDF files only.` | احذف `->password()` لملف Word، أو أرسل ملف PDF. |
 
 ## التاريخ الهجري يفشل {#hijri}
@@ -161,10 +168,10 @@ Hijri dates need the PHP intl extension.
 
 ```text
 ZIP files need the PHP zip extension (ext-zip).
-Class "ZipArchive" not found
+Word files need the PHP zip extension (ext-zip).
 ```
 
-الرسالة الأولى من `Doc::zip()`، والثانية من ملفات Word، لأن ملف `.docx` أرشيف ZIP أيضًا. ثبّت الإضافة `zip` وفعّلها (`sudo apt install php8.3-zip`). ويتحقق Composer منها حين تثبّت PhpWord، فإن عملت في سطر الأوامر ولم تعمل في الموقع، فإن PHP الخاص بخادم الويب (PHP-FPM) يفتقد الإضافة: افحص `phpinfo()` الخاص به.
+الرسالة الأولى من `Doc::zip()` عند بناء الأرشيف. والثانية من `->word()` و`->queue('….docx')`، لأن ملف `.docx` أرشيف ZIP أيضًا. ثبّت الإضافة `zip` وفعّلها (`sudo apt install php8.3-zip`). ويتحقق Composer منها حين تثبّت PhpWord، فإن عملت في سطر الأوامر ولم تعمل في الموقع، فإن PHP الخاص بخادم الويب (PHP-FPM) يفتقد الإضافة: افحص `phpinfo()` الخاص به.
 
 ## بيانات القالب مرفوضة {#validation}
 
@@ -216,9 +223,9 @@ BiztechEG\EasyPdfWord\Jobs\SaveDocument has been attempted too many times.
 | الرسالة | الحل |
 | --- | --- |
 | `The [mpdf] engine needs the mpdf/mpdf package. Run: composer require mpdf/mpdf` | ثبّت mPDF، أو اختر محركًا آخر بـ `DOC_PDF_DRIVER`. |
-| `Unknown PDF engine [chromuim]. Use mpdf, chromium, gotenberg or a name added with Doc::extend().` | اسم محرك مكتوب خطأً في `->driver()` أو `DOC_PDF_DRIVER` أو `doc:sample --driver`. صحّح الاسم؛ فلا يوجد محرك احتياطي لاسم ليس محركًا. |
+| `Unknown PDF engine [chromuim]. Use mpdf, chromium, gotenberg or a name added with extend() (Doc::extend() in Laravel).` | اسم محرك مكتوب خطأً في `->driver()` أو `DOC_PDF_DRIVER` أو `doc:sample --driver`. صحّح الاسم؛ فلا يوجد محرك احتياطي لاسم ليس محركًا. |
 | `PDF passwords need the mpdf/mpdf package, also with Chromium. Run: composer require mpdf/mpdf` | تحتاج `->password()` مع Chromium أو Gotenberg إلى mPDF لتشفير الملف. |
-| `Cannot create the mPDF temp folder [...]` أو `The mPDF temp folder [...] is not writable.` | حدد في `pdf.drivers.mpdf.temp_dir` مجلدًا يستطيع خادم الويب والـ workers الكتابة فيه. |
+| `Cannot create the mPDF temp folder [...]. Set a writable folder in the pdf.drivers.mpdf.temp_dir setting.` أو `The mPDF temp folder [...] is not writable. Set a writable folder in the pdf.drivers.mpdf.temp_dir setting.` | حدد في `pdf.drivers.mpdf.temp_dir` مجلدًا يستطيع خادم الويب والـ workers الكتابة فيه. |
 | `Could not write [invoices/INV-2026-1024.pdf] to the [s3] disk.` | تحقق من إعدادات القرص وصلاحياته. انظر [الإخراج والتسليم](/ar/guide/output#save-failures). |
 | `Unknown paper size [Foolscap].` | استخدم مقاسًا من القائمة، أو `[width, height]` بالمليمتر. انظر [إعدادات الصفحة](/ar/guide/page-settings#paper). |
 | `Unknown currency [GBP]. Register it with Tafqeet::registerCurrency().` | أضف العملة تحت `currencies` في ملف الإعدادات. انظر [دعم اللغة العربية](/ar/guide/arabic#currencies). |

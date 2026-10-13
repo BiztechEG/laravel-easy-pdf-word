@@ -6,6 +6,19 @@ All notable changes to this package are listed here. The format follows
 
 ## [Unreleased]
 
+### Security
+
+- Requires `biztecheg/easy-pdf-word` 1.1, which checks images by their content and fetches allowed image URLs itself for every engine. Before, an SVG hidden in a data URI labelled as PNG, or an SVG on an allowed image host, let mPDF request internal URLs and read local images outside `images.paths`. Upgrade if user data can reach a logo, signature or stamp.
+
+### Changed
+
+- Images left out by `images.paths` or `images.remote` are logged as warnings. Several error messages and validation messages changed wording with the core; see its [1.1.0 changelog](https://github.com/BiztechEG/easy-pdf-word/blob/main/CHANGELOG.md).
+- The docs deploy runs from `main` only.
+
+### Fixed
+
+- Docs: the plain PHP `view()` example, the WordPress site name with `&`, WooCommerce shipping and fees on the invoice, access checks and CSRF in the Symfony examples, the `PdfManager` reference, and the error messages quoted in troubleshooting.
+
 ## [1.4.0] - 2026-10-11
 
 ### Added

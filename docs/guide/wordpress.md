@@ -47,7 +47,7 @@ function my_invoices_docs(): DocumentFactory
         'locale' => str_starts_with(get_locale(), 'ar') ? 'ar' : 'en',
         'theme' => [
             'company' => [
-                'name' => get_bloginfo('name'),
+                'name' => wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES),
                 'tax_number' => '300000000000003',
             ],
         ],
@@ -60,9 +60,10 @@ function my_invoices_docs(): DocumentFactory
 ```
 
 - The documents follow the site language: an Arabic site gets Arabic invoices, right to left.
+- `get_bloginfo('name')` returns the site name escaped for HTML (`&amp;` for `&`). `wp_specialchars_decode()` turns it back into plain text, because the template escapes it again.
 - `get_temp_dir()` is the folder WordPress itself writes temporary files to, so mPDF works on hosts where the system temp folder is closed.
 - `doc-templates` is where your own templates go, or your copies of the bundled ones; see [Your own templates](/guide/custom-templates).
-- Engine warnings go to the PHP error log, which WordPress writes to `wp-content/debug.log` when `WP_DEBUG_LOG` is on.
+- Warnings about a failed engine or a left-out image go to the PHP error log, which WordPress writes to `wp-content/debug.log` when `WP_DEBUG_LOG` is on.
 
 ## Order data for the invoice {#data}
 
@@ -79,6 +80,15 @@ function my_invoices_data(WC_Order $order): array
             'quantity' => $item->get_quantity(),
             'unit_price' => $order->get_item_subtotal($item, false, false),
             'discount' => (float) $item->get_subtotal() - (float) $item->get_total(),
+        ];
+    }
+
+    // Shipping and fees, each as one line
+    foreach ($order->get_items(['shipping', 'fee']) as $item) {
+        $items[] = [
+            'description' => $item->get_name(),
+            'quantity' => 1,
+            'unit_price' => (float) $item->get_total(),
         ];
     }
 
@@ -99,7 +109,7 @@ function my_invoices_data(WC_Order $order): array
 }
 ```
 
-The prices are before tax, and a coupon shows as a discount on each line. The template works out the subtotal, the VAT and the total, and writes the amount in words. The seller comes from the theme's `company`.
+The prices are before tax, and a coupon shows as a discount on each line. Shipping and fees (`get_items(['shipping', 'fee'])`) are added as lines of their own, with their total before tax, so they are taxed at the invoice's rate like the products and the invoice total matches the order. A fee with a negative amount is refused by the template, since a line cannot be below zero; give discounts as coupons instead. The template works out the subtotal, the VAT and the total, and writes the amount in words. The seller comes from the theme's `company`.
 
 The invoice has one VAT rate: 15% and the ZATCA QR code for Saudi Arabia here. For Egypt, use `14` and remove `qr`. If your shop has several tax rates, make your own template.
 
@@ -139,7 +149,7 @@ function my_invoice_url(WC_Order $order): string
 
 - Only `admin_post_` is hooked, not `admin_post_nopriv_`, so visitors who are not logged in get nothing.
 - The order's customer and shop managers can download it; another customer gets a 403, even with a valid link.
-- `->send()` sends the file as a download and `exit` stops WordPress from printing anything after it. Use `->send(inline: true)` to show it in the browser instead.
+- `->send()` sends the file as a download and `exit` stops WordPress from printing anything after it. Output still waiting in PHP's output buffers, such as a notice from another plugin, is discarded before the file goes out. Use `->send(inline: true)` to show it in the browser instead.
 
 Show the link to customers as a button next to each order in *My account > Orders*:
 
@@ -161,16 +171,21 @@ add_filter('woocommerce_email_attachments', function (array $attachments, string
         return $attachments;
     }
 
-    $path = get_temp_dir().'invoice-'.$order->get_order_number().'.pdf';
+    // A folder of its own per email, so two emails at once never share a file
+    $dir = get_temp_dir().'my-invoices-'.wp_generate_password(12, false);
+    $path = $dir.'/invoice-'.sanitize_file_name($order->get_order_number()).'.pdf';
     $attachments[] = my_invoices_docs()->template('invoice', my_invoices_data($order))->pdf()->save($path);
 
-    add_action('shutdown', fn () => @unlink($path));
+    add_action('shutdown', function () use ($dir, $path) {
+        @unlink($path);
+        @rmdir($dir);
+    });
 
     return $attachments;
 }, 10, 3);
 ```
 
-The same works with `wp_mail()` outside WooCommerce: `wp_mail($to, $subject, $message, '', [$path])`.
+An order number can contain characters such as `/` (a plugin may number orders `2026/0042`), so `sanitize_file_name()` makes it safe for a file name. The random folder name keeps the attachment's name clean, since the email shows the file's own name. The same works with `wp_mail()` outside WooCommerce: `wp_mail($to, $subject, $message, '', [$path])`.
 
 ## Keep files {#storage}
 
@@ -188,7 +203,7 @@ if (! file_exists($path)) {
 
 | Problem | Fix |
 | --- | --- |
-| The download is an HTML error page or a broken PDF | Something printed output before `->send()`: a PHP notice, a space before `<?php`, or another plugin. When the headers were already sent, `send()` throws "output already started at ..." with the file and line. |
+| The download is an HTML error page or a broken PDF | Something printed output before `->send()`: a PHP notice, a space before `<?php`, or another plugin. `send()` discards output that is still in PHP's output buffers, but output that already went to the browser cannot be taken back: then `send()` throws "Cannot send the file: output already started at ..." with the file and line. Remove that output at its source. Output printed after the file breaks it too, so `exit` right after `send()`. |
 | `Cannot create the mPDF temp folder` | Set `pdf.drivers.mpdf.temp_dir` to a writable folder, as in [the factory](#factory). |
 | Out of memory or time on long reports | Raise `WP_MEMORY_LIMIT` in `wp-config.php`; see [Troubleshooting](/guide/troubleshooting). |
 | Arabic letters are not joined | Use the bundled fonts or [fix your font](/guide/fonts) for mPDF. |

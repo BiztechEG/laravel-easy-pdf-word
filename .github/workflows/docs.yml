@@ -43,7 +43,7 @@ jobs:
   # into main. Runs only once the DOCS_FTP_SERVER variable is set; see the
   # FTP settings below.
   deploy:
-    if: github.event_name != 'pull_request' && vars.DOCS_FTP_SERVER != ''
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && vars.DOCS_FTP_SERVER != ''
     needs: build
     runs-on: ubuntu-latest
 

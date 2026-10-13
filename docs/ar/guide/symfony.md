@@ -60,7 +60,7 @@ services:
 
 - يحتوي `documents/` على قوالبك الخاصة؛ راجع [قوالبك الخاصة](/ar/guide/custom-templates).
 - يحفظ mPDF ذاكرة الخطوط المؤقتة داخل `var/cache`، ويفرّغها الأمر `cache:clear`.
-- عندما يفشل محرك ويتولى mPDF المهمة، يذهب التحذير إلى الـ logger الخاص بـ Symfony.
+- عندما يفشل محرك ويتولى mPDF المهمة، أو تُترك صورة بسبب `images.paths` أو `images.remote`، يذهب التحذير إلى الـ logger الخاص بـ Symfony.
 
 ## تنزيل الملف أو عرضه {#responses}
 
@@ -109,7 +109,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[IsGranted('ROLE_USER')]
 final class InvoiceController extends AbstractController
 {
     public function __construct(private DocumentFactory $docs) {}
@@ -143,7 +145,8 @@ final class InvoiceController extends AbstractController
 
     private function invoice(string $number): array
     {
-        // اقرأ الفاتورة من قاعدة بياناتك هنا.
+        // اقرأ الفاتورة من قاعدة بياناتك هنا، ثم تحقق من أن المستخدم يحق له رؤيتها:
+        // $this->denyAccessUnlessGranted('view', $invoice);
         return [
             'invoice' => ['number' => $number, 'date' => '2026-10-08', 'currency' => 'EGP', 'tax_rate' => 14],
             'buyer' => ['name' => 'مؤسسة النور', 'address' => 'مدينة نصر، القاهرة'],
@@ -157,6 +160,7 @@ final class InvoiceController extends AbstractController
 ```
 
 - ينزّل `/ar/invoices/INV-7.pdf` الفاتورة العربية و`/en/invoices/INV-7.pdf` الإنجليزية، ويعرضها `?view` في المتصفح. وتتبع `->locale($request->getLocale())` قيمة `{_locale}` في العنوان، وبدونها تستخدم كل المستندات قيمة `locale` في الـ factory. ولغة الطلب في Symfony هي `en` ما لم يحددها route أو `framework.default_locale`، فمررها فقط إن كان تطبيقك يضبطها.
+- تعني `#[IsGranted('ROLE_USER')]` على الصنف (من `symfony/security-bundle`) أن كل route يحتاج مستخدمًا مسجّل الدخول. وهذا لا يكفي وحده: فالمستخدم المسجّل يستطيع تغيير الرقم في العنوان وتنزيل فاتورة شخص آخر. لذلك تحقق في `invoice()` من أن المستخدم يحق له رؤية هذه الفاتورة، مثلًا بـ [voter](https://symfony.com/doc/current/security/voters.html) على كيان الفاتورة و`$this->denyAccessUnlessGranted('view', $invoice)`، الذي يرد برمز 403.
 - المورد هو `company` في الـ theme الخاص بالخدمة.
 - مع اسم ملف عربي تحفظ المتصفحات الملف باسم `فاتورة-INV-7.pdf`، وتحصل البرامج القديمة على `fatwrt-INV-7.pdf`.
 
@@ -216,9 +220,13 @@ public function contract(int $id): Response
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 
-#[Route('/invoices/{number}/send', name: 'invoice_send')]
-public function send(string $number, MailerInterface $mailer): Response
+#[Route('/invoices/{number}/send', name: 'invoice_send', methods: ['POST'])]
+public function send(string $number, Request $request, MailerInterface $mailer): Response
 {
+    if (! $this->isCsrfTokenValid('send-invoice-'.$number, $request->request->getString('_token'))) {
+        throw $this->createAccessDeniedException();
+    }
+
     $file = $this->docs->template('invoice', $this->invoice($number))->pdf("invoice-{$number}.pdf");
 
     $mailer->send((new Email())
@@ -230,6 +238,15 @@ public function send(string $number, MailerInterface $mailer): Response
 
     return new Response('sent');
 }
+```
+
+إرسال بريد يغيّر شيئًا، لذلك لا يقبل الـ route إلا `POST` ويتحقق من رمز CSRF ‏(`symfony/security-csrf`)؛ فلا يستطيع رابط أو صورة في موقع آخر إرساله. والزر نموذج صغير:
+
+```twig
+<form method="post" action="{{ path('invoice_send', {number: number}) }}">
+    <input type="hidden" name="_token" value="{{ csrf_token('send-invoice-' ~ number) }}">
+    <button>أرسل الفاتورة بالبريد</button>
+</form>
 ```
 
 ومع المستندات الكثيرة، أنشئها في handler ‏Messenger بدلًا من أثناء الطلب، واحفظ كل ملف بـ `->save()` أو أرسله من هناك.

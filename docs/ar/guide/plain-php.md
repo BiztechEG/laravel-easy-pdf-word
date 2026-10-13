@@ -8,7 +8,7 @@
 composer require biztecheg/easy-pdf-word mpdf/mpdf phpoffice/phpword
 ```
 
-يثبّت هذا الأمر المكتبة ومحرك mPDF وPhpWord لملفات Word. تحتاج إلى PHP 8.2 أو أحدث مع الإضافتين `mbstring` و`gd`، وإلى `intl` للتاريخ الهجري و`zip` لملفات Word وملفات ZIP. ولاستخدام Chromium بدلًا من mPDF راجع [محركات PDF](/ar/guide/engines)، فالمحركات تعمل هنا بالطريقة نفسها.
+يثبّت هذا الأمر المكتبة ومحرك mPDF وPhpWord لملفات Word. تحتاج إلى PHP 8.2 أو أحدث مع الإضافتين `mbstring` و`gd`، وإلى `intl` للتاريخ الهجري، و`zip` لملفات Word وملفات ZIP، و`curl` لمحرك Gotenberg (أما حزمة Laravel فترسل عبر عميل HTTP الخاص بـ Laravel). ولاستخدام Chromium بدلًا من mPDF راجع [محركات PDF](/ar/guide/engines)، فالمحركات تعمل هنا بالطريقة نفسها.
 
 ## إنشاء الـ factory {#create}
 
@@ -27,6 +27,7 @@ $docs = EasyPdfWord::create([
         'company' => ['name' => 'شركة بيزتك', 'tax_number' => '123-456-789'],
     ],
     'images' => ['paths' => [__DIR__.'/assets']],
+    'views' => ['paths' => [__DIR__.'/views']],
 ]);
 ```
 
@@ -88,8 +89,8 @@ $contract = $docs->view('contracts.show', ['contract' => $data]);
 $file = $invoice->pdf('INV-1024.pdf');
 
 $file->save(__DIR__.'/storage/INV-1024.pdf');   // احفظه في مجلد (يُنشأ المجلد إن لم يوجد)
-$file->send();                                  // أرسله إلى المتصفح للتنزيل
-$file->send('فاتورة-1024.pdf', inline: true);   // أو اعرضه في المتصفح باسم آخر
+$file->send();                                  // أرسله إلى المتصفح للتنزيل، أو:
+// $file->send('فاتورة-1024.pdf', inline: true); // اعرضه في المتصفح باسم آخر
 $bytes = $file->content();                       // محتوى الملف لبريد إلكتروني أو رفع
 $file->base64();                                 // المحتوى بترميز base64 لواجهة API
 $file->mimeType();                               // application/pdf
@@ -97,7 +98,7 @@ $file->filename();                               // INV-1024.pdf
 $file->engine();                                 // المحرك الذي أنشأه: mpdf أو browsershot ...
 ```
 
-تضبط `send()` الترويسات `Content-Type` و`Content-Length` و`Content-Disposition` ثم تطبع الملف. استدعها قبل طباعة أي شيء آخر، وأوقف السكريبت بعدها. ويبقى اسم الملف العربي كما هو في المتصفحات، مع اسم بحروف لاتينية للبرامج القديمة.
+يحمل الـ response ملفًا واحدًا، لذلك استدعِ `send()` مرة واحدة، بإحدى الطريقتين أعلاه. تضبط `send()` الترويسات `Content-Type` و`Content-Length` و`Content-Disposition` ثم تطبع الملف. استدعها قبل طباعة أي شيء آخر، وأوقف السكريبت بعدها. والمخرجات التي ما زالت تنتظر في مخازن المخرجات (output buffers) في PHP (سطر فارغ زائد أو تنبيه) تُحذف أولًا، فلا تدخل في الملف. أما المخرجات التي وصلت إلى المتصفح فلا يمكن استرجاعها: حينها ترمي `send()` الاستثناء `RuntimeException` بالرسالة `Cannot send the file: output already started at ...` مع اسم الملف ورقم السطر. ويبقى اسم الملف العربي كما هو في المتصفحات، مع اسم بحروف لاتينية للبرامج القديمة.
 
 وتوضع عدة ملفات في ملف ZIP واحد، والمفاتيح هي أسماؤها داخل الملف:
 
@@ -158,7 +159,7 @@ $docs->template('letter', $letter->sample())->pdf()->save(__DIR__.'/letter.pdf')
 
 ## تحذيرات المحركات {#warnings}
 
-عندما يفشل محرك وترجع المكتبة إلى mPDF، تستدعي دالة `warn` التي تمررها في المعامل الثاني. وبدونها يذهب التحذير إلى `error_log()` في PHP.
+عندما يفشل محرك وترجع المكتبة إلى mPDF، أو تُترك صورة لأن مجلدها ليس في `images.paths` أو لأن نطاقها غير مسموح به، تستدعي المكتبة دالة `warn` التي تمررها في المعامل الثاني. وبدونها يذهب التحذير إلى `error_log()` في PHP.
 
 ```php
 $docs = EasyPdfWord::create($config, [
@@ -173,7 +174,7 @@ $docs = EasyPdfWord::create($config, [
 | في Laravel | في PHP العادي |
 | --- | --- |
 | `Doc::template()` والـ facade ‏`Doc` | `$docs->template()` على الـ factory الناتج من `create()` |
-| ملفات Blade وقوالب `.blade.php` | views وقوالب `.html.php`، وهي تعمل في Laravel أيضًا |
+| ملفات Blade وقوالب `.blade.php` | views وقوالب `.html.php`. ومجلد القالب الذي فيه ملفات `.html.php` يعمل في Laravel أيضًا، أما `Doc::view()` هناك فلا يجد إلا views الخاصة بـ Laravel (`.blade.php` أو `.php`)، لا `.html.php` |
 | `config/easy-pdf-word.php` و`.env` | المصفوفة التي تمررها إلى `create()` |
 | `->download()` و`->stream()` وإعادة الملف من controller | `->send()`، أو `->content()` في الـ response الخاص بإطار عملك |
 | `->save($path, 's3')` على disk | `->save($path)` في مجلد محلي، أو `->content()` إلى مكان التخزين لديك |

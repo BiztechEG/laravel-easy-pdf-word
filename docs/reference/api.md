@@ -381,7 +381,7 @@ Chromium and Gotenberg print `{page}` and `{pages}` in Latin digits, even with `
 driver(string $driver): static
 ```
 
-The PDF engine for this document: `mpdf`, `chromium` (or `browsershot`, `chrome`), `gotenberg`, or a name registered with `Doc::extend()`. When the engine is not installed or fails, the `pdf.fallback` engine renders the file and a warning is logged. Any other name throws `InvalidArgumentException` when the PDF is rendered: `Unknown PDF engine [chromuim]. Use mpdf, chromium, gotenberg or a name added with Doc::extend().`
+The PDF engine for this document: `mpdf`, `chromium` (or `browsershot`, `chrome`), `gotenberg`, or a name registered with `Doc::extend()`. When the engine is not installed or fails, the `pdf.fallback` engine renders the file and a warning is logged. Any other name throws `InvalidArgumentException` when the PDF is rendered: `Unknown PDF engine [chromuim]. Use mpdf, chromium, gotenberg or a name added with extend() (Doc::extend() in Laravel).`
 
 ### watermark() {#pending-watermark}
 
@@ -428,7 +428,7 @@ Returns the PDF as a [`PdfDocument`](#rendered-files). `$filename` is the name u
 word(?string $filename = null): WordDocument
 ```
 
-Returns the Word file as a [`WordDocument`](#rendered-files), built from the template's `word.docx`, `word.php` or `layout.php`, or from the `Doc::make()` blocks. The name defaults to `invoice.docx` or `document.docx`. As with `pdf()`, template data is validated now and the file is rendered when its bytes are first needed. Throws [`WordNotSupported`](#exceptions) for Blade views, HTML and templates without a Word layout, and `LogicException` when a password is set. Needs `phpoffice/phpword`.
+Returns the Word file as a [`WordDocument`](#rendered-files), built from the template's `word.docx`, `word.php` or `layout.php`, or from the `Doc::make()` blocks. The name defaults to `invoice.docx` or `document.docx`. As with `pdf()`, template data is validated now and the file is rendered when its bytes are first needed. Throws [`WordNotSupported`](#exceptions) for Blade views, HTML and templates without a Word layout, and `LogicException` when a password is set. Needs `phpoffice/phpword` and the PHP `zip` extension; without the extension it throws `RuntimeException` (`Word files need the PHP zip extension (ext-zip).`).
 
 ### queue() {#pending-queue}
 
@@ -877,12 +877,12 @@ Registering in the `fonts.custom` config does the same for every request.
 
 ## PdfManager {#pdf-manager}
 
-`Doc::pdfManager()` returns the `BiztechEG\EasyPdfWord\Pdf\PdfManager` singleton, a Laravel `Manager`.
+`Doc::pdfManager()` returns the `BiztechEG\EasyPdfWord\Pdf\PdfManager` singleton, which makes the PDF engines and keeps each one once made. It is the core library's own class, not a Laravel `Manager`.
 
 | Method | Description |
 | --- | --- |
-| `driver($driver = null)` | The `PdfDriver` by name (any case; `chromium` and `chrome` mean `browsershot`), or the default engine |
-| `extend($driver, Closure $callback)` | What `Doc::extend()` calls |
+| `driver(?string $driver = null): PdfDriver` | The `PdfDriver` by name (any case; `chromium` and `chrome` mean `browsershot`), or the default engine |
+| `extend(string $driver, Closure $callback): static` | What `Doc::extend()` calls |
 | `getDefaultDriver(): string` | `pdf.driver` from the config |
 | `normalize(?string $driver): string` | The name as stored: lowercased, aliases resolved |
 | `engineConfig(string $name): array` | `pdf.drivers.{name}` from the config |
@@ -913,7 +913,8 @@ interface PdfDriver
 ```
 
 - `render()` gets the final HTML (digits already converted) and a [`PdfOptions`](#pdf-options). It should apply the paper size, margins, header and footer (replacing `{page}` and `{pages}`), and the watermark if you support it; `BiztechEG\EasyPdfWord\Pdf\Watermark::inject($html, $options)` adds the watermark the way the Chromium engines do.
-- When `usesCssFonts()` is `true`, the package adds `@font-face` rules to the HTML for the document font and for every registered font the page's CSS names (`font-family: 'naskh'`), and fetches allowed remote images itself and inlines them, so your engine never loads a URL.
+- When `usesCssFonts()` is `true`, the package adds `@font-face` rules to the HTML for the document font and for every registered font the page's CSS names (`font-family: 'naskh'`).
+- Whatever `usesCssFonts()` returns, the package fetches allowed remote images itself and inlines them, so your engine never loads a URL.
 - A password is added after `render()` by mPDF, so your engine does not need to encrypt.
 - When `isAvailable()` is `false` or `render()` throws, the fallback engine renders the document.
 
@@ -990,6 +991,7 @@ The package's own exceptions are in `BiztechEG\EasyPdfWord\Exceptions`:
 | `TemplateNotFound` | `InvalidArgumentException` | `Doc::template($name)` or `Doc::templates()->get($name)` finds no folder with that name (or the name has other characters than letters, digits, `.`, `-`, `_`). The message lists the folders searched |
 | `WordNotSupported` | `LogicException` | `->word()` or `->queue('….docx')` on a Blade view or HTML document, or on a template without `layout.php`, `word.php` or `word.docx` |
 | `DriverNotAvailable` | `RuntimeException` | The chosen PDF engine is not installed or configured (`mpdf/mpdf`, `spatie/browsershot`, `DOC_GOTENBERG_URL`, or your engine's `isAvailable()` is `false`) and the fallback cannot render either; a Word file is rendered without `phpoffice/phpword`; a password is set with Chromium or Gotenberg and `mpdf/mpdf` is missing |
+| `ValidationFailed` | `InvalidArgumentException` | Template data fails the template's rules outside Laravel. A template's `prepare` throws it with `ValidationFailed::withMessages(['items.0.discount' => '...'])` for checks the rules cannot express. `errors()` returns the messages by field. In Laravel the package turns it into `Illuminate\Validation\ValidationException` with the same messages, so you catch that one instead |
 
 Other exceptions you may meet:
 
@@ -999,7 +1001,7 @@ Other exceptions you may meet:
 | `InvalidArgumentException` | An invalid locale, font name, paper size, numerals style, an unknown PDF engine name, empty watermark, unknown password permission, a `->queue()` path not ending in `.pdf` or `.docx`, an empty or wrong `Doc::zip()` list |
 | `LogicException` | `->word()` or `->queue('….docx')` on a document with a password; `GeneratedDocument::html()` on a Word file |
 | `BadMethodCallException` | A block method (`heading`, `table` ...) on a template, view or HTML document, or a method that does not exist |
-| `RuntimeException` | A save that could not be written, a ZIP without `ext-zip`, a Hijri date without `ext-intl`, an mPDF temp folder that cannot be written, an engine error with no fallback |
+| `RuntimeException` | A save that could not be written, a ZIP or Word file without `ext-zip`, a Hijri date without `ext-intl`, an mPDF temp folder that cannot be written, an engine error with no fallback |
 
 ::: tip
 An engine name that is neither built in nor registered with `Doc::extend()`, such as a typo, throws instead of falling back. The fallback is only for engines that exist but are not installed or fail; check `->pdf()->engine()` if you are not sure which engine ran.

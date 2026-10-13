@@ -161,7 +161,7 @@ $data['signature'] = storage_path('app/signatures/ceo.png');
 $data['stamp'] = storage_path('app/signatures/stamp.png');
 ```
 
-Local images are read only from the folders allowed in the config (`public`, `storage/app` and `resources` by default), and URLs only when remote images are turned on. An image that is not allowed is skipped without an error, so check the result once. Use a PNG with a transparent background. See [Images](/guide/images).
+Local images are read only from the folders allowed in the config (`public`, `storage/app` and `resources` by default), and URLs only when remote images are turned on. An image that is not allowed is skipped without an error and a warning is written to the log, so check the result once. Use a PNG with a transparent background. See [Images](/guide/images).
 
 ::: warning
 Keep signature and stamp files out of the `public` folder, where anyone could download them. `storage/app` is a safer place.

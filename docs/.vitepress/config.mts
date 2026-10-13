@@ -155,7 +155,8 @@ function nav(prefix: string, n: Labels): DefaultTheme.NavItem[] {
       text: 'v1.4',
       items: [
         { text: n.changelog, link: `${repo}/blob/main/CHANGELOG.md` },
-        { text: 'Packagist', link: 'https://packagist.org/packages/biztecheg/laravel-easy-pdf-word' },
+        { text: 'Packagist: laravel-easy-pdf-word', link: 'https://packagist.org/packages/biztecheg/laravel-easy-pdf-word' },
+        { text: 'Packagist: easy-pdf-word', link: 'https://packagist.org/packages/biztecheg/easy-pdf-word' },
       ],
     },
   ]

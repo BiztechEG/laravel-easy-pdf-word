@@ -17,11 +17,12 @@ The data you pass to a template, a view or `Doc::make()` often comes from users:
 
 Images are the main way a document could reach outside itself, so they follow strict rules (see [Images](/guide/images)):
 
-- Local files are read only from the folders in `images.paths` (`public`, `storage/app` and `resources` by default), and only when they are real images. A path like `../../.env` in user data embeds nothing.
+- Local files are read only from the folders in `images.paths` (`public`, `storage/app` and `resources` by default), and only when they are real images. A path like `../../.env` in user data embeds nothing. If image paths can come from your users, narrow `images.paths` to the folders they may use: `storage/app` also holds other users' private uploads.
 - Other schemes (`file://`, `phar://`, `php://`, `ftp://`) and network shares are never read.
 - Image URLs are ignored unless you allow their hosts with `DOC_REMOTE_IMAGES`, so user data cannot make your server request internal addresses such as `http://169.254.169.254/`.
-- Allowed URLs are fetched without following redirects and with a 10-second limit, for every engine and for Word files. For Chromium and Gotenberg the package fetches the image itself and inlines it, so the browser never requests a URL.
-- SVG images that refer to files, URLs, scripts or entities are left out.
+- Allowed URLs are fetched by the package without following redirects, with a 10-second and 10 MB limit, and inlined, so no engine requests a URL itself. This is the case for every engine and for Word files.
+- SVG images that refer to files, URLs, scripts or entities are left out, whatever type a data URI or a server claims for them.
+- An image that is left out by these rules is reported as a warning in the log, so a missing logo is easy to trace.
 
 ### Colours, locales and fonts {#colours-locales-fonts}
 
