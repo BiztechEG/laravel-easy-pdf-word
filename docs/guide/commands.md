@@ -18,31 +18,31 @@ php artisan doc:templates
 It takes no arguments or options, and lists every template: the bundled ones and those in your project's templates folder (`resources/doc-templates` by default).
 
 ```text
-+----------------+--------------------+---------+-----------+---------+
-| Name           | Title              | Locales | Formats   | Source  |
-+----------------+--------------------+---------+-----------+---------+
-| my-invoice     | Tax invoice        | ar, en  | PDF, Word | project |
-| packing-list   | packing-list       | ar, en  | PDF, Word | project |
-| certificate    | Certificate        | ar, en  | PDF, Word | package |
-| contract       | Contract           | ar, en  | PDF, Word | package |
-| credit-note    | Credit note        | ar, en  | PDF, Word | package |
-| delivery-note  | Delivery note      | ar, en  | PDF, Word | package |
-| eg-invoice     | Egyptian e-invoice | ar, en  | PDF, Word | package |
-| invoice        | Tax invoice        | ar, en  | PDF, Word | package |
-| letter         | Official letter    | ar, en  | PDF, Word | package |
-| payslip        | Payslip            | ar, en  | PDF, Word | package |
-| purchase-order | Purchase order     | ar, en  | PDF, Word | package |
-| quotation      | Price quotation    | ar, en  | PDF, Word | package |
-| receipt        | Receipt voucher    | ar, en  | PDF, Word | package |
-| report         | Table report       | ar, en  | PDF, Word | package |
-+----------------+--------------------+---------+-----------+---------+
++----------------+--------------------+------------+-----------+---------+
+| Name           | Title              | Locales    | Formats   | Source  |
++----------------+--------------------+------------+-----------+---------+
+| my-invoice     | Tax invoice        | ar, en, tr | PDF, Word | project |
+| packing-list   | packing-list       | ar, en     | PDF, Word | project |
+| certificate    | Certificate        | ar, en, tr | PDF, Word | package |
+| contract       | Contract           | ar, en, tr | PDF, Word | package |
+| credit-note    | Credit note        | ar, en, tr | PDF, Word | package |
+| delivery-note  | Delivery note      | ar, en, tr | PDF, Word | package |
+| eg-invoice     | Egyptian e-invoice | ar, en, tr | PDF, Word | package |
+| invoice        | Tax invoice        | ar, en, tr | PDF, Word | package |
+| letter         | Official letter    | ar, en, tr | PDF, Word | package |
+| payslip        | Payslip            | ar, en, tr | PDF, Word | package |
+| purchase-order | Purchase order     | ar, en, tr | PDF, Word | package |
+| quotation      | Price quotation    | ar, en, tr | PDF, Word | package |
+| receipt        | Receipt voucher    | ar, en, tr | PDF, Word | package |
+| report         | Table report       | ar, en, tr | PDF, Word | package |
++----------------+--------------------+------------+-----------+---------+
 ```
 
 | Column | Meaning |
 | --- | --- |
 | Name | What you pass to `Doc::template()` |
 | Title | `title` from the template's `template.php` |
-| Locales | `locales` from `template.php` (`ar, en` when it has none) |
+| Locales    | `locales` from `template.php` (`ar, en` when it has none) |
 | Formats | `PDF` when the template has `pdf.html.php`, `pdf.blade.php`, `layout.php` or `word.php`; `Word` when it has `layout.php`, `word.php` or `word.docx` |
 | Source | `project` for a template in your app, `package` for a bundled one |
 

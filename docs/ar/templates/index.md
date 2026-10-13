@@ -85,22 +85,22 @@ php artisan doc:templates
 ```
 
 ```text
-+----------------+--------------------+---------+-----------+---------+
-| Name           | Title              | Locales | Formats   | Source  |
-+----------------+--------------------+---------+-----------+---------+
-| certificate    | Certificate        | ar, en  | PDF, Word | package |
-| contract       | Contract           | ar, en  | PDF, Word | package |
-| credit-note    | Credit note        | ar, en  | PDF, Word | package |
-| delivery-note  | Delivery note      | ar, en  | PDF, Word | package |
-| eg-invoice     | Egyptian e-invoice | ar, en  | PDF, Word | package |
-| invoice        | Tax invoice        | ar, en  | PDF, Word | package |
-| letter         | Official letter    | ar, en  | PDF, Word | package |
-| payslip        | Payslip            | ar, en  | PDF, Word | package |
-| purchase-order | Purchase order     | ar, en  | PDF, Word | package |
-| quotation      | Price quotation    | ar, en  | PDF, Word | package |
-| receipt        | Receipt voucher    | ar, en  | PDF, Word | package |
-| report         | Table report       | ar, en  | PDF, Word | package |
-+----------------+--------------------+---------+-----------+---------+
++----------------+--------------------+------------+-----------+---------+
+| Name           | Title              | Locales    | Formats   | Source  |
++----------------+--------------------+------------+-----------+---------+
+| certificate    | Certificate        | ar, en, tr | PDF, Word | package |
+| contract       | Contract           | ar, en, tr | PDF, Word | package |
+| credit-note    | Credit note        | ar, en, tr | PDF, Word | package |
+| delivery-note  | Delivery note      | ar, en, tr | PDF, Word | package |
+| eg-invoice     | Egyptian e-invoice | ar, en, tr | PDF, Word | package |
+| invoice        | Tax invoice        | ar, en, tr | PDF, Word | package |
+| letter         | Official letter    | ar, en, tr | PDF, Word | package |
+| payslip        | Payslip            | ar, en, tr | PDF, Word | package |
+| purchase-order | Purchase order     | ar, en, tr | PDF, Word | package |
+| quotation      | Price quotation    | ar, en, tr | PDF, Word | package |
+| receipt        | Receipt voucher    | ar, en, tr | PDF, Word | package |
+| report         | Table report       | ar, en, tr | PDF, Word | package |
++----------------+--------------------+------------+-----------+---------+
 ```
 
 القوالب التي نسختها أو أنشأتها بنفسك تظهر في القائمة نفسها، ومصدرها `project`.
