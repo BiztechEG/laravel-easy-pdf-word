@@ -112,7 +112,14 @@ production.WARNING: easy-pdf-word: [gotenberg] failed, falling back to [mpdf]: c
 
 ## الصور لا تظهر {#images}
 
-الصور التي لا تجتاز [قواعد الصور](/ar/guide/images) تُترك دون خطأ. افحص ما يلي بالترتيب:
+الصور التي لا تجتاز [قواعد الصور](/ar/guide/images) تُترك دون خطأ. والصورة التي تُترك بسبب مجلدها أو نطاقها يُكتب لها تحذير في السجل يذكر الصورة والإعداد:
+
+```text
+production.WARNING: easy-pdf-word: image [/var/www/app/uploads/logo.png] was left out: it is outside the folders in the images.paths setting.
+production.WARNING: easy-pdf-word: image [https://files.example.com/stamp.png] was left out: its host is not allowed in the images.remote setting.
+```
+
+افحص ما يلي بالترتيب:
 
 1. **ملف محلي خارج المجلدات المسموح بها.** المسموح افتراضيًا `public` و`storage/app` و`resources` فقط. أضف مجلدك إلى `images.paths`.
 2. **ملف ليس صورة،** كصفحة خطأ HTML محفوظة باسم `logo.png`. تفحص الحزمة المحتوى، لا الاسم.

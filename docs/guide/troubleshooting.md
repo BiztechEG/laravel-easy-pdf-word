@@ -112,7 +112,14 @@ The full message also contains the whole Browsershot command; the useful part is
 
 ## Images are missing {#images}
 
-Images that do not pass the [image rules](/guide/images) are left out without an error. Check these in order:
+Images that do not pass the [image rules](/guide/images) are left out without an error. An image left out because of its folder or its host is reported as a warning in the log, naming the image and the setting:
+
+```text
+production.WARNING: easy-pdf-word: image [/var/www/app/uploads/logo.png] was left out: it is outside the folders in the images.paths setting.
+production.WARNING: easy-pdf-word: image [https://files.example.com/stamp.png] was left out: its host is not allowed in the images.remote setting.
+```
+
+Check these in order:
 
 1. **A local file outside the allowed folders.** Only `public`, `storage/app` and `resources` are allowed by default. Add your folder to `images.paths`.
 2. **A file that is not an image,** for example an HTML error page saved as `logo.png`. The package checks the content, not the name.

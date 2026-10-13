@@ -30,7 +30,7 @@ Doc::template('letter', [
     ->pdf();
 ```
 
-Every image goes through the same checks, described below. An image that does not pass them is left out of the document without an error, so a missing image never breaks a document. When an image you expect is missing, see [Troubleshooting](/guide/troubleshooting#images).
+Every image goes through the same checks, described below. An image that does not pass them is left out of the document without an error, so a missing image never breaks a document. When an image is left out because its folder is not in `images.paths` or its host is not allowed, a warning that names the image and the setting is written to the log. When an image you expect is missing, see [Troubleshooting](/guide/troubleshooting#images).
 
 ## Accepted sources {#sources}
 

@@ -158,7 +158,7 @@ $docs->template('letter', $letter->sample())->pdf()->save(__DIR__.'/letter.pdf')
 
 ## Engine warnings {#warnings}
 
-When an engine fails and the library falls back to mPDF, it calls a `warn` function you pass as a second argument. Without one, the warning goes to PHP's `error_log()`.
+When an engine fails and the library falls back to mPDF, or an image is left out because its folder is not in `images.paths` or its host is not allowed, the library calls a `warn` function you pass as a second argument. Without one, the warning goes to PHP's `error_log()`.
 
 ```php
 $docs = EasyPdfWord::create($config, [
