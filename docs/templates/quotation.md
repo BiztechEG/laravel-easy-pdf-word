@@ -180,7 +180,7 @@ php artisan doc:template quotation --as=my-quotation
 
 This copies the template to `resources/doc-templates/my-quotation`. Use it with `Doc::template('my-quotation', $data)` and edit:
 
-- `lang/ar.php` and `lang/en.php` for the labels: the opening sentence under `intro`, the closing under `closing`, the column names.
+- `lang/ar.json`, `lang/en.json` and `lang/tr.json` for the labels: the opening sentence under `intro`, the closing under `closing`, the column names.
 - `template.php` for the fields and the defaults, for example `'quote' => ['currency' => 'SAR', 'tax_rate' => 15]` to always add Saudi VAT.
 - `layout.php` for the layout of both formats.
 - `footer.html.php` for the footer.

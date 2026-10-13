@@ -191,7 +191,7 @@ This copies the template to `resources/doc-templates/my-report/`:
 - `pdf.html.php`: the PDF layout and its CSS;
 - `word.php`: the Word layout;
 - `footer.html.php`: the footer with the title and page numbers;
-- `lang/ar.php` and `lang/en.php`: the labels الإجمالي، لا توجد بيانات and تاريخ الإنشاء.
+- `lang/ar.json`, `lang/en.json` and `lang/tr.json`: the labels الإجمالي، لا توجد بيانات and تاريخ الإنشاء.
 
 Edit `pdf.html.php` and `word.php` together, so both files stay alike. Use the copy with `Doc::template('my-report', $data)`. See [Your own templates](/guide/custom-templates).
 

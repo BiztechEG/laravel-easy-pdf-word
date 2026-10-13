@@ -193,7 +193,7 @@ php artisan doc:template letter --as=my-letter
 - `pdf.html.php`: تخطيط PDF وتنسيقات CSS؛
 - `word.php`: تخطيط ملف Word؛
 - `footer.html.php`: تذييل بيانات الاتصال؛
-- `lang/ar.php` و`lang/en.php`: العناوين، والتحية والختام الافتراضيان.
+- `lang/ar.json` و`lang/en.json` و`lang/tr.json`: العناوين، والتحية والختام الافتراضيان.
 
 عدّل `pdf.html.php` و`word.php` معاً ليبقى الملفان متشابهين. واستخدم النسخة عبر `Doc::template('my-letter', $data)`. انظر [قوالبك الخاصة](/ar/guide/custom-templates).
 

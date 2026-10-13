@@ -206,7 +206,7 @@ php artisan doc:template receipt --as=my-receipt
 
 - `template.php`: الحقول، والقيم الافتراضية (مثل `'currency' => 'SAR'`)، ومقاس الورق؛
 - `layout.php`: التخطيط، ويُستخدم لملف PDF وملف Word معاً؛
-- `lang/ar.php` و`lang/en.php`: كل العناوين، مثل اسمي السندين وأدوار التوقيع.
+- `lang/ar.json` و`lang/en.json` و`lang/tr.json`: كل العناوين، مثل اسمي السندين وأدوار التوقيع.
 
 ثم استخدم النسخة باسمها الجديد: `Doc::template('my-receipt', $data)`. ومن دون `--as` تحتفظ النسخة بالاسم `receipt` وتحل محل القالب المرفق مع الحزمة في تطبيقك. انظر [قوالبك الخاصة](/ar/guide/custom-templates).
 

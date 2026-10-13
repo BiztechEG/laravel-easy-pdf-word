@@ -162,7 +162,7 @@ php artisan doc:template certificate --as=my-certificate
 - `template.php`: الحقول، والقيم الافتراضية (مثل `'type' => 'attendance'`)، وإعدادات الصفحة؛
 - `pdf.html.php`: تصميم PDF بالإطار وتنسيقات CSS (الألوان والمقاسات وشكل الإطار)؛
 - `word.php`: تخطيط ملف Word؛
-- `lang/ar.php` و`lang/en.php`: العناوين والصياغة لكل نوع وجنس.
+- `lang/ar.json` و`lang/en.json` و`lang/tr.json`: العناوين والصياغة لكل نوع وجنس.
 
 عدّل `pdf.html.php` و`word.php` معاً حين تنقل العناصر، ليبقى الملفان متشابهين. واستخدم النسخة عبر `Doc::template('my-certificate', $data)`. انظر [قوالبك الخاصة](/ar/guide/custom-templates).
 

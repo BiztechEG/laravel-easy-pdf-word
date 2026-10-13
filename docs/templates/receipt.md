@@ -206,7 +206,7 @@ This creates `resources/doc-templates/my-receipt/` with:
 
 - `template.php`: the fields, the defaults (for example `'currency' => 'SAR'`) and the paper size;
 - `layout.php`: the layout, used for both the PDF and the Word file;
-- `lang/ar.php` and `lang/en.php`: every label, such as the titles and the signature roles.
+- `lang/ar.json`, `lang/en.json` and `lang/tr.json`: every label, such as the titles and the signature roles.
 
 Then use it by its new name: `Doc::template('my-receipt', $data)`. Without `--as`, the copy keeps the name `receipt` and replaces the bundled template in your app. See [Your own templates](/guide/custom-templates).
 

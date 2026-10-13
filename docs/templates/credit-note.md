@@ -176,7 +176,7 @@ php artisan doc:template credit-note --as=my-credit-note
 
 This copies the template to `resources/doc-templates/my-credit-note`. Use it with `Doc::template('my-credit-note', $data)` and edit:
 
-- `lang/ar.php` and `lang/en.php` for the labels: the titles under `title`, the closing sentences under `effect`, the QR caption under `verify`.
+- `lang/ar.json`, `lang/en.json` and `lang/tr.json` for the labels: the titles under `title`, the closing sentences under `effect`, the QR caption under `verify`.
 - `template.php` for the fields, the defaults (currency and VAT rate) and the totals in `prepare()`.
 - `layout.php` for the layout of both formats.
 - `footer.html.php` for the footer.

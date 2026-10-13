@@ -1,6 +1,6 @@
 # Ready-made templates
 
-The package ships twelve templates, each in Arabic and English, as PDF and Word. This page explains what all of them have in common: how to pass data, how it is checked, where the company details and labels come from, and how to list, copy and override templates. Each template's own fields are on its page in the [template gallery](/templates/).
+The package ships twelve templates, each in Arabic, English and Turkish, as PDF and Word. This page explains what all of them have in common: how to pass data, how it is checked, where the company details and labels come from, and how to list, copy and override templates. Each template's own fields are on its page in the [template gallery](/templates/).
 
 ## Make a document from a template {#usage}
 

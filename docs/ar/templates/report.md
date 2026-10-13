@@ -191,7 +191,7 @@ php artisan doc:template report --as=my-report
 - `pdf.html.php`: تخطيط PDF وتنسيقات CSS؛
 - `word.php`: تخطيط ملف Word؛
 - `footer.html.php`: التذييل بالعنوان وأرقام الصفحات؛
-- `lang/ar.php` و`lang/en.php`: العناوين الإجمالي، ولا توجد بيانات، وتاريخ الإنشاء.
+- `lang/ar.json` و`lang/en.json` و`lang/tr.json`: العناوين الإجمالي، ولا توجد بيانات، وتاريخ الإنشاء.
 
 عدّل `pdf.html.php` و`word.php` معاً ليبقى الملفان متشابهين. واستخدم النسخة عبر `Doc::template('my-report', $data)`. انظر [قوالبك الخاصة](/ar/guide/custom-templates).
 

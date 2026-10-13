@@ -260,7 +260,7 @@ php artisan doc:template eg-invoice --as=my-eg-invoice
 
 ينسخ هذا الأمر القالب إلى `resources/doc-templates/my-eg-invoice`. استخدمه بـ `Doc::template('my-eg-invoice', $data)` وعدّل:
 
-- `lang/ar.php` و `lang/en.php` للعناوين: أسماء المستندات تحت `types`، وأسماء الضرائب تحت `tax_types`، ونص رمز QR تحت `verify`.
+- `lang/ar.json` و`lang/en.json` و`lang/tr.json` للعناوين: أسماء المستندات تحت `types`، وأسماء الضرائب تحت `tax_types`، ونص رمز QR تحت `verify`.
 - `layout.php` لتخطيط الصيغتين: أعمدة جدول الأسطر وما تعرضه الخانات.
 - `template.php` للحقول وحساب الضرائب في `prepare()`.
 - `footer.html.php` لتذييل الصفحة.

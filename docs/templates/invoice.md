@@ -238,7 +238,7 @@ php artisan doc:template invoice --as=my-invoice
 
 This copies the template to `resources/doc-templates/my-invoice`. Use it with `Doc::template('my-invoice', $data)` and edit:
 
-- `lang/ar.php` and `lang/en.php` for the labels, such as the title or the currency names.
+- `lang/ar.json`, `lang/en.json` and `lang/tr.json` for the labels, such as the title or the currency names.
 - `template.php` for the fields, the `defaults` (for example `'invoice' => ['currency' => 'SAR', 'tax_rate' => 15]` for Saudi Arabia) and the totals in `prepare()`.
 - `pdf.html.php` for the PDF layout and `word.php` for the Word layout. Change both when you move or add something.
 - `footer.html.php` for the footer; `{page}` and `{pages}` become page numbers.

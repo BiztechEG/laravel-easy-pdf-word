@@ -1,6 +1,6 @@
 # Templates
 
-The package ships twelve ready-made templates, each in Arabic and English, as a PDF and as a Word file. Use this page to find the one you need, then open its page for the fields, the options and a working example.
+The package ships twelve ready-made templates, each in Arabic, English and Turkish, as a PDF and as a Word file. Use this page to find the one you need, then open its page for the fields, the options and a working example.
 
 <div class="gallery">
   <a href="/templates/invoice"><img src="/previews/invoice-en.png" alt="Tax invoice preview"><strong>Tax invoice</strong><span>VAT, amount in words, ZATCA or link QR</span></a>

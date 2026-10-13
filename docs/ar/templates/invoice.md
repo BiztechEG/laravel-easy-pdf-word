@@ -238,7 +238,7 @@ php artisan doc:template invoice --as=my-invoice
 
 ينسخ هذا الأمر القالب إلى `resources/doc-templates/my-invoice`. استخدمه بـ `Doc::template('my-invoice', $data)` وعدّل:
 
-- `lang/ar.php` و `lang/en.php` للعناوين، مثل عنوان الفاتورة أو اختصارات العملات.
+- `lang/ar.json` و`lang/en.json` و`lang/tr.json` للعناوين، مثل عنوان الفاتورة أو اختصارات العملات.
 - `template.php` للحقول والقيم الافتراضية `defaults` (مثلاً `'invoice' => ['currency' => 'SAR', 'tax_rate' => 15]` للسعودية) والإجماليات في `prepare()`.
 - `pdf.html.php` لتخطيط PDF و `word.php` لتخطيط Word. عدّل الاثنين عندما تنقل شيئاً أو تضيفه.
 - `footer.html.php` لتذييل الصفحة؛ يصبح `{page}` و `{pages}` أرقام الصفحات.

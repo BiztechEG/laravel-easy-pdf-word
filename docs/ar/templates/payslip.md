@@ -215,7 +215,7 @@ php artisan doc:template payslip --as=my-payslip
 - `template.php`: الحقول والقيم الافتراضية، مثل `'currency' => 'SAR'`؛
 - `layout.php`: تخطيط ملف PDF وملف Word معاً؛
 - `footer.html.php`: التذييل السري؛
-- `lang/ar.php` و`lang/en.php`: العناوين. ففي السعودية مثلاً قد تغيّر `'national_id' => 'الرقم القومي'` إلى `'رقم الهوية / الإقامة'`.
+- `lang/ar.json` و`lang/en.json` و`lang/tr.json`: العناوين. ففي السعودية مثلاً قد تغيّر `"national_id": "الرقم القومي"` إلى `"national_id": "رقم الهوية / الإقامة"`.
 
 استخدم النسخة عبر `Doc::template('my-payslip', $data)`. وأي حقل جديد يحتاج إلى قاعدة في `template.php` وسطر في `layout.php` يطبعه. انظر [قوالبك الخاصة](/ar/guide/custom-templates).
 

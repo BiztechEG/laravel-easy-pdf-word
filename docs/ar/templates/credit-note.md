@@ -176,7 +176,7 @@ php artisan doc:template credit-note --as=my-credit-note
 
 ينسخ هذا الأمر القالب إلى `resources/doc-templates/my-credit-note`. استخدمه بـ `Doc::template('my-credit-note', $data)` وعدّل:
 
-- `lang/ar.php` و `lang/en.php` للعناوين: أسماء الإشعار تحت `title`، والجمل الختامية تحت `effect`، ونص رمز QR تحت `verify`.
+- `lang/ar.json` و`lang/en.json` و`lang/tr.json` للعناوين: أسماء الإشعار تحت `title`، والجمل الختامية تحت `effect`، ونص رمز QR تحت `verify`.
 - `template.php` للحقول والقيم الافتراضية (العملة ونسبة الضريبة) والإجماليات في `prepare()`.
 - `layout.php` لتخطيط الصيغتين.
 - `footer.html.php` لتذييل الصفحة.
