@@ -87,7 +87,7 @@ Doc::template('invoice', $data)->theme(['logo' => $logo])->pdf();
 
 ## Remote images {#remote}
 
-An image URL is downloaded by your server: by mPDF, or by the package itself for Chromium, Gotenberg and Word files. A URL taken from user input could make your server request internal addresses, so image URLs are ignored unless you allow them.
+An image URL is downloaded by your server: the package fetches it itself, for every engine and for Word files. A URL taken from user input could make your server request internal addresses, so image URLs are ignored unless you allow them.
 
 Allow the hosts you use, in `.env`:
 
@@ -109,9 +109,9 @@ or in the config, as an array:
 
 Redirects and slow servers:
 
-- Redirects are never followed, with any engine or in Word files, so a URL on an allowed host cannot lead to another host. A URL that redirects shows mPDF's small "image not found" icon in an mPDF PDF, and nothing with Chromium, Gotenberg or in a Word file. Use the final URL.
-- The download waits up to 10 seconds for an image.
-- For Chromium and Gotenberg, the package downloads the image (10 MB at most) and puts it into the page as a data URI, so the browser never loads the URL itself.
+- Redirects are never followed, with any engine or in Word files, so a URL on an allowed host cannot lead to another host. A URL that redirects is left out of the document. Use the final URL.
+- The download waits up to 10 seconds for an image, and takes 10 MB at most.
+- The package puts the downloaded image into the document as a data URI, so no engine loads the URL itself.
 
 ## SVG images {#svg}
 

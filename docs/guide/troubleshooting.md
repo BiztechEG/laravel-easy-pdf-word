@@ -118,7 +118,7 @@ Images that do not pass the [image rules](/guide/images) are left out without an
 2. **A file that is not an image,** for example an HTML error page saved as `logo.png`. The package checks the content, not the name.
 3. **A path on a cloud disk** like `tenants/14/logo.png` on S3. It is not a local path: pass the file's URL or a data URI.
 4. **A URL whose host is not allowed.** Add the host to `DOC_REMOTE_IMAGES`, then run `php artisan config:cache` again in production.
-5. **A URL that redirects.** Redirects are not followed: mPDF shows a small "image not found" icon instead, and Chromium, Gotenberg and Word files leave the image out. Use the final URL.
+5. **A URL that redirects.** Redirects are not followed, so the image is left out with every engine and in Word files. Use the final URL.
 6. **An SVG that refers to files or URLs**, or has a `<!DOCTYPE>` line. Export it again as plain SVG, or use a PNG.
 7. **An SVG in a Word file.** Word files leave SVG out. Use a PNG or JPEG.
 

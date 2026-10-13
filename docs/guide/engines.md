@@ -258,7 +258,7 @@ Doc::template('invoice', $data)->driver('pdf-service')->pdf();
 
 or `DOC_PDF_DRIVER=pdf-service` for the whole app. What your engine gets and must do:
 
-- `$html` is the full document. When `usesCssFonts()` returns `true`, the package embeds the document font, and every registered font the page's CSS names, as `@font-face` rules, so a browser-based engine needs no fonts installed. It also downloads allowed remote images and puts them in the page as data URIs, so your engine never fetches a URL.
+- `$html` is the full document. When `usesCssFonts()` returns `true`, the package embeds the document font, and every registered font the page's CSS names, as `@font-face` rules, so a browser-based engine needs no fonts installed. Whatever `usesCssFonts()` returns, the package downloads allowed remote images and puts them in the page as data URIs, so your engine never fetches a URL.
 - `$options` carries `paperSize()` in millimetres with the orientation applied, `margins` (top, right, bottom, left in mm), `direction`, `locale`, `font`, `numerals`, `title`, `author`, `header` and `footer`. The header and footer still contain `{page}` and `{pages}`; replace them with your engine's page number syntax.
 - `$options->watermark` is set when the document has a watermark. `Watermark::inject($html, $options)` adds it to the HTML as a fixed element, as the Chromium engines do.
 - Passwords are handled for you: after your engine returns, the package encrypts the PDF with mPDF.

@@ -913,7 +913,8 @@ interface PdfDriver
 ```
 
 - `render()` gets the final HTML (digits already converted) and a [`PdfOptions`](#pdf-options). It should apply the paper size, margins, header and footer (replacing `{page}` and `{pages}`), and the watermark if you support it; `BiztechEG\EasyPdfWord\Pdf\Watermark::inject($html, $options)` adds the watermark the way the Chromium engines do.
-- When `usesCssFonts()` is `true`, the package adds `@font-face` rules to the HTML for the document font and for every registered font the page's CSS names (`font-family: 'naskh'`), and fetches allowed remote images itself and inlines them, so your engine never loads a URL.
+- When `usesCssFonts()` is `true`, the package adds `@font-face` rules to the HTML for the document font and for every registered font the page's CSS names (`font-family: 'naskh'`).
+- Whatever `usesCssFonts()` returns, the package fetches allowed remote images itself and inlines them, so your engine never loads a URL.
 - A password is added after `render()` by mPDF, so your engine does not need to encrypt.
 - When `isAvailable()` is `false` or `render()` throws, the fallback engine renders the document.
 
