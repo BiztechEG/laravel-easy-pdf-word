@@ -96,6 +96,7 @@ class CommandsTest extends TestCase
         $this->artisan('doc:make-template', ['name' => 'packing-list'])->assertFailed();
         $this->assertFileExists($this->projectTemplates.'/packing-list/pdf.html.php');
         $this->assertFileExists($this->projectTemplates.'/packing-list/footer.html.php');
+        $this->assertFileExists($this->projectTemplates.'/packing-list/lang/ar.json');
         $this->assertFileDoesNotExist($this->projectTemplates.'/packing-list/pdf.blade.php');
     }
 
@@ -124,6 +125,7 @@ class CommandsTest extends TestCase
 
         $this->assertSame($normalize($blade->toHtml()), $normalize($plain->toHtml()));
         $this->assertSame(trim($blade->options()->footer), trim($plain->options()->footer));
+        $this->assertStringContainsString('اكتب محتوى المستند هنا.', $plain->toHtml());
     }
 
     public function test_a_new_template_named_like_a_bundled_one_warns_that_it_replaces_it(): void
