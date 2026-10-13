@@ -23,13 +23,17 @@ php artisan doc:template invoice --as=simplified-invoice
 
 The copy is in `resources/doc-templates/simplified-invoice`. Change one line in each language file:
 
-```php
-// resources/doc-templates/simplified-invoice/lang/ar.php
-'title' => 'فاتورة ضريبية مبسطة',
+::: code-group
 
-// resources/doc-templates/simplified-invoice/lang/en.php
-'title' => 'Simplified Tax Invoice',
+```json [lang/ar.json]
+"title": "فاتورة ضريبية مبسطة",
 ```
+
+```json [lang/en.json]
+"title": "Simplified Tax Invoice",
+```
+
+:::
 
 Fields, VAT and QR work as in the original. A copy does not receive later changes to the bundled template, so keep your edits small; see [Your own templates](/guide/custom-templates).
 

@@ -249,17 +249,18 @@ php artisan doc:template invoice
 
 ### عبارات بلغتين
 
-ضع العبارات في `lang/ar.php` و`lang/en.php` داخل مجلد القالب، واكتب `${t.key}` في Word:
+ضع العبارات في `lang/ar.json` و`lang/en.json` داخل مجلد القالب، واكتب `${t.key}` في Word:
 
-```php
-<?php
-// resources/doc-templates/price-offer/lang/en.php
+::: code-group
 
-return [
-    'title' => 'Price offer',
-    'valid_until' => 'Valid until',
-];
+```json [resources/doc-templates/price-offer/lang/en.json]
+{
+    "title": "Price offer",
+    "valid_until": "Valid until"
+}
 ```
+
+:::
 
 يطبع `${t.title}` العبارة "Price offer" مع `->locale('en')`، والعبارة العربية مع `->locale('ar')`. واحتفظ بتصميمين `.docx` (في مجلدي قالبين) إذا احتاجت اللغتان تخطيطين مختلفين.
 

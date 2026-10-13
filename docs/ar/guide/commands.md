@@ -90,7 +90,7 @@ php artisan doc:template letter --force
 
 ## doc:make-template {#doc-make-template}
 
-ينشئ مجلد قالب جديد من هيكل فارغ: `template.php` و`pdf.html.php` و`word.php` و`footer.html.php` و`lang/ar.php` و`lang/en.php`. صفحة PDF والتذييل مكتوبان [بلغة PHP العادية](/ar/guide/custom-templates#pdf-html) مثل القوالب المرفقة.
+ينشئ مجلد قالب جديد من هيكل فارغ: `template.php` و`pdf.html.php` و`word.php` و`footer.html.php` و`lang/ar.json` و`lang/en.json`. صفحة PDF والتذييل مكتوبان [بلغة PHP العادية](/ar/guide/custom-templates#pdf-html) مثل القوالب المرفقة.
 
 ```bash
 php artisan doc:make-template {name} [--blade]

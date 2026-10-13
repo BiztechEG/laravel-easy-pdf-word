@@ -90,7 +90,7 @@ The third one comes from `--force` on a template that exists only in your projec
 
 ## doc:make-template {#doc-make-template}
 
-Creates a new template folder from a blank starter: `template.php`, `pdf.html.php`, `word.php`, `footer.html.php` and `lang/ar.php` and `lang/en.php`. The PDF page and the footer are [plain PHP](/guide/custom-templates#pdf-html), like the bundled templates.
+Creates a new template folder from a blank starter: `template.php`, `pdf.html.php`, `word.php`, `footer.html.php` and `lang/ar.json` and `lang/en.json`. The PDF page and the footer are [plain PHP](/guide/custom-templates#pdf-html), like the bundled templates.
 
 ```bash
 php artisan doc:make-template {name} [--blade]
