@@ -83,6 +83,15 @@ function my_invoices_data(WC_Order $order): array
         ];
     }
 
+    // Shipping and fees, each as one line
+    foreach ($order->get_items(['shipping', 'fee']) as $item) {
+        $items[] = [
+            'description' => $item->get_name(),
+            'quantity' => 1,
+            'unit_price' => (float) $item->get_total(),
+        ];
+    }
+
     return [
         'invoice' => [
             'number' => $order->get_order_number(),
@@ -100,7 +109,7 @@ function my_invoices_data(WC_Order $order): array
 }
 ```
 
-The prices are before tax, and a coupon shows as a discount on each line. The template works out the subtotal, the VAT and the total, and writes the amount in words. The seller comes from the theme's `company`.
+The prices are before tax, and a coupon shows as a discount on each line. Shipping and fees (`get_items(['shipping', 'fee'])`) are added as lines of their own, with their total before tax, so they are taxed at the invoice's rate like the products and the invoice total matches the order. A fee with a negative amount is refused by the template, since a line cannot be below zero; give discounts as coupons instead. The template works out the subtotal, the VAT and the total, and writes the amount in words. The seller comes from the theme's `company`.
 
 The invoice has one VAT rate: 15% and the ZATCA QR code for Saudi Arabia here. For Egypt, use `14` and remove `qr`. If your shop has several tax rates, make your own template.
 
