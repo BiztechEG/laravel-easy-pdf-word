@@ -70,7 +70,8 @@ class CommandsTest extends TestCase
 
         $this->artisan('doc:template', ['name' => 'letter', '--force' => true])->assertSuccessful();
 
-        $this->assertFileEquals(\BiztechEG\EasyPdfWord\Templates\TemplateRegistry::packagePath().'/letter/lang/ar.php', $this->projectTemplates.'/letter/lang/ar.php');
+        $this->assertFileEquals(\BiztechEG\EasyPdfWord\Templates\TemplateRegistry::packagePath().'/letter/lang/ar.json', $this->projectTemplates.'/letter/lang/ar.json');
+        $this->assertFileDoesNotExist($this->projectTemplates.'/letter/lang/ar.php');
     }
 
     public function test_a_project_template_cannot_be_copied_onto_itself(): void
