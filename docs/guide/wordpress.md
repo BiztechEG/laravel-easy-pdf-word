@@ -47,7 +47,7 @@ function my_invoices_docs(): DocumentFactory
         'locale' => str_starts_with(get_locale(), 'ar') ? 'ar' : 'en',
         'theme' => [
             'company' => [
-                'name' => get_bloginfo('name'),
+                'name' => wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES),
                 'tax_number' => '300000000000003',
             ],
         ],
@@ -60,6 +60,7 @@ function my_invoices_docs(): DocumentFactory
 ```
 
 - The documents follow the site language: an Arabic site gets Arabic invoices, right to left.
+- `get_bloginfo('name')` returns the site name escaped for HTML (`&amp;` for `&`). `wp_specialchars_decode()` turns it back into plain text, because the template escapes it again.
 - `get_temp_dir()` is the folder WordPress itself writes temporary files to, so mPDF works on hosts where the system temp folder is closed.
 - `doc-templates` is where your own templates go, or your copies of the bundled ones; see [Your own templates](/guide/custom-templates).
 - Engine warnings go to the PHP error log, which WordPress writes to `wp-content/debug.log` when `WP_DEBUG_LOG` is on.

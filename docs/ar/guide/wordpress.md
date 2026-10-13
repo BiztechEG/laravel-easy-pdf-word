@@ -47,7 +47,7 @@ function my_invoices_docs(): DocumentFactory
         'locale' => str_starts_with(get_locale(), 'ar') ? 'ar' : 'en',
         'theme' => [
             'company' => [
-                'name' => get_bloginfo('name'),
+                'name' => wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES),
                 'tax_number' => '300000000000003',
             ],
         ],
@@ -60,6 +60,7 @@ function my_invoices_docs(): DocumentFactory
 ```
 
 - تتبع المستندات لغة الموقع: الموقع العربي يحصل على فواتير عربية من اليمين إلى اليسار.
+- تعيد `get_bloginfo('name')` اسم الموقع مهرَّبًا لـ HTML (`&amp;` بدل `&`). وتعيده `wp_specialchars_decode()` نصًا عاديًا، لأن القالب يهرّبه مرة أخرى.
 - `get_temp_dir()` هو المجلد الذي يكتب فيه WordPress نفسه ملفاته المؤقتة، فيعمل mPDF على الاستضافات التي تغلق مجلد النظام المؤقت.
 - يحتوي `doc-templates` على قوالبك الخاصة أو نسخك من القوالب المرفقة؛ راجع [قوالبك الخاصة](/ar/guide/custom-templates).
 - تذهب تحذيرات المحركات إلى سجل أخطاء PHP، ويكتبه WordPress في `wp-content/debug.log` عند تفعيل `WP_DEBUG_LOG`.
