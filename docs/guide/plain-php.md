@@ -174,7 +174,7 @@ These come from the Laravel package. Outside Laravel, use the plain PHP way:
 | Laravel | Plain PHP |
 | --- | --- |
 | `Doc::template()` and the `Doc` facade | `$docs->template()` on the factory from `create()` |
-| Blade views and `.blade.php` templates | `.html.php` views and templates, which also work in Laravel |
+| Blade views and `.blade.php` templates | `.html.php` views and templates. A template folder with `.html.php` files also works in Laravel, but `Doc::view()` there finds only Laravel views (`.blade.php` or `.php`), not `.html.php` |
 | `config/easy-pdf-word.php` and `.env` | The array you pass to `create()` |
 | `->download()`, `->stream()`, returning the file from a controller | `->send()`, or `->content()` in your framework's response |
 | `->save($path, 's3')` on a storage disk | `->save($path)` to a local folder, or `->content()` to your storage |

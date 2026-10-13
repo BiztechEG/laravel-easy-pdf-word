@@ -174,7 +174,7 @@ $docs = EasyPdfWord::create($config, [
 | في Laravel | في PHP العادي |
 | --- | --- |
 | `Doc::template()` والـ facade ‏`Doc` | `$docs->template()` على الـ factory الناتج من `create()` |
-| ملفات Blade وقوالب `.blade.php` | views وقوالب `.html.php`، وهي تعمل في Laravel أيضًا |
+| ملفات Blade وقوالب `.blade.php` | views وقوالب `.html.php`. ومجلد القالب الذي فيه ملفات `.html.php` يعمل في Laravel أيضًا، أما `Doc::view()` هناك فلا يجد إلا views الخاصة بـ Laravel (`.blade.php` أو `.php`)، لا `.html.php` |
 | `config/easy-pdf-word.php` و`.env` | المصفوفة التي تمررها إلى `create()` |
 | `->download()` و`->stream()` وإعادة الملف من controller | `->send()`، أو `->content()` في الـ response الخاص بإطار عملك |
 | `->save($path, 's3')` على disk | `->save($path)` في مجلد محلي، أو `->content()` إلى مكان التخزين لديك |
