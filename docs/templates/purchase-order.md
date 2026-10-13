@@ -177,7 +177,7 @@ php artisan doc:template purchase-order --as=my-purchase-order
 
 This copies the template to `resources/doc-templates/my-purchase-order`. Use it with `Doc::template('my-purchase-order', $data)` and edit:
 
-- `lang/ar.php` and `lang/en.php` for the labels: the opening sentence under `intro`, the signature names under `signatures` (add your own roles there to have them translated).
+- `lang/ar.json`, `lang/en.json` and `lang/tr.json` for the labels: the opening sentence under `intro`, the signature names under `signatures` (add your own roles there to have them translated).
 - `template.php` for the fields, the defaults (currency, VAT rate) and the default signatures in `prepare()`.
 - `layout.php` for the layout of both formats.
 - `footer.html.php` for the footer.

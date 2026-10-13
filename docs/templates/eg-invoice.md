@@ -260,7 +260,7 @@ php artisan doc:template eg-invoice --as=my-eg-invoice
 
 This copies the template to `resources/doc-templates/my-eg-invoice`. Use it with `Doc::template('my-eg-invoice', $data)` and edit:
 
-- `lang/ar.php` and `lang/en.php` for the labels: the titles under `types`, the tax names under `tax_types`, the QR caption under `verify`.
+- `lang/ar.json`, `lang/en.json` and `lang/tr.json` for the labels: the titles under `types`, the tax names under `tax_types`, the QR caption under `verify`.
 - `layout.php` for the layout of both formats: the columns of the lines table, what the boxes show.
 - `template.php` for the fields and the tax computation in `prepare()`.
 - `footer.html.php` for the footer.

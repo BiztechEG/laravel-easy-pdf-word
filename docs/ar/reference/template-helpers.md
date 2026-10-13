@@ -11,7 +11,7 @@
 | `layout.php` و`word.php` | دالة تستقبل كائن البناء والبيانات و`$doc`: راجع [layout.php و word.php](#layout-php) |
 | `word.docx` | [`${placeholders}`](#word-placeholders) |
 | `template.php` | [مفاتيح الملف](#template-php) |
-| `lang/ar.php` و`lang/en.php` ... | [النصوص](#lang-files) التي تقرؤها بـ `$doc->t()` |
+| `lang/ar.json` و`lang/en.json` ... | [النصوص](#lang-files) التي تقرؤها بـ `$doc->t()` |
 
 في القوالب، البيانات هي ما مررته مدمجًا فوق `defaults` الخاصة بالقالب وبعد مروره على دالة `prepare`، فتجد فيها القيم المحسوبة مثل الإجماليات. ومفتاح بيانات اسمه `doc` لا يحل أبدًا محل `$doc`.
 
@@ -91,12 +91,12 @@ $doc->theme(string $key, mixed $default = null): mixed
 $doc->t(string $key, array $replace = []): string
 ```
 
-نص من ملف `lang/{language}.php` الخاص بالقالب (والمفاتيح بالنقاط للمصفوفات المتداخلة)، ثم من `lang/en.php`، ثم المفتاح نفسه. تُستبدل المتغيرات `:name` من `$replace`. النصوص موجودة في القوالب فقط: في view تستخدمه مع `Doc::view()` تعيد `t()` المفتاح كما هو.
+نص من ملف `lang/{language}.json` الخاص بالقالب (والمفاتيح بالنقاط للنصوص المتداخلة)، ثم من `lang/en.json`، ثم المفتاح نفسه. تُستبدل المتغيرات `:name` من `$replace`. النصوص موجودة في القوالب فقط: في view تستخدمه مع `Doc::view()` تعيد `t()` المفتاح كما هو.
 
 ```php
-// lang/ar.php: 'page' => 'صفحة :current من :total'
+// lang/ar.json: "page": "صفحة :current من :total"
 $doc->t('page', ['current' => 3, 'total' => 5]);   // صفحة 3 من 5
-// lang/en.php: 'page' => 'Page :current of :total'  → Page 3 of 5
+// lang/en.json: "page": "Page :current of :total"  → Page 3 of 5
 ```
 
 الأسماء التي يبدأ أحدها باسم آخر تعمل بأي ترتيب: في `'صفحة :page من :pages'` يعطي `$doc->t('page', ['page' => 3, 'pages' => 5])` النتيجة `صفحة 3 من 5`، لأن الاسم الأطول يُستبدل أولًا.
@@ -145,13 +145,26 @@ $doc->text(mixed $value): string
 
 يحوّل أي قيمة إلى نص للعرض: `null` و`false` يعطيان `''`، و`true` يعطي `✓`، والتواريخ تُكتب `Y/m/d` (`2026/10/08`)، والـ enum المدعوم بقيمة يعطي قيمته، وغيره يعطي اسمه، والمصفوفات والكائنات تُكتب JSON.
 
+### date() {#context-date}
+
+```php
+$doc->date(DateTimeInterface|string|int|null $date, bool $time = false): string
+```
+
+التاريخ كما تكتبه لغة المستند، بصيغة `date_format` (أو `datetime_format` مع `$time`) من [ملف اللغة](/ar/guide/languages#files). تقرأ القيم نفسها التي تقرؤها [`Dates::parse()`](#dates)، و`null` تعني الآن.
+
+| الاستدعاء | العربية والإنجليزية | التركية |
+| --- | --- | --- |
+| `$doc->date('2026-10-08')` | `2026/10/08` | `08.10.2026` |
+| `$doc->date('2026-10-08 14:30', true)` | `2026/10/08 14:30` | `08.10.2026 14:30` |
+
 ### number() {#context-number}
 
 ```php
 $doc->number(int|float|string|null $value, int $decimals = 2): HtmlString
 ```
 
-رقم بفواصل الآلاف وعدد `$decimals` من المنازل العشرية (من 0 إلى 10). يقرأ النصوص مثل `'1,250.50'` و`'١٬٢٥٠٫٥'` قراءة صحيحة. الرقم السالب يوضع داخل `<bdo dir="ltr">` لتبقى علامة السالب في مكانها داخل النص العربي. تعيد HTML، فاطبعها بالأقواس المزدوجة. وفي `layout.php` و`word.php` استخدم [`numberText()`](#context-number-text) بدلًا منها.
+رقم بفواصل الآلاف وعدد `$decimals` من المنازل العشرية (من 0 إلى 10)، بفواصل لغة المستند: `1,250.50` في العربية والإنجليزية، و`1.250,50` في التركية. يقرأ النصوص مثل `'1,250.50'` و`'١٬٢٥٠٫٥'` قراءة صحيحة. الرقم السالب يوضع داخل `<bdo dir="ltr">` لتبقى علامة السالب في مكانها داخل النص العربي. تعيد HTML، فاطبعها بالأقواس المزدوجة. وفي `layout.php` و`word.php` استخدم [`numberText()`](#context-number-text) بدلًا منها.
 
 | الاستدعاء | تعيد |
 | --- | --- |
@@ -175,7 +188,7 @@ $doc->numberText(int|float|string|null $value, int $decimals = 2): string
 $doc->rate(int|float|string|null $value): string
 ```
 
-نسبة أو معدل بالمنازل العشرية اللازمة فقط: `rate(14)` تعطي `14`، و`rate(2.5)` تعطي `2.5`، و`rate('0.750')` تعطي `0.75`، و`rate('1,500')` تعطي `1500`.
+نسبة أو معدل بالمنازل العشرية اللازمة فقط: `rate(14)` تعطي `14`، و`rate(2.5)` تعطي `2.5` (و`2,5` في التركية)، و`rate('0.750')` تعطي `0.75`، و`rate('1,500')` تعطي `1500`.
 
 ### money() {#context-money}
 
@@ -213,7 +226,7 @@ $doc->tafqeet(int|float|string $amount, string $currency, bool $only = true): st
 $doc->inWords(int|float|string $amount, string $currency, bool $only = true): string
 ```
 
-المبلغ كتابةً بلغة المستند: التفقيط العربي في المستندات العربية، والتهجئة من امتداد `intl` في اللغات الأخرى. تعيد `''` إن غاب `ext-intl` في مستند غير عربي.
+المبلغ كتابةً بلغة المستند: التفقيط العربي في المستندات العربية، والتهجئة من امتداد `intl` في اللغات الأخرى مركّبةً كما يحدد `amount_in_words` في ملف اللغة. تعيد `''` إن غاب `ext-intl` في مستند غير عربي. وفي التركية تعطي `inWords(1250.5, 'TRY')` النص `Yalnız bin iki yüz elli Türk Lirası ve 50/100`.
 
 | الاستدعاء | مستند عربي | مستند إنجليزي |
 | --- | --- | --- |
@@ -235,13 +248,23 @@ $doc->decimals(?string $currency): int
 $doc->currency(string $code): string
 ```
 
-الاختصار المطبوع للعملة: نص `currencies.CODE` من ملف `lang` الخاص بالقالب إن وُجد، وإلا ففي المستندات من اليمين إلى اليسار اختصار عربي مدمج (EGP `ج.م` و SAR `ر.س` و AED `د.إ` و KWD `د.ك` و QAR `ر.ق` و BHD `د.ب` و OMR `ر.ع` و JOD `د.أ` و USD `دولار` و EUR `يورو`)، وإلا فرمز العملة بأحرف كبيرة.
+الاختصار المطبوع للعملة: نص `currencies.CODE` من ملف `lang` الخاص بالقالب إن وُجد، وإلا فمن `currencies` في [ملف لغة](/ar/guide/languages#files) المستند (في العربية EGP `ج.م` و SAR `ر.س` و AED `د.إ` و KWD `د.ك` و QAR `ر.ق` و BHD `د.ب` و OMR `ر.ع` و JOD `د.أ` و USD `دولار` و EUR `يورو`، وفي التركية TRY `TL`)، وإلا فرمز العملة بأحرف كبيرة.
 
-| الاستدعاء | مستند عربي | مستند إنجليزي |
-| --- | --- | --- |
-| `$doc->currency('EGP')` | `ج.م` | `EGP` |
-| `$doc->currency('sar')` | `ر.س` | `SAR` |
-| `$doc->currency('GBP')` | `GBP` | `GBP` |
+| الاستدعاء | مستند عربي | مستند إنجليزي | مستند تركي |
+| --- | --- | --- | --- |
+| `$doc->currency('EGP')` | `ج.م` | `EGP` | `EGP` |
+| `$doc->currency('sar')` | `ر.س` | `SAR` | `SAR` |
+| `$doc->currency('TRY')` | `TRY` | `TRY` | `TL` |
+
+### join() / ucfirst() / language() {#context-language}
+
+```php
+$doc->join(array $values): string
+$doc->ucfirst(string $text): string
+$doc->language(string $key, mixed $default = null): mixed
+```
+
+تجمع `join()` القيم بفاصل القوائم في اللغة: `أ، ب` في العربية، و`a, b` في الإنجليزية والتركية. وتكتب `ucfirst()` الحرف الأول كبيرًا في أي كتابة، مع حرف `İ` المنقوط في التركية والأذرية (`ikinci` تصبح `İkinci` في التركية). وتقرأ `language()` أي مفتاح من [ملف لغة](/ar/guide/languages#files) المستند، والإنجليزية تكمل الناقص: `$doc->language('name')` تعطي `Türkçe`.
 
 ### hasHijri() / hijri() {#context-hijri}
 
@@ -273,12 +296,12 @@ $doc->dayName(DateTimeInterface|string|int $date): string
 
 اسم الشهر أو اسم يوم الأسبوع بلغة المستند، بدون Carbon.
 
-| الاستدعاء | بالعربية | بالإنجليزية |
-| --- | --- | --- |
-| `$doc->monthName('2026-10-08')` | `أكتوبر` | `October` |
-| `$doc->dayName('2026-10-08')` | `الخميس` | `Thursday` |
+| الاستدعاء | بالعربية | بالإنجليزية | بالتركية |
+| --- | --- | --- | --- |
+| `$doc->monthName('2026-10-08')` | `أكتوبر` | `October` | `Ekim` |
+| `$doc->dayName('2026-10-08')` | `الخميس` | `Thursday` | `Perşembe` |
 
-اللغات الأخرى تحتاج إلى `ext-intl`، وبدونه تحصل على الأسماء الإنجليزية.
+اللغات التي لها [ملف لغة](/ar/guide/languages#files) أسماؤها مدمجة. أما اللغات الأخرى فتحتاج إلى `ext-intl`، وبدونه تحصل على الأسماء الإنجليزية.
 
 ### timezone() {#context-timezone}
 
@@ -435,6 +458,7 @@ BiztechEG\EasyPdfWord\Support\Dates::now(): DateTimeImmutable
 
 ```php
 <?= $doc->e(Dates::parse($invoice['date'])->format('Y/m/d')) ?>
+<?= $doc->e($doc->date($invoice['date'])) ?>  <!-- التاريخ نفسه بصيغة لغة المستند -->
 <?= $doc->e($doc->monthName($invoice['date'])) ?>
 ```
 
@@ -789,26 +813,27 @@ return function (DocumentBuilder $list, array $data, DocContext $doc): void {
 
 ## ملفات النصوص {#lang-files}
 
-يعيد `lang/{language}.php` نصوص لغة واحدة. جزء اللغة من الـ locale يحدد الملف (`ar_EG` يقرأ `ar.php`)، والنصوص الناقصة تؤخذ من `en.php`.
+يحتوي `lang/{language}.json` نصوص لغة واحدة. جزء اللغة من الـ locale يحدد الملف (`ar_EG` يقرأ `ar.json`)، والنصوص الناقصة تؤخذ من `en.json`. ويعمل أيضًا ملف `lang/{language}.php` يعيد مصفوفة، ويتقدّم على ملف `.json` في المجلد نفسه.
 
-```php
-<?php
+::: code-group
 
-// resources/doc-templates/packing-list/lang/ar.php
-return [
-    'title' => 'قائمة التعبئة',
-    'number' => 'رقم الشحنة',
-    'carrier' => 'شركة الشحن',
-    'customer' => 'العميل',
-    'item' => 'الصنف',
-    'quantity' => 'الكمية',
-    'weight' => 'الوزن (كجم)',
-    'total' => 'الإجمالي',
-    'page' => 'صفحة :current من :total',
-];
+```json [resources/doc-templates/packing-list/lang/ar.json]
+{
+    "title": "قائمة التعبئة",
+    "number": "رقم الشحنة",
+    "carrier": "شركة الشحن",
+    "customer": "العميل",
+    "item": "الصنف",
+    "quantity": "الكمية",
+    "weight": "الوزن (كجم)",
+    "total": "الإجمالي",
+    "page": "صفحة :current من :total"
+}
 ```
 
-المصفوفة `currencies` بعناصر `CODE => label` هي أول ما تقرؤه [`$doc->currency()`](#context-currency).
+:::
+
+الكائن `currencies` بعناصر `"CODE": "label"` هي أول ما تقرؤه [`$doc->currency()`](#context-currency).
 
 ## متغيرات word.docx {#word-placeholders}
 
@@ -820,13 +845,13 @@ return [
 | `${items.description}` داخل صف جدول | يتكرر الصف لكل عنصر في القائمة `items`، وتعمل أي قائمة مصفوفات |
 | `${items.row_number}` | 1 و2 و3 ... في الصف المتكرر |
 | `${items.product.code}` | قيمة متداخلة داخل كل صف |
-| `${tags}` | قائمة قيم بسيطة مفصولة بـ `، ` |
+| `${tags}` | قائمة قيم بسيطة مفصولة بفاصل القوائم في اللغة (`، ` في العربية، و`, ` في الإنجليزية) |
 | `${theme.company.name}` و`${theme.primary}` | قيم الهوية |
 | `${theme.logo}` و`${logo}` | صورة إن كانت القيمة مسار صورة أو data URI |
 | `${logo:120:60}` | الشيء نفسه بحجم بالبكسل (العرض:الارتفاع)، والعرض 120 إن لم يُحدد مع الحفاظ على النسبة |
-| `${t.title}` و`${t.labels.buyer}` | نصوص من `lang/{language}.php` |
+| `${t.title}` و`${t.labels.buyer}` | نصوص من `lang/{language}.json` |
 | `${doc.hijri_date}` | التاريخ الهجري للقيمة `date` (أو `invoice.date`)، ويحتاج `ext-intl` |
-| `${doc.today}` | تاريخ اليوم بصيغة `Y/m/d` |
+| `${doc.today}` | تاريخ اليوم بصيغة تاريخ اللغة: `2026/10/08`، و`08.10.2026` في التركية |
 | `${doc.qr}` | صورة رمز QR للقيمة `qr` |
 
 كيف تُكتب القيم:

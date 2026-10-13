@@ -247,7 +247,7 @@ withoutValidation(): static
 locale(string $locale): static
 ```
 
-يحدد لغة المستند: نصوص القالب (`lang/{language}.php`)، والمبلغ كتابةً، والاتجاه ما لم تستدع `->direction()`. يقبل أسماء مثل `ar` و`en` و`ar_EG` و`ar-SA`، ويرمي `InvalidArgumentException` لأي قيمة أخرى (مسارات أو وسوم).
+يحدد لغة المستند: نصوص القالب (`lang/{language}.json`)، وطريقة كتابة التواريخ والأرقام والمبلغ كتابةً (انظر [التركية واللغات الأخرى](/ar/guide/languages))، والاتجاه ما لم تستدع `->direction()`. يقبل أسماء مثل `ar` و`en` و`ar_EG` و`ar-SA`، ويرمي `InvalidArgumentException` لأي قيمة أخرى (مسارات أو وسوم).
 
 ```php
 Doc::template('invoice', $data)->locale('ar_EG');   // عربي، من اليمين إلى اليسار، بنصوص عربية
@@ -847,7 +847,7 @@ foreach (Doc::templates()->all() as $name => $template) {
 | `pdfLayout(): ?callable` | `layout.php`، وإلا `word.php` (يُستخدم حين لا توجد صفحة PDF) |
 | `supportsPdf(): bool` و`supportsWord(): bool` | الصيغ التي يستطيع المجلد إنتاجها |
 | `headerView(): ?string` و`footerView(): ?string` | مسارا ملفي رأس الصفحة والتذييل: `.html.php`، وإلا `.blade.php` |
-| `translations(string $locale): array` | النصوص في `lang/{language}.php` |
+| `translations(string $locale): array` | النصوص في `lang/{language}.json` (و`.php`) |
 
 ## FontRegistry {#font-registry}
 

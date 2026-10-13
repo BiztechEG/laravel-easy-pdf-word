@@ -1,6 +1,6 @@
 # القوالب الجاهزة
 
-تأتي الحزمة باثني عشر قالباً، كل منها بالعربية والإنجليزية وبصيغتي PDF وWord. تشرح هذه الصفحة ما تشترك فيه القوالب كلها: كيف تمرر البيانات، وكيف يجري التحقق منها، ومن أين تأتي بيانات الشركة والتسميات، وكيف تعرض القوالب وتنسخها وتستبدلها. أما حقول كل قالب فتجدها في صفحته داخل [معرض القوالب](/ar/templates/).
+تأتي الحزمة باثني عشر قالباً، كل منها بالعربية والإنجليزية والتركية وبصيغتي PDF وWord. تشرح هذه الصفحة ما تشترك فيه القوالب كلها: كيف تمرر البيانات، وكيف يجري التحقق منها، ومن أين تأتي بيانات الشركة والتسميات، وكيف تعرض القوالب وتنسخها وتستبدلها. أما حقول كل قالب فتجدها في صفحته داخل [معرض القوالب](/ar/templates/).
 
 ## إنشاء مستند من قالب {#usage}
 
@@ -162,9 +162,11 @@ Doc::template('quotation', $data)
 
 ## التسميات واللغات {#labels}
 
-الكلمات التي يطبعها القالب (العناوين، ورؤوس الأعمدة، و"الإجمالي المستحق") تأتي من مجلد `lang` الخاص به: `lang/ar.php` و`lang/en.php`. تختار اللغة الملف بحسب لغتها الأساسية، فاللغات `ar` و`ar_EG` و`ar-SA` كلها تستخدم `lang/ar.php`. وأي تسمية ناقصة في هذا الملف تؤخذ من `lang/en.php`.
+الكلمات التي يطبعها القالب (العناوين، ورؤوس الأعمدة، و"الإجمالي المستحق") تأتي من مجلد `lang` الخاص به: `lang/ar.json` و`lang/en.json` و`lang/tr.json`. تختار اللغة الملف بحسب لغتها الأساسية، فاللغات `ar` و`ar_EG` و`ar-SA` كلها تستخدم `lang/ar.json`. وأي تسمية ناقصة في هذا الملف تؤخذ من `lang/en.json`.
 
-وتعمل أي لغة أخرى أيضاً. فاستدعاء `->locale('fr')` ينشئ مستنداً من اليسار إلى اليمين بالتسميات الإنجليزية، و`->locale('ur')` مستنداً من اليمين إلى اليسار. ولطباعة تسميات فرنسية، انسخ القالب (انظر أدناه) وأضف `lang/fr.php`.
+وتحدّد اللغة أيضاً طريقة كتابة التواريخ والأرقام والمبلغ كتابةً: فالفاتورة التركية (`->locale('tr')`) تعرض 08.10.2026 و1.250,50. راجع [التركية واللغات الأخرى](/ar/guide/languages).
+
+وتعمل أي لغة أخرى أيضاً. فاستدعاء `->locale('fr')` ينشئ مستنداً من اليسار إلى اليمين بالتسميات الإنجليزية، و`->locale('ur')` مستنداً من اليمين إلى اليسار. ولطباعة تسميات فرنسية، انسخ القالب (انظر أدناه) وأضف `lang/fr.json`؛ وفي [إضافة لغة](/ar/guide/languages#add) الخطوات كاملة.
 
 تُطبع بياناتك كما تعطيها: تترجم الحزمة التسميات، لا أسماء أصنافك.
 
@@ -175,23 +177,23 @@ php artisan doc:templates
 ```
 
 ```text
-+----------------+--------------------+---------+-----------+---------+
-| Name           | Title              | Locales | Formats   | Source  |
-+----------------+--------------------+---------+-----------+---------+
-| my-invoice     | Tax invoice        | ar, en  | PDF, Word | project |
-| certificate    | Certificate        | ar, en  | PDF, Word | package |
-| contract       | Contract           | ar, en  | PDF, Word | package |
-| credit-note    | Credit note        | ar, en  | PDF, Word | package |
-| delivery-note  | Delivery note      | ar, en  | PDF, Word | package |
-| eg-invoice     | Egyptian e-invoice | ar, en  | PDF, Word | package |
-| invoice        | Tax invoice        | ar, en  | PDF, Word | package |
-| letter         | Official letter    | ar, en  | PDF, Word | package |
-| payslip        | Payslip            | ar, en  | PDF, Word | package |
-| purchase-order | Purchase order     | ar, en  | PDF, Word | package |
-| quotation      | Price quotation    | ar, en  | PDF, Word | package |
-| receipt        | Receipt voucher    | ar, en  | PDF, Word | package |
-| report         | Table report       | ar, en  | PDF, Word | package |
-+----------------+--------------------+---------+-----------+---------+
++----------------+--------------------+------------+-----------+---------+
+| Name           | Title              | Locales    | Formats   | Source  |
++----------------+--------------------+------------+-----------+---------+
+| my-invoice     | Tax invoice        | ar, en, tr | PDF, Word | project |
+| certificate    | Certificate        | ar, en, tr | PDF, Word | package |
+| contract       | Contract           | ar, en, tr | PDF, Word | package |
+| credit-note    | Credit note        | ar, en, tr | PDF, Word | package |
+| delivery-note  | Delivery note      | ar, en, tr | PDF, Word | package |
+| eg-invoice     | Egyptian e-invoice | ar, en, tr | PDF, Word | package |
+| invoice        | Tax invoice        | ar, en, tr | PDF, Word | package |
+| letter         | Official letter    | ar, en, tr | PDF, Word | package |
+| payslip        | Payslip            | ar, en, tr | PDF, Word | package |
+| purchase-order | Purchase order     | ar, en, tr | PDF, Word | package |
+| quotation      | Price quotation    | ar, en, tr | PDF, Word | package |
+| receipt        | Receipt voucher    | ar, en, tr | PDF, Word | package |
+| report         | Table report       | ar, en, tr | PDF, Word | package |
++----------------+--------------------+------------+-----------+---------+
 ```
 
 يبين العمود `Source` هل القالب من الحزمة أم من تطبيقك (وهو هنا نسخة باسم `my-invoice`). وتظهر قوالب المشروع أولاً. وفي الكود، تعيد `Doc::templates()->all()` القائمة نفسها.
@@ -220,13 +222,13 @@ Doc::template('my-invoice', $data)->locale('ar')->pdf();
 php artisan doc:template invoice
 ```
 
-فمثلاً، لتغيير العنوان العربي لكل الفواتير، عدّل `resources/doc-templates/invoice/lang/ar.php` وغيّر سطراً واحداً، مع إبقاء البقية:
+فمثلاً، لتغيير العنوان العربي لكل الفواتير، عدّل `resources/doc-templates/invoice/lang/ar.json` وغيّر سطراً واحداً، مع إبقاء البقية:
 
-```php
-'title' => 'فاتورة ضريبية مبسطة',
+```json
+"title": "فاتورة ضريبية مبسطة",
 ```
 
-إذا شغّلت الأمر مرة أخرى يتوقف بالرسالة "already exists. Use --force to overwrite it.". ومع `--force` ينسخ ملفات الأصل الموجود في الحزمة فوق نسختك من جديد، وتبقى الملفات التي أضفتها أنت إلى المجلد. وللعودة إلى القالب المرفق نهائياً، احذف المجلد.
+إذا شغّلت الأمر مرة أخرى يتوقف بالرسالة "already exists. Use --force to overwrite it.". ومع `--force` ينسخ ملفات الأصل الموجود في الحزمة فوق نسختك من جديد، وتبقى الملفات التي أضفتها أنت إلى المجلد، عدا ملفات التسميات مثل `lang/ar.php` في النسخ المصنوعة قبل الإصدار 1.5، لأنها كانت ستتقدّم على `lang/ar.json` المستعاد. وللعودة إلى القالب المرفق نهائياً، احذف المجلد.
 
 ::: tip ملاحظة
 لا تتلقى النسخة المنسوخة من القالب الإصلاحات التي تأتي مع تحديثات الحزمة. فلا تنسخ إلا القوالب التي تعدّلها فعلاً، وراجع [سجل التغييرات](https://github.com/BiztechEG/laravel-easy-pdf-word/blob/main/CHANGELOG.md) عند تحديث الحزمة.

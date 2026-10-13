@@ -23,8 +23,8 @@ resources/doc-templates/packing-list/
 ├── word.php            the Word layout, in code
 ├── footer.html.php     a page footer with page numbers
 └── lang/
-    ├── ar.php          Arabic labels
-    └── en.php          English labels
+    ├── ar.json         Arabic labels
+    └── en.json         English labels
 ```
 
 ```php
@@ -48,7 +48,7 @@ The page and the footer are plain PHP, like the bundled templates, so the templa
 | `word.docx` | No | A Word file designed in Word with `${placeholders}`, used for Word before anything else |
 | `header.html.php` or `header.blade.php` | No | A page header, repeated on every page |
 | `footer.html.php` or `footer.blade.php` | No | A page footer, repeated on every page; may print `{page}` and `{pages}` |
-| `lang/{language}.php` | No | Labels for each language: `lang/ar.php`, `lang/en.php`, `lang/fr.php` ... |
+| `lang/{language}.json` | No | Labels for each language: `lang/ar.json`, `lang/en.json`, `lang/tr.json`, `lang/fr.json` ... |
 
 A folder is found by `Doc::template()` as soon as it has `template.php`, `pdf.html.php`, `pdf.blade.php`, `layout.php`, `word.php` or `word.docx`. It is listed by `doc:templates` and on the preview page only when it has `template.php`.
 
@@ -132,17 +132,23 @@ The CSS has to work in mPDF, which supports CSS 2.1: lay out with tables, not fl
 
 ## Labels: lang files {#lang}
 
-Each file in `lang/` returns the labels for one language:
+Each file in `lang/` holds the labels for one language, as JSON:
 
-```php
-// lang/ar.php
-return [
-    'title' => 'قائمة التعبئة',
-    'customer' => 'العميل',
-    'greeting' => 'مرحباً :name، رقم طلبك :number',
-    'units' => ['box' => 'صندوق', 'pallet' => 'طبلية'],
-];
+::: code-group
+
+```json [lang/ar.json]
+{
+    "title": "قائمة التعبئة",
+    "customer": "العميل",
+    "greeting": "مرحباً :name، رقم طلبك :number",
+    "units": {
+        "box": "صندوق",
+        "pallet": "طبلية"
+    }
+}
 ```
+
+:::
 
 Read them with `$doc->t()` in pages and layouts, and with `${t.key}` in a `word.docx`:
 
@@ -152,7 +158,9 @@ Read them with `$doc->t()` in pages and layouts, and with `${t.key}` in a `word.
 <?= $doc->e($doc->t('greeting', ['name' => $customer['name'], 'number' => $order['number']])) ?>
 ```
 
-Nested labels are read with dots, and `:name` placeholders are replaced by the values you pass. The file is chosen by the language of the locale (`ar_EG` reads `lang/ar.php`). A label missing there is taken from `lang/en.php`, and a label missing in both prints its key, which makes typos easy to spot.
+Nested labels are read with dots, and `:name` placeholders are replaced by the values you pass. The file is chosen by the language of the locale (`ar_EG` reads `lang/ar.json`). A label missing there is taken from `lang/en.json`, and a label missing in both prints its key, which makes typos easy to spot.
+
+A `lang/ar.php` that returns an array works too, as in templates copied before version 1.5; when a folder has both, the `.php` labels win. JSON is the default because versions of the library in other programming languages read the same files. Dates, numbers and amounts in words follow the language too; see [Turkish and other languages](/guide/languages).
 
 ## Header and footer {#header-footer}
 
@@ -333,48 +341,44 @@ return [
 
 ::: code-group
 
-```php [lang/ar.php]
-<?php
-
-return [
-    'title' => 'قائمة التعبئة',
-    'number' => 'رقم الشحنة',
-    'date' => 'التاريخ',
-    'order_number' => 'رقم الطلب',
-    'customer' => 'العميل',
-    'contents' => 'المحتويات',
-    'quantity' => 'الكمية',
-    'weight' => 'الوزن (كجم)',
-    'size' => 'المقاس (سم)',
-    'total' => 'الإجمالي',
-    'notes' => 'ملاحظات',
-    'packed_by' => 'أعدّه',
-    'received_by' => 'استلمه',
-    'page' => 'صفحة',
-    'of' => 'من',
-];
+```json [lang/ar.json]
+{
+    "title": "قائمة التعبئة",
+    "number": "رقم الشحنة",
+    "date": "التاريخ",
+    "order_number": "رقم الطلب",
+    "customer": "العميل",
+    "contents": "المحتويات",
+    "quantity": "الكمية",
+    "weight": "الوزن (كجم)",
+    "size": "المقاس (سم)",
+    "total": "الإجمالي",
+    "notes": "ملاحظات",
+    "packed_by": "أعدّه",
+    "received_by": "استلمه",
+    "page": "صفحة",
+    "of": "من"
+}
 ```
 
-```php [lang/en.php]
-<?php
-
-return [
-    'title' => 'Packing List',
-    'number' => 'Shipment no.',
-    'date' => 'Date',
-    'order_number' => 'Order no.',
-    'customer' => 'Customer',
-    'contents' => 'Contents',
-    'quantity' => 'Qty',
-    'weight' => 'Weight (kg)',
-    'size' => 'Size (cm)',
-    'total' => 'Total',
-    'notes' => 'Notes',
-    'packed_by' => 'Packed by',
-    'received_by' => 'Received by',
-    'page' => 'Page',
-    'of' => 'of',
-];
+```json [lang/en.json]
+{
+    "title": "Packing List",
+    "number": "Shipment no.",
+    "date": "Date",
+    "order_number": "Order no.",
+    "customer": "Customer",
+    "contents": "Contents",
+    "quantity": "Qty",
+    "weight": "Weight (kg)",
+    "size": "Size (cm)",
+    "total": "Total",
+    "notes": "Notes",
+    "packed_by": "Packed by",
+    "received_by": "Received by",
+    "page": "Page",
+    "of": "of"
+}
 ```
 
 :::
@@ -390,7 +394,6 @@ The company comes from the [theme](/guide/templates#theme), so the same template
 
 use BiztechEG\EasyPdfWord\Builder\DocumentBuilder;
 use BiztechEG\EasyPdfWord\Support\DocContext;
-use Illuminate\Support\Carbon;
 
 /*
 | One layout for the PDF and the Word file.
@@ -407,7 +410,7 @@ return function (DocumentBuilder $list, array $data, DocContext $doc): void {
     $details = [
         ['text' => $doc->t('title'), 'bold' => true, 'size' => 18, 'color' => $primary],
         [$doc->t('number').': ', ['text' => $shipment['number'], 'ltr' => true]],
-        $doc->t('date').': '.Carbon::parse($shipment['date'])->format('Y/m/d'),
+        $doc->t('date').': '.$doc->date($shipment['date']),
     ];
 
     if (! empty($shipment['order_number'])) {
@@ -536,7 +539,6 @@ To design the PDF in HTML and CSS instead, add a `pdf.html.php` (or a `pdf.blade
 
 // resources/doc-templates/packing-list/pdf.html.php
 
-use BiztechEG\EasyPdfWord\Support\Dates;
 use BiztechEG\EasyPdfWord\View\PageLayout;
 
 $company = (array) $doc->theme('company', []);
@@ -569,7 +571,7 @@ ob_start();
         <td style="width: 45%;">
             <div class="title"><?= $doc->e($doc->t('title')) ?></div>
             <div><?= $doc->e($doc->t('number')) ?>: <?= $doc->ltr($shipment['number']) ?></div>
-            <div><?= $doc->e($doc->t('date')) ?>: <?= $doc->e(Dates::parse($shipment['date'])->format('Y/m/d')) ?></div>
+            <div><?= $doc->e($doc->t('date')) ?>: <?= $doc->e($doc->date($shipment['date'])) ?></div>
         </td>
     </tr>
 </table>
@@ -638,7 +640,7 @@ echo PageLayout::render($doc, ob_get_clean(), $doc->t('title').' '.$shipment['nu
             <td style="width: 45%;">
                 <div class="title">{{ $doc->t('title') }}</div>
                 <div>{{ $doc->t('number') }}: {{ $doc->ltr($shipment['number']) }}</div>
-                <div>{{ $doc->t('date') }}: {{ \Illuminate\Support\Carbon::parse($shipment['date'])->format('Y/m/d') }}</div>
+                <div>{{ $doc->t('date') }}: {{ $doc->date($shipment['date']) }}</div>
             </td>
         </tr>
     </table>

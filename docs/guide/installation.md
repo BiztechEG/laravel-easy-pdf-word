@@ -130,7 +130,7 @@ php artisan doc:sample invoice --locale=en --output=storage/app/invoice-sample.d
 
 Open `storage/app/invoice-sample.pdf`: you should see an Arabic tax invoice with joined letters, laid out right to left. The second command makes the English invoice as a Word file; the format follows the extension of `--output`. Without `--output`, files go to `storage/app/doc-samples/`. See [Artisan commands](/guide/commands) for every option.
 
-In the `local` environment you can also open `/doc-preview` in the browser to see every template in Arabic and English, with either engine. See [Preview page](/guide/preview).
+In the `local` environment you can also open `/doc-preview` in the browser to see every template in Arabic, English and Turkish, with either engine. See [Preview page](/guide/preview).
 
 ## Shared hosting {#shared-hosting}
 

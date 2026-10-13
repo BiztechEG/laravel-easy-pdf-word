@@ -11,7 +11,7 @@ Everything you can use while writing a template or a document view: the `$doc` o
 | `layout.php`, `word.php` | A closure that receives the builder, the data and `$doc`: see [layout.php and word.php](#layout-php) |
 | `word.docx` | [`${placeholders}`](#word-placeholders) |
 | `template.php` | The [manifest keys](#template-php) |
-| `lang/ar.php`, `lang/en.php` ... | [Labels](#lang-files) read with `$doc->t()` |
+| `lang/ar.json`, `lang/en.json` ... | [Labels](#lang-files) read with `$doc->t()` |
 
 For a template, the data is what you passed merged over the template's `defaults` and passed through its `prepare` callback, so computed values such as totals are there too. A data key named `doc` never replaces `$doc`.
 
@@ -91,12 +91,12 @@ A theme value by dot key. `primary`, `text`, `muted` and `border` are always val
 $doc->t(string $key, array $replace = []): string
 ```
 
-A label from the template's `lang/{language}.php` (dot keys for nested arrays), falling back to `lang/en.php`, then to the key itself. `:name` placeholders are replaced from `$replace`. Labels exist for templates only: in a `Doc::view()` view, `t()` returns the key.
+A label from the template's `lang/{language}.json` (dot keys for nested labels), falling back to `lang/en.json`, then to the key itself. `:name` placeholders are replaced from `$replace`. Labels exist for templates only: in a `Doc::view()` view, `t()` returns the key.
 
 ```php
-// lang/ar.php: 'page' => 'صفحة :current من :total'
+// lang/ar.json: "page": "صفحة :current من :total"
 $doc->t('page', ['current' => 3, 'total' => 5]);   // صفحة 3 من 5
-// lang/en.php: 'page' => 'Page :current of :total'  → Page 3 of 5
+// lang/en.json: "page": "Page :current of :total"  → Page 3 of 5
 ```
 
 Names that begin with another name work in any order: in `'صفحة :page من :pages'`, `$doc->t('page', ['page' => 3, 'pages' => 5])` gives `صفحة 3 من 5`, because the longer name is replaced first.
@@ -145,13 +145,26 @@ $doc->text(mixed $value): string
 
 Any value as display text: `null` and `false` give `''`, `true` gives `✓`, dates give `Y/m/d` (`2026/10/08`), backed enums their value, other enums their name, arrays and objects JSON.
 
+### date() {#context-date}
+
+```php
+$doc->date(DateTimeInterface|string|int|null $date, bool $time = false): string
+```
+
+A date as the document's language writes it, with the `date_format` (or, with `$time`, `datetime_format`) of its [language file](/guide/languages#files). Reads the same values as [`Dates::parse()`](#dates); `null` is now.
+
+| Call | Arabic and English | Turkish |
+| --- | --- | --- |
+| `$doc->date('2026-10-08')` | `2026/10/08` | `08.10.2026` |
+| `$doc->date('2026-10-08 14:30', true)` | `2026/10/08 14:30` | `08.10.2026 14:30` |
+
 ### number() {#context-number}
 
 ```php
 $doc->number(int|float|string|null $value, int $decimals = 2): HtmlString
 ```
 
-A number with thousands separators and `$decimals` decimals (0 to 10). Strings such as `'1,250.50'` and `'١٬٢٥٠٫٥'` are read correctly. A negative number is wrapped in `<bdo dir="ltr">` so the minus stays in front in Arabic text. Returns HTML: print it with double braces. In `layout.php` and `word.php` use [`numberText()`](#context-number-text) instead.
+A number with thousands separators and `$decimals` decimals (0 to 10), using the separators of the document's language: `1,250.50` in Arabic and English, `1.250,50` in Turkish. Strings such as `'1,250.50'` and `'١٬٢٥٠٫٥'` are read correctly. A negative number is wrapped in `<bdo dir="ltr">` so the minus stays in front in Arabic text. Returns HTML: print it with double braces. In `layout.php` and `word.php` use [`numberText()`](#context-number-text) instead.
 
 | Call | Returns |
 | --- | --- |
@@ -175,7 +188,7 @@ The same formatting as plain text, for builder blocks and Word files: `numberTex
 $doc->rate(int|float|string|null $value): string
 ```
 
-A rate or percentage with only the decimals it needs: `rate(14)` is `14`, `rate(2.5)` is `2.5`, `rate('0.750')` is `0.75`, `rate('1,500')` is `1500`.
+A rate or percentage with only the decimals it needs: `rate(14)` is `14`, `rate(2.5)` is `2.5` (`2,5` in Turkish), `rate('0.750')` is `0.75`, `rate('1,500')` is `1500`.
 
 ### money() {#context-money}
 
@@ -213,7 +226,7 @@ The amount in Arabic words, in any document language, wrapped in `فقط ... ل�
 $doc->inWords(int|float|string $amount, string $currency, bool $only = true): string
 ```
 
-The amount in words in the document's language: Arabic tafqeet for Arabic documents, the `intl` spell-out for other languages. Returns `''` when `ext-intl` is missing in a non-Arabic document.
+The amount in words in the document's language: Arabic tafqeet for Arabic documents, the `intl` spell-out for other languages, put together as the language file's `amount_in_words` says. Returns `''` when `ext-intl` is missing in a non-Arabic document. In Turkish, `inWords(1250.5, 'TRY')` is `Yalnız bin iki yüz elli Türk Lirası ve 50/100`.
 
 | Call | Arabic document | English document |
 | --- | --- | --- |
@@ -235,13 +248,23 @@ The decimal places of a currency's amounts: `3` for KWD, BHD, OMR, JOD, IQD, LYD
 $doc->currency(string $code): string
 ```
 
-A currency's short label: the template's `currencies.CODE` label when its `lang` file has one; otherwise, in right-to-left documents, a built-in Arabic label (EGP `ج.م`, SAR `ر.س`, AED `د.إ`, KWD `د.ك`, QAR `ر.ق`, BHD `د.ب`, OMR `ر.ع`, JOD `د.أ`, USD `دولار`, EUR `يورو`); otherwise the code in capitals.
+A currency's short label: the template's `currencies.CODE` label when its `lang` file has one; otherwise the `currencies` of the document's [language file](/guide/languages#files) (in Arabic EGP `ج.م`, SAR `ر.س`, AED `د.إ`, KWD `د.ك`, QAR `ر.ق`, BHD `د.ب`, OMR `ر.ع`, JOD `د.أ`, USD `دولار`, EUR `يورو`; in Turkish TRY `TL`); otherwise the code in capitals.
 
-| Call | Arabic document | English document |
-| --- | --- | --- |
-| `$doc->currency('EGP')` | `ج.م` | `EGP` |
-| `$doc->currency('sar')` | `ر.س` | `SAR` |
-| `$doc->currency('GBP')` | `GBP` | `GBP` |
+| Call | Arabic document | English document | Turkish document |
+| --- | --- | --- | --- |
+| `$doc->currency('EGP')` | `ج.م` | `EGP` | `EGP` |
+| `$doc->currency('sar')` | `ر.س` | `SAR` | `SAR` |
+| `$doc->currency('TRY')` | `TRY` | `TRY` | `TL` |
+
+### join() / ucfirst() / language() {#context-language}
+
+```php
+$doc->join(array $values): string
+$doc->ucfirst(string $text): string
+$doc->language(string $key, mixed $default = null): mixed
+```
+
+`join()` joins values with the language's list separator: `أ، ب` in Arabic, `a, b` in English and Turkish. `ucfirst()` capitalises the first letter of any script, with the Turkish and Azerbaijani dotted `İ` (`ikinci` gives `İkinci` in Turkish). `language()` reads any key of the document's [language file](/guide/languages#files), with English filling the gaps: `$doc->language('name')` is `Türkçe`.
 
 ### hasHijri() / hijri() {#context-hijri}
 
@@ -273,12 +296,12 @@ $doc->dayName(DateTimeInterface|string|int $date): string
 
 The name of the month or the weekday in the document's language, without Carbon.
 
-| Call | Arabic | English |
-| --- | --- | --- |
-| `$doc->monthName('2026-10-08')` | `أكتوبر` | `October` |
-| `$doc->dayName('2026-10-08')` | `الخميس` | `Thursday` |
+| Call | Arabic | English | Turkish |
+| --- | --- | --- | --- |
+| `$doc->monthName('2026-10-08')` | `أكتوبر` | `October` | `Ekim` |
+| `$doc->dayName('2026-10-08')` | `الخميس` | `Thursday` | `Perşembe` |
 
-Other languages need `ext-intl`; without it they get the English names.
+Languages with a [language file](/guide/languages#files) have their names built in. Other languages need `ext-intl`; without it they get the English names.
 
 ### timezone() {#context-timezone}
 
@@ -435,6 +458,7 @@ Dates without Carbon. `parse()` reads a `DateTime`, a date string (`'2026-10-08'
 
 ```php
 <?= $doc->e(Dates::parse($invoice['date'])->format('Y/m/d')) ?>
+<?= $doc->e($doc->date($invoice['date'])) ?>  <!-- the same in the document language's format -->
 <?= $doc->e($doc->monthName($invoice['date'])) ?>
 ```
 
@@ -789,26 +813,27 @@ With the packing list above, the English footer reads `Page 1 of 1`, and an Arab
 
 ## Label files {#lang-files}
 
-`lang/{language}.php` returns the labels for one language. The language part of the locale picks the file (`ar_EG` reads `ar.php`), and missing labels come from `en.php`.
+`lang/{language}.json` holds the labels for one language. The language part of the locale picks the file (`ar_EG` reads `ar.json`), and missing labels come from `en.json`. A `lang/{language}.php` returning an array works too, and wins over a `.json` file in the same folder.
 
-```php
-<?php
+::: code-group
 
-// resources/doc-templates/packing-list/lang/ar.php
-return [
-    'title' => 'قائمة التعبئة',
-    'number' => 'رقم الشحنة',
-    'carrier' => 'شركة الشحن',
-    'customer' => 'العميل',
-    'item' => 'الصنف',
-    'quantity' => 'الكمية',
-    'weight' => 'الوزن (كجم)',
-    'total' => 'الإجمالي',
-    'page' => 'صفحة :current من :total',
-];
+```json [resources/doc-templates/packing-list/lang/ar.json]
+{
+    "title": "قائمة التعبئة",
+    "number": "رقم الشحنة",
+    "carrier": "شركة الشحن",
+    "customer": "العميل",
+    "item": "الصنف",
+    "quantity": "الكمية",
+    "weight": "الوزن (كجم)",
+    "total": "الإجمالي",
+    "page": "صفحة :current من :total"
+}
 ```
 
-A `currencies` array of `CODE => label` entries is what [`$doc->currency()`](#context-currency) reads first.
+:::
+
+A `currencies` object of `"CODE": "label"` entries is what [`$doc->currency()`](#context-currency) reads first.
 
 ## word.docx placeholders {#word-placeholders}
 
@@ -820,13 +845,13 @@ A `word.docx` designed in Word is filled with the template's prepared data. Writ
 | `${items.description}` in a table row | The row is repeated for every entry of the `items` list; any list of arrays works |
 | `${items.row_number}` | 1, 2, 3 ... in a repeated row |
 | `${items.product.code}` | A nested value inside each row |
-| `${tags}` | A list of plain values, joined with `، ` |
+| `${tags}` | A list of plain values, joined with the language's list separator (`، ` in Arabic, `, ` in English) |
 | `${theme.company.name}`, `${theme.primary}` | Theme values |
 | `${theme.logo}`, `${logo}` | An image when the value is an image path or data URI |
 | `${logo:120:60}` | The same with a size in pixels (width:height); width 120 when not given, ratio kept |
-| `${t.title}`, `${t.labels.buyer}` | Labels from `lang/{language}.php` |
+| `${t.title}`, `${t.labels.buyer}` | Labels from `lang/{language}.json` |
 | `${doc.hijri_date}` | The Hijri date of `date` (or `invoice.date`); needs `ext-intl` |
-| `${doc.today}` | Today as `Y/m/d` |
+| `${doc.today}` | Today in the language's date format: `2026/10/08`, `08.10.2026` in Turkish |
 | `${doc.qr}` | A QR image of the `qr` value |
 
 How values are written:

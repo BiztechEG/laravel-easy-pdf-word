@@ -14,7 +14,7 @@ The package is built on [biztecheg/easy-pdf-word](https://github.com/BiztechEG/e
 - Arabic that renders correctly: joined letters, right-to-left layout, mixed Arabic and English, Arabic or Latin digits.
 - Two PDF engines you can switch between: **mPDF** (pure PHP, works on shared hosting) and **Chromium** (via Browsershot or Gotenberg), with automatic fallback.
 - Word files with real right-to-left paragraphs and tables, from the same templates, from code, or from a .docx you design in Word.
-- Ready-made templates, each in PDF and Word: tax invoice (with ZATCA QR), Egyptian e-invoice (ETA), credit/debit note, price quotation, purchase order, delivery note, receipt/payment voucher, payslip, contract, certificate, official letter, table report. Use them as they are, copy and customise them, or build your own.
+- Ready-made templates in Arabic, English and Turkish, each in PDF and Word: tax invoice (with ZATCA QR), Egyptian e-invoice (ETA), credit/debit note, price quotation, purchase order, delivery note, receipt/payment voucher, payslip, contract, certificate, official letter, table report. Use them as they are, copy and customise them, or build your own.
 - A preview page that shows every template in any language, digits and engine.
 - Arabic helpers: amounts in words (تفقيط), Hijri dates, Arabic numerals.
 - Bundled Arabic fonts: Cairo, Tajawal and Noto Naskh Arabic.
@@ -312,7 +312,7 @@ Doc::extend('my-engine', fn ($app) => new MyPdfDriver);   // implements Contract
 | `contract` | Contract (عقد) between two or more parties: date and place, preamble, numbered clauses (البند الأول ...), copies, signatures for every party, witnesses, initials on every page |
 | `certificate` | Landscape certificate of completion, attendance, participation or appreciation: recipient, course, dates, hours, grade, up to three signatures, verification QR, Arabic wording by gender |
 
-Each template's `template.php` lists its fields and contains sample data.
+Each template's `template.php` lists its fields and contains sample data. Every template comes in Arabic, English and Turkish (`->locale('tr')`: 08.10.2026, 1.250,50, KDV); see [Turkish and other languages](https://easypdf.biztech-eg.com/guide/languages) to add your own.
 
 ```bash
 php artisan doc:templates                              # list templates
@@ -343,8 +343,8 @@ resources/doc-templates/my-invoice/
   word.php            optional Word layout (or word.docx designed in Word)
   footer.html.php     optional, may use {page} and {pages} (or footer.blade.php)
   header.html.php     optional (or header.blade.php)
-  lang/ar.php         labels, read with $doc->t('key')
-  lang/en.php
+  lang/ar.json        labels, read with $doc->t('key')
+  lang/en.json
 ```
 
 Data passed to a template is validated against its `fields` rules before rendering.
@@ -513,7 +513,7 @@ MIT. mPDF, an optional dependency, is GPL-2.0; check that it fits your project, 
 - العربي بيطلع صح: الحروف متشبكة، الاتجاه من اليمين للشمال، والنص المختلط عربي وإنجليزي، وأرقام عربية أو لاتينية.
 - محركين PDF تقدر تبدل بينهم: **mPDF** (PHP بس، شغال على الاستضافة المشتركة) و **Chromium** (عن طريق Browsershot أو Gotenberg)، ولو المحرك المختار مش موجود بيرجع للتاني تلقائياً.
 - ملفات Word بفقرات وجداول من اليمين للشمال، من نفس القوالب، أو من الكود، أو من ملف docx تصممه في Word.
-- قوالب جاهزة، وكل قالب بيطلع PDF و Word: فاتورة ضريبية (مع QR هيئة الزكاة)، فاتورة إلكترونية مصرية، إشعار دائن ومدين، عرض سعر، أمر شراء، إذن تسليم، سند قبض وسند صرف، قسيمة راتب، عقد، شهادة، خطاب رسمي، تقرير جدولي. تستخدمها زي ما هي، أو تنسخها وتعدلها، أو تعمل قالبك.
+- قوالب جاهزة بالعربي والإنجليزي والتركي، وكل قالب بيطلع PDF و Word: فاتورة ضريبية (مع QR هيئة الزكاة)، فاتورة إلكترونية مصرية، إشعار دائن ومدين، عرض سعر، أمر شراء، إذن تسليم، سند قبض وسند صرف، قسيمة راتب، عقد، شهادة، خطاب رسمي، تقرير جدولي. تستخدمها زي ما هي، أو تنسخها وتعدلها، أو تعمل قالبك.
 - صفحة معاينة بتعرض كل القوالب بأي لغة وأي محرك.
 - أدوات عربية: التفقيط، التاريخ الهجري، الأرقام العربية.
 - خطوط عربية مدمجة: Cairo و Tajawal و Noto Naskh Arabic.

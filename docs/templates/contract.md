@@ -186,7 +186,7 @@ This copies the template to `resources/doc-templates/my-contract/`:
 - `template.php`: the fields and defaults, for example `'copies' => 3`;
 - `layout.php`: the layout of both the PDF and the Word file;
 - `footer.html.php`: the initials and page number footer;
-- `lang/ar.php` and `lang/en.php`: the opening and closing sentences, the ordinal words and every label. For a rental contract you might change `intro` to start with your own wording.
+- `lang/ar.json`, `lang/en.json` and `lang/tr.json`: the opening and closing sentences, the ordinal words and every label. For a rental contract you might change `intro` to start with your own wording.
 
 Use the copy with `Doc::template('my-contract', $data)`. See [Your own templates](/guide/custom-templates).
 

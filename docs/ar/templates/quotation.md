@@ -180,7 +180,7 @@ php artisan doc:template quotation --as=my-quotation
 
 ينسخ هذا الأمر القالب إلى `resources/doc-templates/my-quotation`. استخدمه بـ `Doc::template('my-quotation', $data)` وعدّل:
 
-- `lang/ar.php` و `lang/en.php` للعناوين: الجملة الافتتاحية تحت `intro`، والختام تحت `closing`، وأسماء الأعمدة.
+- `lang/ar.json` و`lang/en.json` و`lang/tr.json` للعناوين: الجملة الافتتاحية تحت `intro`، والختام تحت `closing`، وأسماء الأعمدة.
 - `template.php` للحقول والقيم الافتراضية، مثلاً `'quote' => ['currency' => 'SAR', 'tax_rate' => 15]` لإضافة الضريبة السعودية دائماً.
 - `layout.php` لتخطيط الصيغتين.
 - `footer.html.php` لتذييل الصفحة.

@@ -173,7 +173,7 @@ php artisan doc:template delivery-note --as=my-delivery-note
 
 ينسخ هذا الأمر القالب إلى `resources/doc-templates/my-delivery-note`. استخدمه بـ `Doc::template('my-delivery-note', $data)` وعدّل:
 
-- `lang/ar.php` و `lang/en.php` للعناوين: جملة الإقرار تحت `acknowledgement`، والجملة الافتتاحية تحت `intro`، والأدوار تحت `signatures`.
+- `lang/ar.json` و`lang/en.json` و`lang/tr.json` للعناوين: جملة الإقرار تحت `acknowledgement`، والجملة الافتتاحية تحت `intro`، والأدوار تحت `signatures`.
 - `template.php` للحقول وحساب الكميات المتبقية والتوقيعات الافتراضية في `prepare()`.
 - `layout.php` لتخطيط الصيغتين، مثلاً لإضافة عمود للوزن.
 - `footer.html.php` لتذييل الصفحة.

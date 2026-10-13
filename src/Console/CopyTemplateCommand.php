@@ -59,6 +59,12 @@ class CopyTemplateCommand extends Command
             return self::FAILURE;
         }
 
+        // Labels are .json files since core 1.2: a lang/ar.php left from an
+        // older copy would still win over the restored lang/ar.json.
+        foreach ($files->glob($from.'/lang/*.json') as $labels) {
+            $files->delete($target.'/lang/'.basename($labels, '.json').'.php');
+        }
+
         $this->components->info("Template copied to {$target}");
 
         return self::SUCCESS;

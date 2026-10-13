@@ -6,6 +6,21 @@ All notable changes to this package are listed here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Turkish: every bundled template in Turkish with `->locale('tr')`, with Turkish dates (08.10.2026), numbers (1.250,50) and amounts in words. It is also on the preview page and `doc:sample --locale=tr`. Requires `biztecheg/easy-pdf-word` 1.2.
+- A docs page, "Turkish and other languages", on what a language changes and how to add one: a language file registered with `Language::addPath()` plus `lang/{language}.json` labels.
+- New `$doc` helpers from the core: `date()`, `join()`, `ucfirst()` and `language()`.
+
+### Changed
+
+- Template labels are `lang/*.json` files: the bundled templates and `doc:make-template` use them. Copies with `lang/*.php` files keep working, and a `.php` file wins over a `.json` one in the same folder.
+- Numbers, rates and list placeholders in Word files follow the language's separators, and currency labels follow the document's language instead of its direction. Arabic and English documents are unchanged.
+
+### Fixed
+
+- `doc:template --force` left a `lang/*.php` file from an older copy, which would win over the restored `lang/*.json` labels; it is removed.
+
 ## [1.4.1] - 2026-10-13
 
 ### Security

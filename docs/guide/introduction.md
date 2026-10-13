@@ -97,7 +97,7 @@ Other settings include `->font()`, `->header()` and `->footer()` with page numbe
 
 ## Features {#features}
 
-- Twelve ready-made templates, each in Arabic and English, PDF and Word: tax invoice with the ZATCA QR code, Egyptian e-invoice (ETA), credit and debit note, price quotation, purchase order, delivery note, receipt and payment voucher, payslip, contract, certificate, official letter and table report. See the [template gallery](/templates/).
+- Twelve ready-made templates, each in Arabic, English and Turkish, PDF and Word: tax invoice with the ZATCA QR code, Egyptian e-invoice (ETA), credit and debit note, price quotation, purchase order, delivery note, receipt and payment voucher, payslip, contract, certificate, official letter and table report. See the [template gallery](/templates/).
 - Your own templates: copy a bundled one and change it, or start a new one with `php artisan doc:make-template`.
 - Arabic everywhere: joined letters, right-to-left pages and tables, Arabic or Latin digits, amounts in words (تفقيط), Hijri dates.
 - Word files with real right-to-left paragraphs and tables, from templates, from code, or from a `.docx` you design in Word with placeholders.

@@ -130,7 +130,7 @@ php artisan doc:sample invoice --locale=en --output=storage/app/invoice-sample.d
 
 افتح `storage/app/invoice-sample.pdf`: يجب أن ترى فاتورة ضريبية عربية بحروف متصلة ومن اليمين إلى اليسار. أما الأمر الثاني فينشئ الفاتورة الإنجليزية في ملف Word، إذ تتبع الصيغة امتداد `--output`. وبدون `--output` تُحفظ الملفات في `storage/app/doc-samples/`. راجع [أوامر Artisan](/ar/guide/commands) لكل الخيارات.
 
-وفي بيئة `local` يمكنك أيضاً فتح `/doc-preview` في المتصفح لرؤية كل قالب بالعربية والإنجليزية، وبأي من المحركين. راجع [صفحة المعاينة](/ar/guide/preview).
+وفي بيئة `local` يمكنك أيضاً فتح `/doc-preview` في المتصفح لرؤية كل قالب بالعربية والإنجليزية والتركية، وبأي من المحركين. راجع [صفحة المعاينة](/ar/guide/preview).
 
 ## الاستضافة المشتركة {#shared-hosting}
 

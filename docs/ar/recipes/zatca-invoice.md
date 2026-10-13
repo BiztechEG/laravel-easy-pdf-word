@@ -23,13 +23,17 @@ php artisan doc:template invoice --as=simplified-invoice
 
 توجد النسخة في `resources/doc-templates/simplified-invoice`. غيّر سطراً واحداً في كل ملف لغة:
 
-```php
-// resources/doc-templates/simplified-invoice/lang/ar.php
-'title' => 'فاتورة ضريبية مبسطة',
+::: code-group
 
-// resources/doc-templates/simplified-invoice/lang/en.php
-'title' => 'Simplified Tax Invoice',
+```json [lang/ar.json]
+"title": "فاتورة ضريبية مبسطة",
 ```
+
+```json [lang/en.json]
+"title": "Simplified Tax Invoice",
+```
+
+:::
 
 تعمل الحقول والضريبة ورمز QR كما في الأصل. لا تصل إلى النسخة التعديلات اللاحقة على القالب الأصلي، فاجعل تعديلاتك قليلة؛ انظر [قوالبك الخاصة](/ar/guide/custom-templates).
 

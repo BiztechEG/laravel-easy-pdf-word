@@ -177,7 +177,7 @@ php artisan doc:template purchase-order --as=my-purchase-order
 
 ينسخ هذا الأمر القالب إلى `resources/doc-templates/my-purchase-order`. استخدمه بـ `Doc::template('my-purchase-order', $data)` وعدّل:
 
-- `lang/ar.php` و `lang/en.php` للعناوين: الجملة الافتتاحية تحت `intro`، وأسماء التوقيعات تحت `signatures` (أضف أدوارك هناك لتُترجم).
+- `lang/ar.json` و`lang/en.json` و`lang/tr.json` للعناوين: الجملة الافتتاحية تحت `intro`، وأسماء التوقيعات تحت `signatures` (أضف أدوارك هناك لتُترجم).
 - `template.php` للحقول والقيم الافتراضية (العملة ونسبة الضريبة) والتوقيعات الافتراضية في `prepare()`.
 - `layout.php` لتخطيط الصيغتين.
 - `footer.html.php` لتذييل الصفحة.

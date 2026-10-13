@@ -249,17 +249,18 @@ php artisan doc:template invoice
 
 ### Labels in two languages
 
-Put the labels in `lang/ar.php` and `lang/en.php` in the template folder and write `${t.key}` in Word:
+Put the labels in `lang/ar.json` and `lang/en.json` in the template folder and write `${t.key}` in Word:
 
-```php
-<?php
-// resources/doc-templates/price-offer/lang/en.php
+::: code-group
 
-return [
-    'title' => 'Price offer',
-    'valid_until' => 'Valid until',
-];
+```json [resources/doc-templates/price-offer/lang/en.json]
+{
+    "title": "Price offer",
+    "valid_until": "Valid until"
+}
 ```
+
+:::
 
 `${t.title}` prints "Price offer" with `->locale('en')` and the Arabic label with `->locale('ar')`. Keep two `.docx` designs (two template folders) if the two languages need different layouts.
 

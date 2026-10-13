@@ -1,6 +1,6 @@
 # Ready-made templates
 
-The package ships twelve templates, each in Arabic and English, as PDF and Word. This page explains what all of them have in common: how to pass data, how it is checked, where the company details and labels come from, and how to list, copy and override templates. Each template's own fields are on its page in the [template gallery](/templates/).
+The package ships twelve templates, each in Arabic, English and Turkish, as PDF and Word. This page explains what all of them have in common: how to pass data, how it is checked, where the company details and labels come from, and how to list, copy and override templates. Each template's own fields are on its page in the [template gallery](/templates/).
 
 ## Make a document from a template {#usage}
 
@@ -162,9 +162,11 @@ To brand documents per customer or tenant, pass their theme with each document; 
 
 ## Labels and languages {#labels}
 
-The words a template prints (titles, column headers, "Total due") come from its `lang` folder: `lang/ar.php` and `lang/en.php`. The locale picks the file by its language, so `ar`, `ar_EG` and `ar-SA` all use `lang/ar.php`. A label missing from that file is taken from `lang/en.php`.
+The words a template prints (titles, column headers, "Total due") come from its `lang` folder: `lang/ar.json`, `lang/en.json` and `lang/tr.json`. The locale picks the file by its language, so `ar`, `ar_EG` and `ar-SA` all use `lang/ar.json`. A label missing from that file is taken from `lang/en.json`.
 
-Any other locale works too. `->locale('fr')` makes a left-to-right document with the English labels, and `->locale('ur')` a right-to-left one. To print French labels, copy the template (see below) and add `lang/fr.php`.
+The language also sets how dates, numbers and amounts in words are written: a Turkish invoice (`->locale('tr')`) shows 08.10.2026 and 1.250,50. See [Turkish and other languages](/guide/languages).
+
+Any other locale works too. `->locale('fr')` makes a left-to-right document with the English labels, and `->locale('ur')` a right-to-left one. To print French labels, copy the template (see below) and add `lang/fr.json`; [Add a language](/guide/languages#add) has the whole recipe.
 
 Your data is printed as you give it: the package translates the labels, not your item names.
 
@@ -175,23 +177,23 @@ php artisan doc:templates
 ```
 
 ```text
-+----------------+--------------------+---------+-----------+---------+
-| Name           | Title              | Locales | Formats   | Source  |
-+----------------+--------------------+---------+-----------+---------+
-| my-invoice     | Tax invoice        | ar, en  | PDF, Word | project |
-| certificate    | Certificate        | ar, en  | PDF, Word | package |
-| contract       | Contract           | ar, en  | PDF, Word | package |
-| credit-note    | Credit note        | ar, en  | PDF, Word | package |
-| delivery-note  | Delivery note      | ar, en  | PDF, Word | package |
-| eg-invoice     | Egyptian e-invoice | ar, en  | PDF, Word | package |
-| invoice        | Tax invoice        | ar, en  | PDF, Word | package |
-| letter         | Official letter    | ar, en  | PDF, Word | package |
-| payslip        | Payslip            | ar, en  | PDF, Word | package |
-| purchase-order | Purchase order     | ar, en  | PDF, Word | package |
-| quotation      | Price quotation    | ar, en  | PDF, Word | package |
-| receipt        | Receipt voucher    | ar, en  | PDF, Word | package |
-| report         | Table report       | ar, en  | PDF, Word | package |
-+----------------+--------------------+---------+-----------+---------+
++----------------+--------------------+------------+-----------+---------+
+| Name           | Title              | Locales    | Formats   | Source  |
++----------------+--------------------+------------+-----------+---------+
+| my-invoice     | Tax invoice        | ar, en, tr | PDF, Word | project |
+| certificate    | Certificate        | ar, en, tr | PDF, Word | package |
+| contract       | Contract           | ar, en, tr | PDF, Word | package |
+| credit-note    | Credit note        | ar, en, tr | PDF, Word | package |
+| delivery-note  | Delivery note      | ar, en, tr | PDF, Word | package |
+| eg-invoice     | Egyptian e-invoice | ar, en, tr | PDF, Word | package |
+| invoice        | Tax invoice        | ar, en, tr | PDF, Word | package |
+| letter         | Official letter    | ar, en, tr | PDF, Word | package |
+| payslip        | Payslip            | ar, en, tr | PDF, Word | package |
+| purchase-order | Purchase order     | ar, en, tr | PDF, Word | package |
+| quotation      | Price quotation    | ar, en, tr | PDF, Word | package |
+| receipt        | Receipt voucher    | ar, en, tr | PDF, Word | package |
+| report         | Table report       | ar, en, tr | PDF, Word | package |
++----------------+--------------------+------------+-----------+---------+
 ```
 
 `Source` says whether a template comes from the package or from your app (here a copy named `my-invoice`). Project templates are listed first. In code, `Doc::templates()->all()` returns the same list.
@@ -220,13 +222,13 @@ Copy a template under its own name and your copy replaces the original everywher
 php artisan doc:template invoice
 ```
 
-For example, to change the Arabic title of every invoice, edit `resources/doc-templates/invoice/lang/ar.php` and change one line, keeping the others:
+For example, to change the Arabic title of every invoice, edit `resources/doc-templates/invoice/lang/ar.json` and change one line, keeping the others:
 
-```php
-'title' => 'فاتورة ضريبية مبسطة',
+```json
+"title": "فاتورة ضريبية مبسطة",
 ```
 
-Running the command again stops with "already exists. Use --force to overwrite it." With `--force` it copies the package's original files over your copy again; files you added to the folder stay. To go back to the bundled template for good, delete the folder.
+Running the command again stops with "already exists. Use --force to overwrite it." With `--force` it copies the package's original files over your copy again; files you added to the folder stay, except label files such as `lang/ar.php` from copies made before version 1.5, which would win over the restored `lang/ar.json`. To go back to the bundled template for good, delete the folder.
 
 ::: tip Keep copies small
 A copied template no longer receives fixes from package updates. Copy only the templates you really change, and check the [changelog](https://github.com/BiztechEG/laravel-easy-pdf-word/blob/main/CHANGELOG.md) when you update the package.

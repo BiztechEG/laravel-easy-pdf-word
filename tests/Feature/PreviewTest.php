@@ -63,6 +63,7 @@ class PreviewTest extends TestCase
         $this->assertStringStartsWith('%PDF', $pdf->getContent());
 
         $this->get('/doc-preview/quotation?locale=en&format=html')->assertOk()->assertSee('Price Quotation');
+        $this->get('/doc-preview/quotation?locale=tr&format=html')->assertOk()->assertSee('Fiyat Teklifi')->assertSee('08.10.2026');
 
         $word = $this->get('/doc-preview/eg-invoice?locale=ar&numerals=arabic&format=docx');
         $word->assertOk();

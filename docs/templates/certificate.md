@@ -162,7 +162,7 @@ This copies the template to `resources/doc-templates/my-certificate/`:
 - `template.php`: the fields, the defaults (for example `'type' => 'attendance'`) and the page settings;
 - `pdf.html.php`: the PDF design, with the frame and its CSS (colours, sizes, the frame style);
 - `word.php`: the Word layout;
-- `lang/ar.php` and `lang/en.php`: the titles and the wording for each kind and gender.
+- `lang/ar.json`, `lang/en.json` and `lang/tr.json`: the titles and the wording for each kind and gender.
 
 Edit `pdf.html.php` and `word.php` together when you move things around, so both files stay alike. Use the copy with `Doc::template('my-certificate', $data)`. See [Your own templates](/guide/custom-templates).
 

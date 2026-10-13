@@ -14,7 +14,7 @@ One call sets three things:
 
 - **Direction.** The document is laid out right to left: text, tables, page header and footer. Word files get right-to-left paragraphs and tables, with Arabic text marked as Arabic so Word picks the right font and size.
 - **Font.** Right-to-left documents use the `fonts.default` font from the config (Cairo), and others `fonts.default_ltr` (also Cairo). Change it per document with `->font()`; see [Fonts](/guide/fonts).
-- **Labels.** Templates read their labels from `lang/ar.php` in the template folder (فاتورة ضريبية، الإجمالي ...). A label missing there falls back to `lang/en.php`.
+- **Labels.** Templates read their labels from `lang/ar.json` in the template folder (فاتورة ضريبية، الإجمالي ...). A label missing there falls back to `lang/en.json`.
 
 Arabic letters are joined (shaped) by the engine: mPDF and Chrome both do it, and Word does it itself.
 
@@ -24,7 +24,7 @@ Without `->locale()`, the document uses `locale` from `config/easy-pdf-word.php`
 
 ### Right-to-left languages {#rtl-languages}
 
-These languages switch a document to right to left: Arabic (`ar`), Aramaic (`arc`), Central Kurdish (`ckb`), Dhivehi (`dv`), Persian (`fa`), Hebrew (`he`), Kurdish (`ku`), Pashto (`ps`), Sindhi (`sd`), Uyghur (`ug`), Urdu (`ur`) and Yiddish (`yi`), with any region (`fa_IR`, `ur-PK`). The bundled templates have Arabic and English labels; other languages need a template with their own `lang` file (see [Your own templates](/guide/custom-templates)).
+These languages switch a document to right to left: Arabic (`ar`), Aramaic (`arc`), Central Kurdish (`ckb`), Dhivehi (`dv`), Persian (`fa`), Hebrew (`he`), Kurdish (`ku`), Pashto (`ps`), Sindhi (`sd`), Uyghur (`ug`), Urdu (`ur`) and Yiddish (`yi`), with any region (`fa_IR`, `ur-PK`). The bundled templates have Arabic, English and Turkish labels; other languages need their own `lang` file (see [Add a language](/guide/languages#add)).
 
 To set the direction yourself, whatever the language:
 
