@@ -877,12 +877,12 @@ Doc::template('letter', $letter)->font('amiri')->pdf();
 
 ## PdfManager {#pdf-manager}
 
-يعيد `Doc::pdfManager()` النسخة الوحيدة من `BiztechEG\EasyPdfWord\Pdf\PdfManager`، وهو `Manager` من Laravel.
+يعيد `Doc::pdfManager()` النسخة الوحيدة من `BiztechEG\EasyPdfWord\Pdf\PdfManager`، وهو الذي ينشئ محركات PDF ويحتفظ بكل محرك بعد إنشائه. وهو صنف من المكتبة الأساسية نفسها، وليس `Manager` من Laravel.
 
 | الدالة | الوصف |
 | --- | --- |
-| `driver($driver = null)` | كائن `PdfDriver` بالاسم (بأي حالة أحرف، و`chromium` و`chrome` تعنيان `browsershot`)، أو المحرك الافتراضي |
-| `extend($driver, Closure $callback)` | ما تستدعيه `Doc::extend()` |
+| `driver(?string $driver = null): PdfDriver` | كائن `PdfDriver` بالاسم (بأي حالة أحرف، و`chromium` و`chrome` تعنيان `browsershot`)، أو المحرك الافتراضي |
+| `extend(string $driver, Closure $callback): static` | ما تستدعيه `Doc::extend()` |
 | `getDefaultDriver(): string` | `pdf.driver` من الإعدادات |
 | `normalize(?string $driver): string` | الاسم كما يُخزَّن: بأحرف صغيرة وبعد حل الأسماء البديلة |
 | `engineConfig(string $name): array` | `pdf.drivers.{name}` من الإعدادات |
@@ -991,6 +991,7 @@ Doc::template('invoice', $data)->driver('pdf-service')->pdf()->engine();   // 'p
 | `TemplateNotFound` | `InvalidArgumentException` | لا يجد `Doc::template($name)` أو `Doc::templates()->get($name)` مجلدًا بهذا الاسم (أو في الاسم أحرف غير الحروف والأرقام و`.` و`-` و`_`). تذكر الرسالة المجلدات التي بُحث فيها |
 | `WordNotSupported` | `LogicException` | استدعاء `->word()` أو `->queue('….docx')` على view أو HTML، أو على قالب ليس فيه `layout.php` أو `word.php` أو `word.docx` |
 | `DriverNotAvailable` | `RuntimeException` | محرك PDF المختار غير مثبت أو غير مضبوط (`mpdf/mpdf` أو `spatie/browsershot` أو `DOC_GOTENBERG_URL`، أو أعادت `isAvailable()` في محركك `false`) ولم يستطع المحرك الاحتياطي الإنشاء أيضًا؛ أو إنشاء ملف Word بدون `phpoffice/phpword`؛ أو تحديد كلمة مرور مع Chromium أو Gotenberg مع غياب `mpdf/mpdf` |
+| `ValidationFailed` | `InvalidArgumentException` | بيانات القالب لا تجتاز قواعده خارج Laravel. وترميه دالة `prepare` في القالب بـ `ValidationFailed::withMessages(['items.0.discount' => '...'])` لفحوص لا تعبّر عنها القواعد. وتعيد `errors()` الرسائل مرتبة حسب الحقل. وفي Laravel تحوّله الحزمة إلى `Illuminate\Validation\ValidationException` بالرسائل نفسها، فالتقط ذلك الاستثناء بدلًا منه |
 
 استثناءات أخرى قد تقابلها:
 

@@ -877,12 +877,12 @@ Registering in the `fonts.custom` config does the same for every request.
 
 ## PdfManager {#pdf-manager}
 
-`Doc::pdfManager()` returns the `BiztechEG\EasyPdfWord\Pdf\PdfManager` singleton, a Laravel `Manager`.
+`Doc::pdfManager()` returns the `BiztechEG\EasyPdfWord\Pdf\PdfManager` singleton, which makes the PDF engines and keeps each one once made. It is the core library's own class, not a Laravel `Manager`.
 
 | Method | Description |
 | --- | --- |
-| `driver($driver = null)` | The `PdfDriver` by name (any case; `chromium` and `chrome` mean `browsershot`), or the default engine |
-| `extend($driver, Closure $callback)` | What `Doc::extend()` calls |
+| `driver(?string $driver = null): PdfDriver` | The `PdfDriver` by name (any case; `chromium` and `chrome` mean `browsershot`), or the default engine |
+| `extend(string $driver, Closure $callback): static` | What `Doc::extend()` calls |
 | `getDefaultDriver(): string` | `pdf.driver` from the config |
 | `normalize(?string $driver): string` | The name as stored: lowercased, aliases resolved |
 | `engineConfig(string $name): array` | `pdf.drivers.{name}` from the config |
@@ -991,6 +991,7 @@ The package's own exceptions are in `BiztechEG\EasyPdfWord\Exceptions`:
 | `TemplateNotFound` | `InvalidArgumentException` | `Doc::template($name)` or `Doc::templates()->get($name)` finds no folder with that name (or the name has other characters than letters, digits, `.`, `-`, `_`). The message lists the folders searched |
 | `WordNotSupported` | `LogicException` | `->word()` or `->queue('….docx')` on a Blade view or HTML document, or on a template without `layout.php`, `word.php` or `word.docx` |
 | `DriverNotAvailable` | `RuntimeException` | The chosen PDF engine is not installed or configured (`mpdf/mpdf`, `spatie/browsershot`, `DOC_GOTENBERG_URL`, or your engine's `isAvailable()` is `false`) and the fallback cannot render either; a Word file is rendered without `phpoffice/phpword`; a password is set with Chromium or Gotenberg and `mpdf/mpdf` is missing |
+| `ValidationFailed` | `InvalidArgumentException` | Template data fails the template's rules outside Laravel. A template's `prepare` throws it with `ValidationFailed::withMessages(['items.0.discount' => '...'])` for checks the rules cannot express. `errors()` returns the messages by field. In Laravel the package turns it into `Illuminate\Validation\ValidationException` with the same messages, so you catch that one instead |
 
 Other exceptions you may meet:
 
