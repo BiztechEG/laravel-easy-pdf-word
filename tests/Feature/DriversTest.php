@@ -345,7 +345,7 @@ class DriversTest extends TestCase
         config(['easy-pdf-word.pdf.fallback' => null, 'easy-pdf-word.pdf.drivers.mpdf.temp_dir' => '/dev/null/mpdf']);
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('easy-pdf-word.pdf.drivers.mpdf.temp_dir');
+        $this->expectExceptionMessage('pdf.drivers.mpdf.temp_dir');
 
         Doc::html('<p>x</p>')->pdf()->content();
     }

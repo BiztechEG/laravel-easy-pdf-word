@@ -121,29 +121,38 @@ class SecurityTest extends TestCase
         $this->assertNull($this->context()->image('https://example.com/logo.png'));
         $this->assertStringNotContainsString('169.254.169.254', Doc::make()->image('http://169.254.169.254/x.png')->toHtml());
 
-        $this->assertSame('https://example.com/logo.png', $this->context(remoteImages: true)->image('https://example.com/logo.png'));
+        $host = $this->imageHost();
+        $this->assertStringStartsWith('data:image/png;base64,', (string) $this->context(remoteImages: true)->image("http://{$host}/logo.png"));
     }
 
     public function test_image_urls_can_be_allowed_for_some_hosts(): void
     {
-        $doc = $this->context(remoteImages: ['cdn.example.com', '*.example.org']);
+        $refused = [];
+        // .invalid hosts never resolve, so an allowed one fails to download without a warning.
+        $doc = new DocContext('en', 'ltr', 'cairo', [], 'latin', '', imagePaths: [], remoteImages: ['cdn.example.invalid', '*.example.invalid'], warn: function (string $message) use (&$refused) {
+            $refused[] = $message;
+        });
 
-        $this->assertNotNull($doc->image('https://cdn.example.com/logo.png'));
-        $this->assertNotNull($doc->image('https://images.example.org/logo.png'));
-        $this->assertNotNull($doc->image('HTTPS://CDN.EXAMPLE.COM/logo.png'));
-        $this->assertNull($doc->image('https://example.org/logo.png'));
-        $this->assertNull($doc->image('https://cdn.example.com.evil.test/logo.png'));
-        $this->assertNull($doc->image('https://cdn.example.com@evil.test/logo.png'));
-        $this->assertNull($doc->image('http://localhost/logo.png'));
+        foreach ([
+            'https://cdn.example.invalid/logo.png', 'https://images.example.invalid/logo.png', 'HTTPS://CDN.EXAMPLE.INVALID/logo.png',
+            'https://example.invalid.evil.test/logo.png', 'https://cdn.example.invalid@evil.test/logo.png', 'http://localhost/logo.png',
+        ] as $url) {
+            $doc->image($url);
+        }
+
+        $this->assertSame([
+            'https://example.invalid.evil.test/logo.png', 'https://cdn.example.invalid@evil.test/logo.png', 'http://localhost/logo.png',
+        ], array_map(fn (string $message) => preg_replace('/^easy-pdf-word: image \[(.*)\] was left out.*$/', '$1', $message), $refused));
     }
 
     public function test_image_hosts_can_come_from_the_environment(): void
     {
-        $this->app['config']->set('easy-pdf-word.images.remote', 'cdn.example.com, *.example.org');
+        $host = $this->imageHost();
+        $this->app['config']->set('easy-pdf-word.images.remote', '127.0.0.1, *.example.org');
 
-        $html = Doc::make()->image('https://cdn.example.com/a.png')->image('https://evil.test/b.png')->toHtml();
+        $html = Doc::make()->image("http://{$host}/logo.png")->image('https://evil.test/b.png')->toHtml();
 
-        $this->assertStringContainsString('https://cdn.example.com/a.png', $html);
+        $this->assertStringContainsString('data:image/png;base64,', $html);
         $this->assertStringNotContainsString('evil.test', $html);
     }
 
@@ -214,8 +223,9 @@ class SecurityTest extends TestCase
         $this->assertNull($chrome->image("http://{$host}/moved"));
         $this->assertNull($chrome->image("http://{$host}/missing.png"));
 
-        // mPDF fetches the URL itself, also without redirects.
-        $this->assertSame("http://{$host}/moved", $this->context(remoteImages: ['127.0.0.1'])->image("http://{$host}/moved"));
+        // mPDF gets the same checked data URI, so it never downloads an SVG unchecked.
+        $this->assertStringStartsWith('data:image/png;base64,', (string) $this->context(remoteImages: ['127.0.0.1'])->image("http://{$host}/logo.png"));
+        $this->assertNull($this->context(remoteImages: ['127.0.0.1'])->image("http://{$host}/moved"));
     }
 
     private function context(?array $imagePaths = [], bool|array $remoteImages = false): DocContext
