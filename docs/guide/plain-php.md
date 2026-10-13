@@ -8,7 +8,7 @@ The library also works without Laravel: in a plain PHP script, WordPress, Symfon
 composer require biztecheg/easy-pdf-word mpdf/mpdf phpoffice/phpword
 ```
 
-This installs the library, the mPDF engine and PhpWord for Word files. You need PHP 8.2 or newer with `mbstring` and `gd`; `intl` for Hijri dates and `zip` for Word files and ZIP archives. For Chromium instead of mPDF, see [PDF engines](/guide/engines); the engines work the same way here.
+This installs the library, the mPDF engine and PhpWord for Word files. You need PHP 8.2 or newer with `mbstring` and `gd`; `intl` for Hijri dates, `zip` for Word files and ZIP archives, and `curl` for the Gotenberg engine (the Laravel package sends through Laravel's HTTP client instead). For Chromium instead of mPDF, see [PDF engines](/guide/engines); the engines work the same way here.
 
 ## Create the factory {#create}
 

@@ -8,7 +8,7 @@
 composer require biztecheg/easy-pdf-word mpdf/mpdf phpoffice/phpword
 ```
 
-يثبّت هذا الأمر المكتبة ومحرك mPDF وPhpWord لملفات Word. تحتاج إلى PHP 8.2 أو أحدث مع الإضافتين `mbstring` و`gd`، وإلى `intl` للتاريخ الهجري و`zip` لملفات Word وملفات ZIP. ولاستخدام Chromium بدلًا من mPDF راجع [محركات PDF](/ar/guide/engines)، فالمحركات تعمل هنا بالطريقة نفسها.
+يثبّت هذا الأمر المكتبة ومحرك mPDF وPhpWord لملفات Word. تحتاج إلى PHP 8.2 أو أحدث مع الإضافتين `mbstring` و`gd`، وإلى `intl` للتاريخ الهجري، و`zip` لملفات Word وملفات ZIP، و`curl` لمحرك Gotenberg (أما حزمة Laravel فترسل عبر عميل HTTP الخاص بـ Laravel). ولاستخدام Chromium بدلًا من mPDF راجع [محركات PDF](/ar/guide/engines)، فالمحركات تعمل هنا بالطريقة نفسها.
 
 ## إنشاء الـ factory {#create}
 
