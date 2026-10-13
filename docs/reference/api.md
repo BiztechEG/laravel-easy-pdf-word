@@ -247,7 +247,7 @@ Skips the template's `fields` rules. Defaults and `prepare` still run. Use it on
 locale(string $locale): static
 ```
 
-Sets the document language: the template labels (`lang/{language}.php`), the amount in words, and the direction unless you call `->direction()`. Takes names such as `ar`, `en`, `ar_EG`, `ar-SA`. Throws `InvalidArgumentException` for anything else (paths, markup).
+Sets the document language: the template labels (`lang/{language}.json`), how dates, numbers and amounts in words are written (see [Turkish and other languages](/guide/languages)), and the direction unless you call `->direction()`. Takes names such as `ar`, `en`, `ar_EG`, `ar-SA`. Throws `InvalidArgumentException` for anything else (paths, markup).
 
 ```php
 Doc::template('invoice', $data)->locale('ar_EG');   // Arabic, right to left, Arabic labels
@@ -847,7 +847,7 @@ foreach (Doc::templates()->all() as $name => $template) {
 | `pdfLayout(): ?callable` | `layout.php`, else `word.php` (used when there is no PDF page) |
 | `supportsPdf(): bool`, `supportsWord(): bool` | Which formats the folder can make |
 | `headerView(): ?string`, `footerView(): ?string` | Paths of the header and footer files: `.html.php`, else `.blade.php` |
-| `translations(string $locale): array` | The labels in `lang/{language}.php` |
+| `translations(string $locale): array` | The labels in `lang/{language}.json` (and `.php`) |
 
 ## FontRegistry {#font-registry}
 

@@ -147,7 +147,7 @@ Doc::template('quote-word', [
 ])->locale('ar')->word()->download('عرض-سعر-QT-2026-0091.docx');
 ```
 
-The labels (`${t.title}` and the rest) come from the template's `lang/ar.php`, the logo and company from the theme, and the total (46,500.00) from `prepare`. The [A template designed in Word](/recipes/word-designed-template) recipe walks through a complete one.
+The labels (`${t.title}` and the rest) come from the template's `lang/ar.json`, the logo and company from the theme, and the total (46,500.00) from `prepare`. The [A template designed in Word](/recipes/word-designed-template) recipe walks through a complete one.
 
 ### Placeholders {#placeholders}
 
@@ -156,20 +156,20 @@ The labels (`${t.title}` and the rest) come from the template's `lang/ar.php`, t
 | `${customer.name}`, `${invoice.number}` | A value from the data, after the template's defaults and `prepare`. Dots reach into nested arrays. |
 | `${items.description}` in a table row | That row is repeated for every item of the list `items`, and filled from each item. Any top-level list of arrays works this way. |
 | `${items.row_number}` | 1, 2, 3 ... in a repeated row |
-| `${terms}` | A list of plain values, joined with `، ` |
-| `${t.title}` | A label from the template's `lang/{language}.php`, falling back to English |
+| `${terms}` | A list of plain values, joined with the language's list separator (`، ` in Arabic, `, ` in English) |
+| `${t.title}` | A label from the template's `lang/{language}.json`, falling back to English |
 | `${theme.company.name}`, `${theme.company.phone}` | A theme value |
 | `${theme.logo}` | The theme's logo, as an image |
 | `${logo}`, `${signature}`, any name | An image, when the value is an image file path (`.png`, `.jpg`, `.jpeg`, `.gif`, `.bmp`, `.webp`) or a data URI |
 | `${logo:120:60}` | The same image, with a width and height in pixels. Without a size, images are 120 pixels wide; the proportions are kept. |
 | `${doc.hijri_date}` | The Hijri date of `date`, or of `invoice.date` (needs the `intl` extension) |
 | `${doc.qr}` | A QR code image of the `qr` value |
-| `${doc.today}` | Today's date, as `2026/10/08` |
+| `${doc.today}` | Today's date in the language's format: `2026/10/08`, or `08.10.2026` in Turkish |
 
 How values are written:
 
 - Text is escaped, and a `${` inside a value stays text, so data cannot add placeholders.
-- Decimal numbers (floats) get thousands separators and the decimals of the document's currency, read from a top-level `currency` or from a group's `currency` (`invoice.currency`, `quote.currency`, `document.currency` ...): three for KWD, two for most. Whole numbers and strings are printed as they are, so pass amounts as floats (`42000.0`) or format them yourself.
+- Decimal numbers (floats) get the language's separators (1,250.50, or 1.250,50 in Turkish) and the decimals of the document's currency, read from a top-level `currency` or from a group's `currency` (`invoice.currency`, `quote.currency`, `document.currency` ...): three for KWD, two for most. Whole numbers and strings are printed as they are, so pass amounts as floats (`42000.0`) or format them yourself.
 - Dates passed as date objects (`now()`, a Carbon date) print as `2026/10/08`. `true` prints ✓, and `false` and `null` print nothing.
 - Digits follow `->numerals()`.
 - A placeholder with no value in the data is removed. So is an image placeholder whose image cannot be used (an SVG, a missing file, or a file outside the allowed folders): it is left empty, and the path is never printed.
