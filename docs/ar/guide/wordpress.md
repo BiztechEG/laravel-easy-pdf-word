@@ -149,7 +149,7 @@ function my_invoice_url(WC_Order $order): string
 
 - الـ hook المستخدم هو `admin_post_` فقط وليس `admin_post_nopriv_`، فلا يحصل الزوار غير المسجلين على شيء.
 - يستطيع صاحب الطلب ومديرو المتجر تنزيله، أما عميل آخر فيحصل على 403 حتى مع رابط صحيح.
-- ترسل `->send()` الملف للتنزيل، ويمنع `exit` WordPress من طباعة أي شيء بعده. واستخدم `->send(inline: true)` لعرضه في المتصفح بدلًا من ذلك.
+- ترسل `->send()` الملف للتنزيل، ويمنع `exit` WordPress من طباعة أي شيء بعده. والمخرجات التي ما زالت تنتظر في مخازن المخرجات (output buffers) في PHP، كتنبيه من إضافة أخرى، تُحذف قبل إرسال الملف. واستخدم `->send(inline: true)` لعرضه في المتصفح بدلًا من ذلك.
 
 واعرض الرابط للعملاء زرًّا بجوار كل طلب في *حسابي > الطلبات*:
 
@@ -171,16 +171,21 @@ add_filter('woocommerce_email_attachments', function (array $attachments, string
         return $attachments;
     }
 
-    $path = get_temp_dir().'invoice-'.$order->get_order_number().'.pdf';
+    // مجلد خاص بكل رسالة، فلا تشترك رسالتان في الوقت نفسه في ملف واحد
+    $dir = get_temp_dir().'my-invoices-'.wp_generate_password(12, false);
+    $path = $dir.'/invoice-'.sanitize_file_name($order->get_order_number()).'.pdf';
     $attachments[] = my_invoices_docs()->template('invoice', my_invoices_data($order))->pdf()->save($path);
 
-    add_action('shutdown', fn () => @unlink($path));
+    add_action('shutdown', function () use ($dir, $path) {
+        @unlink($path);
+        @rmdir($dir);
+    });
 
     return $attachments;
 }, 10, 3);
 ```
 
-والطريقة نفسها تعمل مع `wp_mail()` خارج WooCommerce: `wp_mail($to, $subject, $message, '', [$path])`.
+قد يحتوي رقم الطلب على أحرف مثل `/` (فقد ترقّم إضافة الطلبات بالشكل `2026/0042`)، لذلك تجعله `sanitize_file_name()` صالحًا لاسم ملف. ويبقي اسم المجلد العشوائي اسم المرفق نظيفًا، لأن الرسالة تعرض اسم الملف نفسه. والطريقة نفسها تعمل مع `wp_mail()` خارج WooCommerce: `wp_mail($to, $subject, $message, '', [$path])`.
 
 ## الاحتفاظ بالملفات {#storage}
 
@@ -198,7 +203,7 @@ if (! file_exists($path)) {
 
 | المشكلة | الحل |
 | --- | --- |
-| التنزيل صفحة خطأ HTML أو ملف PDF تالف | طُبع شيء قبل `->send()`: تنبيه من PHP، أو مسافة قبل `<?php`، أو إضافة أخرى. وإن كانت الترويسات قد أُرسلت، ترمي `send()` الخطأ "output already started at ..." مع اسم الملف ورقم السطر. |
+| التنزيل صفحة خطأ HTML أو ملف PDF تالف | طُبع شيء قبل `->send()`: تنبيه من PHP، أو مسافة قبل `<?php`، أو إضافة أخرى. تحذف `send()` المخرجات التي ما زالت في مخازن المخرجات في PHP، أما المخرجات التي وصلت إلى المتصفح فلا يمكن استرجاعها: حينها ترمي `send()` الخطأ "Cannot send the file: output already started at ..." مع اسم الملف ورقم السطر. أزل تلك المخرجات من مصدرها. والمخرجات المطبوعة بعد الملف تفسده أيضًا، لذلك استدعِ `exit` بعد `send()` مباشرة. |
 | `Cannot create the mPDF temp folder` | اضبط `pdf.drivers.mpdf.temp_dir` على مجلد قابل للكتابة، كما في [الـ factory](#factory). |
 | نفاد الذاكرة أو الوقت مع التقارير الطويلة | ارفع `WP_MEMORY_LIMIT` في `wp-config.php`؛ راجع [حل المشكلات](/ar/guide/troubleshooting). |
 | الحروف العربية غير متصلة | استخدم الخطوط المرفقة أو [أصلح خطك](/ar/guide/fonts) لـ mPDF. |

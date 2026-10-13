@@ -149,7 +149,7 @@ function my_invoice_url(WC_Order $order): string
 
 - Only `admin_post_` is hooked, not `admin_post_nopriv_`, so visitors who are not logged in get nothing.
 - The order's customer and shop managers can download it; another customer gets a 403, even with a valid link.
-- `->send()` sends the file as a download and `exit` stops WordPress from printing anything after it. Use `->send(inline: true)` to show it in the browser instead.
+- `->send()` sends the file as a download and `exit` stops WordPress from printing anything after it. Output still waiting in PHP's output buffers, such as a notice from another plugin, is discarded before the file goes out. Use `->send(inline: true)` to show it in the browser instead.
 
 Show the link to customers as a button next to each order in *My account > Orders*:
 
@@ -171,16 +171,21 @@ add_filter('woocommerce_email_attachments', function (array $attachments, string
         return $attachments;
     }
 
-    $path = get_temp_dir().'invoice-'.$order->get_order_number().'.pdf';
+    // A folder of its own per email, so two emails at once never share a file
+    $dir = get_temp_dir().'my-invoices-'.wp_generate_password(12, false);
+    $path = $dir.'/invoice-'.sanitize_file_name($order->get_order_number()).'.pdf';
     $attachments[] = my_invoices_docs()->template('invoice', my_invoices_data($order))->pdf()->save($path);
 
-    add_action('shutdown', fn () => @unlink($path));
+    add_action('shutdown', function () use ($dir, $path) {
+        @unlink($path);
+        @rmdir($dir);
+    });
 
     return $attachments;
 }, 10, 3);
 ```
 
-The same works with `wp_mail()` outside WooCommerce: `wp_mail($to, $subject, $message, '', [$path])`.
+An order number can contain characters such as `/` (a plugin may number orders `2026/0042`), so `sanitize_file_name()` makes it safe for a file name. The random folder name keeps the attachment's name clean, since the email shows the file's own name. The same works with `wp_mail()` outside WooCommerce: `wp_mail($to, $subject, $message, '', [$path])`.
 
 ## Keep files {#storage}
 
@@ -198,7 +203,7 @@ if (! file_exists($path)) {
 
 | Problem | Fix |
 | --- | --- |
-| The download is an HTML error page or a broken PDF | Something printed output before `->send()`: a PHP notice, a space before `<?php`, or another plugin. When the headers were already sent, `send()` throws "output already started at ..." with the file and line. |
+| The download is an HTML error page or a broken PDF | Something printed output before `->send()`: a PHP notice, a space before `<?php`, or another plugin. `send()` discards output that is still in PHP's output buffers, but output that already went to the browser cannot be taken back: then `send()` throws "Cannot send the file: output already started at ..." with the file and line. Remove that output at its source. Output printed after the file breaks it too, so `exit` right after `send()`. |
 | `Cannot create the mPDF temp folder` | Set `pdf.drivers.mpdf.temp_dir` to a writable folder, as in [the factory](#factory). |
 | Out of memory or time on long reports | Raise `WP_MEMORY_LIMIT` in `wp-config.php`; see [Troubleshooting](/guide/troubleshooting). |
 | Arabic letters are not joined | Use the bundled fonts or [fix your font](/guide/fonts) for mPDF. |
