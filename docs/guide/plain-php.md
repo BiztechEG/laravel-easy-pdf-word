@@ -27,6 +27,7 @@ $docs = EasyPdfWord::create([
         'company' => ['name' => 'شركة بيزتك', 'tax_number' => '123-456-789'],
     ],
     'images' => ['paths' => [__DIR__.'/assets']],
+    'views' => ['paths' => [__DIR__.'/views']],
 ]);
 ```
 
