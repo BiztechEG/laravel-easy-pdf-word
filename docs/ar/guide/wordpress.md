@@ -63,7 +63,7 @@ function my_invoices_docs(): DocumentFactory
 - تعيد `get_bloginfo('name')` اسم الموقع مهرَّبًا لـ HTML (`&amp;` بدل `&`). وتعيده `wp_specialchars_decode()` نصًا عاديًا، لأن القالب يهرّبه مرة أخرى.
 - `get_temp_dir()` هو المجلد الذي يكتب فيه WordPress نفسه ملفاته المؤقتة، فيعمل mPDF على الاستضافات التي تغلق مجلد النظام المؤقت.
 - يحتوي `doc-templates` على قوالبك الخاصة أو نسخك من القوالب المرفقة؛ راجع [قوالبك الخاصة](/ar/guide/custom-templates).
-- تذهب تحذيرات المحركات إلى سجل أخطاء PHP، ويكتبه WordPress في `wp-content/debug.log` عند تفعيل `WP_DEBUG_LOG`.
+- تذهب التحذيرات عن محرك فشل أو صورة تُركت إلى سجل أخطاء PHP، ويكتبه WordPress في `wp-content/debug.log` عند تفعيل `WP_DEBUG_LOG`.
 
 ## بيانات الطلب للفاتورة {#data}
 

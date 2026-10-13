@@ -60,7 +60,7 @@ services:
 
 - `documents/` holds your own templates; see [Your own templates](/guide/custom-templates).
 - mPDF keeps its font cache under `var/cache`, which `cache:clear` empties.
-- When an engine fails and mPDF takes over, the warning goes to Symfony's logger.
+- When an engine fails and mPDF takes over, or an image is left out because of `images.paths` or `images.remote`, the warning goes to Symfony's logger.
 
 ## Download or show a file {#responses}
 

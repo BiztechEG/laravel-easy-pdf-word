@@ -60,7 +60,7 @@ services:
 
 - يحتوي `documents/` على قوالبك الخاصة؛ راجع [قوالبك الخاصة](/ar/guide/custom-templates).
 - يحفظ mPDF ذاكرة الخطوط المؤقتة داخل `var/cache`، ويفرّغها الأمر `cache:clear`.
-- عندما يفشل محرك ويتولى mPDF المهمة، يذهب التحذير إلى الـ logger الخاص بـ Symfony.
+- عندما يفشل محرك ويتولى mPDF المهمة، أو تُترك صورة بسبب `images.paths` أو `images.remote`، يذهب التحذير إلى الـ logger الخاص بـ Symfony.
 
 ## تنزيل الملف أو عرضه {#responses}
 
