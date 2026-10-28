@@ -194,7 +194,7 @@ In the builder, image widths are in millimetres; in a `word.docx`, sizes are in 
 | Blade views and HTML | Not possible: `->word()` throws `WordNotSupported`. Use a template or the builder. |
 | A template with only `pdf.html.php` (or `pdf.blade.php`) | Not possible: `WordNotSupported` asks you to add `layout.php`, `word.php` or `word.docx`. |
 | Fonts | Not embedded: the [Word font](#word-font) must be on the reader's computer. `->font()` is ignored. |
-| Header and footer | One centred line of small text, with page numbers. HTML styles, tables and images in them are left out. |
+| Header and footer | An HTML header or footer becomes one centred line of small text, with page numbers; its styles, tables and images are left out. A header [built from blocks](/guide/page-settings#header-blocks) keeps its tables and images, and the first page can have its own. |
 | CSS | `pdf.html.php` and its CSS are for the PDF only. The Word file comes from its own layout. |
 
 To protect a document, send the PDF with a password and the Word file only to people who may edit it.
