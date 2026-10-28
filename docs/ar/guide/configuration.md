@@ -26,6 +26,7 @@ php artisan vendor:publish --tag=easy-pdf-word-config
 | `DOC_REMOTE_IMAGES` | `false` | روابط الصور: `false` يتجاهلها، و`true` يسمح بأي رابط، أو قائمة نطاقات تفصلها فواصل (`cdn.biztech.example,*.amazonaws.com`). |
 | `DOC_WORD_FONT` | `Arial` | خط ملفات Word. |
 | `DOC_PREVIEW` | غير محدد | صفحة المعاينة: غير محدد أو `null` أو فارغ (`DOC_PREVIEW=`) يعني مفعلة في `local` فقط؛ و`true` أو `false` يفعّلها أو يعطّلها في كل مكان. |
+| `DOC_TEMP_DIR` | فارغ | مجلد للملفات المؤقتة بدل مجلد النظام؛ راجع [المجلد المؤقت](#temp-dir). |
 | `DOC_PREVIEW_LOCAL_OPEN` | `true` | القيمة `false` تطلب الـ gate المسمى `viewDocPreview` في `local` أيضًا. |
 | `APP_NAME` | | متغير Laravel نفسه، ويُستخدم اسمًا افتراضيًا للشركة في الهوية. |
 
@@ -53,6 +54,16 @@ DOC_WORD_FONT=Tahoma
 | `numerals` | `'latin'` | `'latin'` تطبع 0123456789، و`'arabic'` تطبع ٠١٢٣٤٥٦٧٨٩ في نص المستند. وغيّرها لكل مستند بـ `->numerals()`. |
 
 انظر [دعم اللغة العربية](/ar/guide/arabic).
+
+## المجلد المؤقت {#temp-dir}
+
+```php
+'temp_dir' => env('DOC_TEMP_DIR'),
+```
+
+| المفتاح | الافتراضي | المعنى |
+| --- | --- | --- |
+| `temp_dir` | `null` | المجلد الذي تكتب فيه ملفات Word وقوالب docx وملفات ZIP وChromium ملفاتها المؤقتة أثناء إنشاء المستند. و`null` تستخدم المجلد المؤقت للنظام. وفي الاستضافة المشتركة، حيث يشترك هذا المجلد مع حسابات أخرى، حدّد مجلدًا خاصًا بك مثل `storage_path('easy-pdf-word/tmp')`. ويُنشأ المجلد إن لم يكن موجودًا. ولمحرك mPDF إعداد [`temp_dir`](#pdf) خاص به. |
 
 ## PDF {#pdf}
 

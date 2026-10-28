@@ -45,6 +45,7 @@ The settings you are most likely to change:
 | `views.paths` | `[]` | Folders where `->view('contracts.show')` finds `contracts/show.html.php` |
 | `images.paths` | `[]` | Folders local images (logo, signature, stamp) may come from; none by default |
 | `fonts.custom` | `[]` | Your own fonts; see [Fonts](/guide/fonts) |
+| `temp_dir` | `null` | A folder for the temp files of Word files, .docx templates, ZIP files and Chromium, instead of the system's; useful on shared hosting |
 
 Lists such as `images.paths` or `pdf.margins` replace the default list; other settings merge key by key.
 
