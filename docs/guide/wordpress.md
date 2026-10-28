@@ -17,7 +17,7 @@ composer require biztecheg/easy-pdf-word mpdf/mpdf phpoffice/phpword
 The plugin ships with its `vendor` folder. Upload the folder by FTP or SSH, or run `composer install --no-dev` on the server: with mPDF's own fonts it is over 100 MB, larger than the upload limit of the plugin screen on many hosts. The server needs PHP 8.2 or newer with `mbstring` and `gd` (`intl` for Hijri dates, `zip` for Word files).
 
 ::: warning Other plugins with mPDF or PhpWord
-If another active plugin bundles its own copy of mPDF or PhpWord, the first plugin WordPress loads decides which copy every plugin gets. Keep them on compatible versions (mPDF 8.2 or newer, PhpWord 1.4 or newer), or install all plugins' packages from one `composer.json` for the whole site.
+If another active plugin bundles its own copy of mPDF or PhpWord, the first plugin WordPress loads decides which copy every plugin gets. Keep them on compatible versions (mPDF 8.2.4 or newer, PhpWord 1.4 or newer), or install all plugins' packages from one `composer.json` for the whole site.
 :::
 
 ## The factory {#factory}
