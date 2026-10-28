@@ -194,7 +194,7 @@ Doc::pdfManager(): PdfManager
 | البيانات | [`data`](#pending-data) و[`with`](#pending-with) و[`withoutValidation`](#pending-without-validation) |
 | اللغة والأرقام | [`locale`](#pending-locale) و[`direction`](#pending-direction) و[`rtl` / `ltr`](#pending-rtl-ltr) و[`numerals`](#pending-numerals) |
 | المظهر | [`theme`](#pending-theme) و[`font`](#pending-font) و[`title`](#pending-title) |
-| الصفحة | [`paper`](#pending-paper) و[`landscape` / `portrait`](#pending-landscape-portrait) و[`margins`](#pending-margins) و[`header`](#pending-header) و[`footer`](#pending-footer) |
+| الصفحة | [`paper`](#pending-paper) و[`landscape` / `portrait`](#pending-landscape-portrait) و[`margins`](#pending-margins) و[`header`](#pending-header) و[`footer`](#pending-footer) و[`firstPageHeader` / `firstPageFooter`](#pending-first-page) و[`headerDistance` / `footerDistance`](#pending-header-distance) |
 | لملفات PDF فقط | [`driver`](#pending-driver) و[`watermark`](#pending-watermark) و[`password`](#pending-password) |
 | الإخراج | [`pdf`](#pending-pdf) و[`word`](#pending-word) و[`queue`](#pending-queue) و[`toHtml`](#pending-to-html) و[`options`](#pending-options) |
 | كتل `Doc::make()` | [`heading` و`paragraph` و`table` ...](#pending-blocks) |
@@ -354,18 +354,18 @@ margins(float $top, ?float $right = null, ?float $bottom = null, ?float $left = 
 ### header() {#pending-header}
 
 ```php
-header(string $html): static
+header(string|Closure $header): static
 ```
 
-HTML يُطبع أعلى كل صفحة (رأس الصفحة). يتحول `{page}` و`{pages}` إلى رقم الصفحة وعدد الصفحات. يحل محل ملف رأس الصفحة في القالب. في ملفات Word يتحول HTML إلى نص عادي مع حقول أرقام الصفحات.
+رأس الصفحة في كل صفحة: نص HTML، أو دالة تبنيه بالعناصر، `fn (DocumentBuilder $h) => $h->table(...)`. يتحول `{page}` و`{pages}` إلى رقم الصفحة وعدد الصفحات. يحل محل ملفات رأس الصفحة في القالب. في ملفات Word يتحول HTML إلى نص عادي مع حقول أرقام الصفحات، وتحتفظ العناصر بجداولها وصورها. وتقبل العناصر `paragraph` و`table` و`image` و`line` و`spacer`، وأي عنصر آخر يرمي `InvalidArgumentException`. انظر [رأس صفحة مبني من العناصر](/ar/guide/page-settings#header-blocks).
 
 ### footer() {#pending-footer}
 
 ```php
-footer(string $html): static
+footer(string|Closure $footer): static
 ```
 
-مثل السابق أسفل كل صفحة (تذييل الصفحة)، ويحل محل ملف التذييل في القالب.
+مثل السابق أسفل كل صفحة (تذييل الصفحة)، ويحل محل ملفات التذييل في القالب.
 
 ```php
 ->footer('<div style="text-align: center; font-size: 8pt;">صفحة {page} من {pages}</div>')
@@ -374,6 +374,24 @@ footer(string $html): static
 ::: info معلومة
 يطبع Chromium و Gotenberg قيمتي `{page}` و`{pages}` بالأرقام اللاتينية حتى مع `->numerals('arabic')`، بينما يتبع mPDF إعداد الأرقام. أما في ملفات Word فهما حقلان لأرقام الصفحات يملؤهما Word بنفسه، فلا ينطبق عليهما إعداد الأرقام.
 :::
+
+### firstPageHeader() / firstPageFooter() {#pending-first-page}
+
+```php
+firstPageHeader(string|Closure|null $header): static
+firstPageFooter(string|Closure|null $footer): static
+```
+
+رأس وتذييل خاصان بالصفحة الأولى، بنص HTML أو بالعناصر مثل `header()`؛ و`null` تترك الصفحة الأولى بدونهما. ودون استدعائهما تأخذ الصفحة الأولى رأس الصفحة والتذييل العاديين. في mPDF وWord فقط؛ أما Chromium وGotenberg فيكتبان تحذيراً في السجل ويستخدمان العاديين. ويحلان محل `first-header.layout.php` و`first-footer.layout.php` في القالب.
+
+### headerDistance() / footerDistance() {#pending-header-distance}
+
+```php
+headerDistance(float $mm): static
+footerDistance(float $mm): static
+```
+
+المسافة بالمليمتر من أعلى الصفحة إلى رأس الصفحة، ومن أسفلها إلى التذييل، في mPDF وWord. وهي افتراضياً نصف الهامش، و8 مم على الأكثر.
 
 ### driver() {#pending-driver}
 
@@ -996,12 +1014,16 @@ Doc::template('invoice', $data)->driver('pdf-service')->pdf()->engine();   // 'p
 | `numerals` | `string` | `'latin'` |
 | `watermark` | `['text' => ..., 'opacity' => ..., 'color' => ...]` أو `null` | `null` |
 | `protection` | `['user' => ..., 'owner' => ..., 'allow' => [...]]` أو `null` | `null` |
+| `firstHeader` و`firstFooter` | `string` نص HTML للصفحة الأولى، أو `false` لعدم وجود شيء، أو `null` للعادي | `null` |
+| `headerDistance` و`footerDistance` | `?float` بالمليمتر من حافة الصفحة | `null` |
+| `fitHeaders` | `bool`: الهوامش حد أدنى، فرأس الصفحة الأطول يدفع المتن (mPDF) | `false` |
 
 | الدالة | تعيد |
 | --- | --- |
 | `isLandscape(): bool` | هل الاتجاه `landscape` (أو `L`) |
 | `paperSize(): array` | `[width, height]` بالمليمتر بعد تطبيق الاتجاه |
 | `contentWidth(): float` | عرض نص الصفحة بالمليمتر: عرض الورق ناقص الهامشين الجانبيين |
+| `hasFirstPage(): bool` | هل حُدد `firstHeader` أو `firstFooter` |
 | `static unknownPaper(string $paper): InvalidArgumentException` | الخطأ الخاص بمقاس غير معروف |
 | `PdfOptions::PAPER_SIZES` | ثابت: `name => [width, height]` بالمليمتر من `A2` إلى `EXECUTIVE` |
 

@@ -194,7 +194,7 @@ The manager that resolves PDF engines by name and handles the fallback. See [Pdf
 | Data | [`data`](#pending-data), [`with`](#pending-with), [`withoutValidation`](#pending-without-validation) |
 | Language and digits | [`locale`](#pending-locale), [`direction`](#pending-direction), [`rtl` / `ltr`](#pending-rtl-ltr), [`numerals`](#pending-numerals) |
 | Look | [`theme`](#pending-theme), [`font`](#pending-font), [`title`](#pending-title) |
-| Page | [`paper`](#pending-paper), [`landscape` / `portrait`](#pending-landscape-portrait), [`margins`](#pending-margins), [`header`](#pending-header), [`footer`](#pending-footer) |
+| Page | [`paper`](#pending-paper), [`landscape` / `portrait`](#pending-landscape-portrait), [`margins`](#pending-margins), [`header`](#pending-header), [`footer`](#pending-footer), [`firstPageHeader` / `firstPageFooter`](#pending-first-page), [`headerDistance` / `footerDistance`](#pending-header-distance) |
 | PDF only | [`driver`](#pending-driver), [`watermark`](#pending-watermark), [`password`](#pending-password) |
 | Output | [`pdf`](#pending-pdf), [`word`](#pending-word), [`queue`](#pending-queue), [`toHtml`](#pending-to-html), [`options`](#pending-options) |
 | `Doc::make()` blocks | [`heading`, `paragraph`, `table` ...](#pending-blocks) |
@@ -354,18 +354,18 @@ Page margins in millimetres, like CSS: one value for all sides, two for top and 
 ### header() {#pending-header}
 
 ```php
-header(string $html): static
+header(string|Closure $header): static
 ```
 
-HTML printed at the top of every page. `{page}` and `{pages}` become the page number and the page count. Replaces the template's header file. In Word files the HTML becomes plain text with page fields.
+The header on every page: HTML, or a function that builds it with blocks, `fn (DocumentBuilder $h) => $h->table(...)`. `{page}` and `{pages}` become the page number and the page count. Replaces the template's header files. In Word files HTML becomes plain text with page fields, and blocks keep their tables and images. Blocks take `paragraph`, `table`, `image`, `line` and `spacer`; any other block throws `InvalidArgumentException`. See [Headers built from blocks](/guide/page-settings#header-blocks).
 
 ### footer() {#pending-footer}
 
 ```php
-footer(string $html): static
+footer(string|Closure $footer): static
 ```
 
-The same at the bottom of every page; replaces the template's footer file.
+The same at the bottom of every page; replaces the template's footer files.
 
 ```php
 ->footer('<div style="text-align: center; font-size: 8pt;">صفحة {page} من {pages}</div>')
@@ -374,6 +374,24 @@ The same at the bottom of every page; replaces the template's footer file.
 ::: info
 Chromium and Gotenberg print `{page}` and `{pages}` in Latin digits, even with `->numerals('arabic')`. mPDF follows the numerals setting. In Word files they are page-number fields that Word fills in itself, so the numerals setting does not apply to them.
 :::
+
+### firstPageHeader() / firstPageFooter() {#pending-first-page}
+
+```php
+firstPageHeader(string|Closure|null $header): static
+firstPageFooter(string|Closure|null $footer): static
+```
+
+The first page's own header and footer, as HTML or blocks like `header()`; `null` leaves the first page without one. Without a call, the first page has the normal ones. mPDF and Word only; Chromium and Gotenberg log a warning and use the normal ones. Replaces the template's `first-header.layout.php` and `first-footer.layout.php`.
+
+### headerDistance() / footerDistance() {#pending-header-distance}
+
+```php
+headerDistance(float $mm): static
+footerDistance(float $mm): static
+```
+
+The distance in millimetres from the top of the page to the header, and from the bottom to the footer, in mPDF and Word. By default half the margin, at most 8 mm.
 
 ### driver() {#pending-driver}
 
@@ -996,12 +1014,16 @@ Doc::template('invoice', $data)->driver('pdf-service')->pdf()->engine();   // 'p
 | `numerals` | `string` | `'latin'` |
 | `watermark` | `['text' => ..., 'opacity' => ..., 'color' => ...]` or `null` | `null` |
 | `protection` | `['user' => ..., 'owner' => ..., 'allow' => [...]]` or `null` | `null` |
+| `firstHeader`, `firstFooter` | `string` HTML for the first page, `false` for none, or `null` for the normal one | `null` |
+| `headerDistance`, `footerDistance` | `?float` mm from the page edge | `null` |
+| `fitHeaders` | `bool`: the margins are a minimum, so a taller header pushes the body (mPDF) | `false` |
 
 | Method | Returns |
 | --- | --- |
 | `isLandscape(): bool` | Whether the orientation is `landscape` (or `L`) |
 | `paperSize(): array` | `[width, height]` in mm with the orientation applied |
 | `contentWidth(): float` | The width of the page's text in mm: the paper less the side margins |
+| `hasFirstPage(): bool` | Whether `firstHeader` or `firstFooter` is set |
 | `static unknownPaper(string $paper): InvalidArgumentException` | The error for an unknown size |
 | `PdfOptions::PAPER_SIZES` | Constant: `name => [width, height]` in mm for `A2` ... `EXECUTIVE` |
 
