@@ -558,7 +558,7 @@ DocumentBuilder::row(array $cells, array $options = []): array
 
 A table row with options, for `table()`. `$cells` are [cells](#builder-cells). The options:
 
-- `style`: `bold`, `italic`, `size`, `color`, `background`, `align` or `border`, for every cell of the row. A cell's own style wins.
+- `style`: `bold`, `italic`, `size`, `color`, `background`, `align`, `border`, `padding` or `valign`, for every cell of the row. A cell's own style wins.
 - `total`: bold, with a line above it. Several rows can be totals.
 - `keep_with_next`: the row stays on one page with the next one (in Word, and with mPDF 8.2.4 or later).
 
@@ -641,8 +641,12 @@ Headings, paragraphs, runs and table cells take these keys:
 | `header` | `false` | The first row is a header: bold, coloured, repeated at the top of each page |
 | `header_background` | theme `primary` | Header row background |
 | `header_color` | `#FFFFFF` | Header row text colour |
-| `borders` | `true` | A line under every cell |
+| `borders` | `'rows'` | `'rows'` (a line under every cell), `'grid'` (lines around every cell) or `'none'`. `true` is `'rows'`, `false` is `'none'` |
 | `border_color` | theme `border` | Colour of those lines |
+| `border_width` | 1px | Width of those lines, in points |
+| `padding` | `2` | Space inside every cell, in mm. In Word, the table's cell margins |
+| `valign` | `'top'` | `top`, `middle` or `bottom`, for every cell |
+| `keep_together` | `false` | The table stays on one page: `page-break-inside: avoid` in PDF, every row kept with the next in Word |
 | `striped` | `null` | A `#hex` background for every other row |
 | `footer` | `false` | The last row is bold (a totals row). For several total rows, use [`row()`](#builder-row) |
 | `font_size` | `null` | Text size of the whole table, in points |
@@ -658,6 +662,9 @@ A cell is a string, or an array with these keys plus any [text style](#builder-s
 | `image` | An image path, URL or data URI; `width` in mm (default 30) |
 | `qr` | A value to draw as a QR code; `width` in mm (default 30) |
 | `colspan` | Number of columns the cell spans |
+| `rowspan` | Number of rows the cell spans. The rows below leave out the cells it covers, as in HTML |
+| `padding` | Space inside this cell, in mm |
+| `valign` | `top`, `middle` or `bottom` |
 | `border` | A `#hex` colour: a box around this cell |
 
 ```php
