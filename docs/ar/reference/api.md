@@ -558,7 +558,7 @@ DocumentBuilder::row(array $cells, array $options = []): array
 
 صف جدول بخيارات، لاستخدامه في `table()`. و`$cells` هي [الخلايا](#builder-cells). والخيارات:
 
-- `style`: أي من `bold` و`italic` و`size` و`color` و`background` و`align` و`border`، لكل خلايا الصف. وتنسيق الخلية نفسها يغلب.
+- `style`: أي من `bold` و`italic` و`size` و`color` و`background` و`align` و`border` و`padding` و`valign`، لكل خلايا الصف. وتنسيق الخلية نفسها يغلب.
 - `total`: خط عريض وفوقه خط. ويمكن أن تكون عدة صفوف إجماليات.
 - `keep_with_next`: يبقى الصف في صفحة واحدة مع الصف التالي (في Word، ومع mPDF 8.2.4 أو أحدث).
 
@@ -641,8 +641,12 @@ isEmpty(): bool
 | `header` | `false` | الصف الأول صف عناوين: عريض وملون ويتكرر أعلى كل صفحة |
 | `header_background` | `primary` من الهوية | خلفية صف العناوين |
 | `header_color` | `#FFFFFF` | لون نص صف العناوين |
-| `borders` | `true` | خط أسفل كل خلية |
+| `borders` | `'rows'` | `'rows'` (خط أسفل كل خلية) أو `'grid'` (خطوط حول كل خلية) أو `'none'`. و`true` تعني `'rows'`، و`false` تعني `'none'` |
 | `border_color` | `border` من الهوية | لون هذه الخطوط |
+| `border_width` | 1px | سُمك هذه الخطوط بالنقاط |
+| `padding` | `2` | المسافة داخل كل خلية بالمليمتر. وفي Word هي هوامش خلايا الجدول |
+| `valign` | `'top'` | `top` أو `middle` أو `bottom`، لكل خلية |
+| `keep_together` | `false` | يبقى الجدول في صفحة واحدة: `page-break-inside: avoid` في PDF، وكل صف مربوط بالصف التالي في Word |
 | `striped` | `null` | لون خلفية `#hex` لصف وترك صف |
 | `footer` | `false` | الصف الأخير عريض (صف الإجماليات). ولعدة صفوف إجمالي استخدم [`row()`](#builder-row) |
 | `font_size` | `null` | حجم نص الجدول كله بالنقطة |
@@ -658,6 +662,9 @@ isEmpty(): bool
 | `image` | مسار صورة أو رابط أو data URI، مع `width` بالمليمتر (الافتراضي 30) |
 | `qr` | قيمة تُرسم كرمز QR، مع `width` بالمليمتر (الافتراضي 30) |
 | `colspan` | عدد الأعمدة التي تمتد عليها الخلية |
+| `rowspan` | عدد الصفوف التي تمتد عليها الخلية. وتُكتب الصفوف التالية دون الخلايا التي تغطيها، كما في HTML |
+| `padding` | المسافة داخل هذه الخلية بالمليمتر |
+| `valign` | `top` أو `middle` أو `bottom` |
 | `border` | لون `#hex`: إطار حول هذه الخلية |
 
 ```php
