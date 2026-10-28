@@ -522,7 +522,21 @@ paragraph(string|array $text, array $style = []): static
 table(array $rows, array $options = []): static
 ```
 
-جدول. `$rows` قائمة صفوف، وكل صف قائمة [خلايا](#builder-cells). تجد `$options` في [خيارات الجدول](#builder-table-options).
+جدول. `$rows` قائمة صفوف، وكل صف قائمة [خلايا](#builder-cells) أو [`row()`](#builder-row). تجد `$options` في [خيارات الجدول](#builder-table-options).
+
+### row() {#builder-row}
+
+```php
+DocumentBuilder::row(array $cells, array $options = []): array
+```
+
+صف جدول بخيارات، لاستخدامه في `table()`. و`$cells` هي [الخلايا](#builder-cells). والخيارات:
+
+- `style`: أي من `bold` و`italic` و`size` و`color` و`background` و`align` و`border`، لكل خلايا الصف. وتنسيق الخلية نفسها يغلب.
+- `total`: خط عريض وفوقه خط. ويمكن أن تكون عدة صفوف إجماليات.
+- `keep_with_next`: يبقى الصف في صفحة واحدة مع الصف التالي (في Word، ومع mPDF 8.2.4 أو أحدث).
+
+تُترك المفاتيح الأخرى. ولا تُقرأ المصفوفة كائن صف إلا إذا كان فيها `cells` قائمةً ولا مفاتيح غير هذه الخيارات، فتُقرأ صفوف سجلاتك كما كانت. انظر [الصفوف](/ar/guide/builder#rows).
 
 ### image() {#builder-image}
 
@@ -601,7 +615,7 @@ isEmpty(): bool
 | `borders` | `true` | خط أسفل كل خلية |
 | `border_color` | `border` من الهوية | لون هذه الخطوط |
 | `striped` | `null` | لون خلفية `#hex` لصف وترك صف |
-| `footer` | `false` | الصف الأخير عريض (صف الإجماليات) |
+| `footer` | `false` | الصف الأخير عريض (صف الإجماليات). ولعدة صفوف إجمالي استخدم [`row()`](#builder-row) |
 | `font_size` | `null` | حجم نص الجدول كله بالنقطة |
 
 ### خلايا الجدول {#builder-cells}

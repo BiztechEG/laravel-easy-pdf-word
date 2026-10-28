@@ -522,7 +522,21 @@ A paragraph. `$text` is a string, or a list of runs: each run a string or an arr
 table(array $rows, array $options = []): static
 ```
 
-A table. `$rows` is a list of rows, each a list of [cells](#builder-cells). `$options` is described in [table options](#builder-table-options).
+A table. `$rows` is a list of rows, each a list of [cells](#builder-cells) or a [`row()`](#builder-row). `$options` is described in [table options](#builder-table-options).
+
+### row() {#builder-row}
+
+```php
+DocumentBuilder::row(array $cells, array $options = []): array
+```
+
+A table row with options, for `table()`. `$cells` are [cells](#builder-cells). The options:
+
+- `style`: `bold`, `italic`, `size`, `color`, `background`, `align` or `border`, for every cell of the row. A cell's own style wins.
+- `total`: bold, with a line above it. Several rows can be totals.
+- `keep_with_next`: the row stays on one page with the next one (in Word, and with mPDF 8.2.4 or later).
+
+Other keys are left out. An array is read as a row object only when it has a `cells` list and no keys besides these options, so rows from your records are read as before. See [Rows](/guide/builder#rows).
 
 ### image() {#builder-image}
 
@@ -601,7 +615,7 @@ Headings, paragraphs, runs and table cells take these keys:
 | `borders` | `true` | A line under every cell |
 | `border_color` | theme `border` | Colour of those lines |
 | `striped` | `null` | A `#hex` background for every other row |
-| `footer` | `false` | The last row is bold (a totals row) |
+| `footer` | `false` | The last row is bold (a totals row). For several total rows, use [`row()`](#builder-row) |
 | `font_size` | `null` | Text size of the whole table, in points |
 
 ### Table cells {#builder-cells}
