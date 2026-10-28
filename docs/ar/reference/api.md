@@ -863,6 +863,7 @@ Doc::assertSaved('invoices/INV-2026-1024.pdf', 's3');
 | `driver` | `?string` | المحرك المحدد بـ `->driver()`، أو `null` |
 | `watermark` | `?string` | نص العلامة المائية (بأرقام المستند)، أو `null` |
 | `protected` | `bool` | هل لملف PDF كلمة مرور |
+| `watermarkImage` | `?string` | المصدر الممرَّر إلى `watermarkImage()` في PDF وWord، أو `null` |
 
 | الدالة | تعيد |
 | --- | --- |
@@ -870,7 +871,10 @@ Doc::assertSaved('invoices/INV-2026-1024.pdf', 's3');
 | `filename(): string` | الاسم مع الامتداد كما سيصل في التنزيل |
 | `data(?string $key = null, mixed $default = null): mixed` | البيانات التي أُنشئ منها الملف، وفي القوالب بعد القيم الافتراضية و`prepare` (فتجد الإجماليات). المفتاح بالنقاط يختار قيمة واحدة |
 | `html(): string` | نص HTML الذي سيستلمه محرك PDF. يرمي `LogicException` لملفات Word |
-| `contains(string $text): bool` | هل يحتوي HTML ملف PDF على النص، بعد ترميزه كما يطبعه Blade. مع الأرقام العربية اكتب النص بالأرقام العربية |
+| `contains(string $text): bool` | هل يحتوي HTML ملف PDF على النص، بعد ترميزه كما يطبعه Blade. مع الأرقام العربية اكتب النص بالأرقام العربية. ولملف Word: هل يحتويه `text()` |
+| `text(): string` | نص كتل المستند دون رسمه: الترويسات والتذييلات ثم المتن؛ وخلايا الجدول مفصولة بـ tab وصفوفه بأسطر جديدة؛ والأرقام كما كُتبت. فارغ للـ views والـ HTML وقوالب `word.docx` |
+| `blocks(): array` | كتل متن مستند `Doc::make()` أو ملف `layout.php` أو `word.php` في القالب؛ و`[]` للـ views والـ HTML وقوالب `word.docx` |
+| `hasWatermark(?string $text = null): bool` | هل للملف علامة مائية من نص أو صورة؛ ومع `$text`: هل نص العلامة المائية هو هذا النص |
 | `saves(): array` | كل عمليات الحفظ: `['path' => ..., 'disk' => ..., 'options' => [...]]` |
 | `wasSaved(?string $path = null, ?string $disk = null): bool` | هل حُفظ (في هذا المسار وهذا الـ disk) |
 | `wasDownloaded(?string $filename = null): bool` | هل أُرسل للتنزيل (بهذا الاسم) |

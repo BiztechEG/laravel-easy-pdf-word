@@ -6,6 +6,8 @@ All notable changes to this package are listed here. The format follows
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-10-28
+
 ### Added
 
 - Run styles in documents built in code, from `biztecheg/easy-pdf-word` 1.4: `underline`, `strike` and `link` (http, https and mailto) on runs and cells, a run's `background` in Word too, and a run's `font` in PDF when it names a registered font. A registered font takes its new `word` name in Word files. Documented in "Building in code", "Fonts" and the API reference.
@@ -14,9 +16,11 @@ All notable changes to this package are listed here. The format follows
 - A stamp over a table cell, from `biztecheg/easy-pdf-word` 1.4: a cell's `overlay` (`image`, `width`, `height`, `offset`, `stretch`) draws a company stamp over the signature, behind the text, from the right in Arabic. Documented in "Building in code" and the API reference.
 - `->watermarkImage($path, ['opacity' => 0.15, 'width' => 140])`, from `biztecheg/easy-pdf-word` 1.4: an image watermark in the middle of every page, in PDF and in Word files, where the text watermark cannot go. Documented in "Page settings", "Word files", "Custom PDF engines", "Troubleshooting" and the API reference.
 - `save($path, $disk, $options)` and `queue($path, $disk, $options)` pass `$options` to `Storage::put()`, such as `['visibility' => 'private']` for a price offer on a public bucket; `SaveDocument` carries them to the worker, and under `Doc::fake()` `saves()` records them. They are ignored for an absolute local path. Documented in "Output and delivery", "Testing" and the API reference.
+- Under `Doc::fake()`, a recorded file has `text()`, `blocks()` and `hasWatermark()`, from `biztecheg/easy-pdf-word` 1.4: `text()` reads the document's blocks (headers and footers, then the body) without rendering, so `contains()` now works for Word files too; `watermarkImage` holds the watermark image's source. Documented in "Testing your app", "Testing document features" and the API reference.
 
 ### Changed
 
+- Requires `biztecheg/easy-pdf-word` 1.4.
 - Colour names such as `navy` work in Word files too, from `biztecheg/easy-pdf-word` 1.4, so the docs no longer ask for hex colours when you make Word files.
 
 ## [1.6.0] - 2026-10-28
@@ -210,7 +214,8 @@ The first release.
 - Colour values, fonts and locales are checked before they reach HTML, CSS or file paths.
 - Chromium runs without JavaScript unless it is turned on in config.
 
-[Unreleased]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.7.0...HEAD
+[1.7.0]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.4.1...v1.5.0
 [1.4.1]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.4.0...v1.4.1

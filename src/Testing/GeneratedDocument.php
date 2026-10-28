@@ -18,6 +18,10 @@ class GeneratedDocument
 
     private ?string $resolvedHtml = null;
 
+    private ?string $resolvedText = null;
+
+    private ?array $resolvedBlocks = null;
+
     /** @var list<array{path: string, disk: ?string, options: array}> */
     private array $saves = [];
 
@@ -30,6 +34,9 @@ class GeneratedDocument
      * @param  bool  $protected  whether the PDF has a password
      * @param  Closure(): array  $data
      * @param  Closure(): string  $html
+     * @param  (Closure(): string)|null  $text
+     * @param  (Closure(): array)|null  $blocks
+     * @param  string|null  $watermarkImage  the watermark image's source, in PDF and Word
      */
     public function __construct(
         public readonly string $format,
@@ -43,6 +50,9 @@ class GeneratedDocument
         private Closure $html,
         public readonly ?string $watermark = null,
         public readonly bool $protected = false,
+        private ?Closure $text = null,
+        private ?Closure $blocks = null,
+        public readonly ?string $watermarkImage = null,
     ) {}
 
     /** @internal */
@@ -90,10 +100,35 @@ class GeneratedDocument
         return $this->resolvedHtml ??= ($this->html)();
     }
 
-    /** Whether the PDF's HTML contains the text, escaped as a template would print it. */
+    /**
+     * The document's text, read from its blocks: the headers and footers, then
+     * the body, with table cells joined by tabs and rows by new lines. Empty
+     * for views, HTML and word.docx templates, which have no blocks.
+     */
+    public function text(): string
+    {
+        return $this->resolvedText ??= $this->text === null ? '' : ($this->text)();
+    }
+
+    /** The body blocks of a document built in code or of a template's layout, as the Word file gets them. */
+    public function blocks(): array
+    {
+        return $this->resolvedBlocks ??= $this->blocks === null ? [] : ($this->blocks)();
+    }
+
+    /**
+     * Whether the PDF's HTML contains the text, escaped as a template would
+     * print it. For a Word file, whether its text() does.
+     */
     public function contains(string $text): bool
     {
-        return str_contains($this->html(), e($text));
+        return $this->isPdf() ? str_contains($this->html(), e($text)) : str_contains($this->text(), $text);
+    }
+
+    /** A watermark of text (PDF only) or of an image; with $text, a text watermark that says it. */
+    public function hasWatermark(?string $text = null): bool
+    {
+        return $text === null ? $this->watermark !== null || $this->watermarkImage !== null : $this->watermark === $text;
     }
 
     /** @return list<array{path: string, disk: ?string, options: array}> */

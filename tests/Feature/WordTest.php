@@ -139,7 +139,8 @@ class WordTest extends TestCase
             ->content());
 
         $this->assertStringContainsString('<w:color w:val="AABBCC"/>', $xml);
-        $this->assertSame(1, substr_count($xml, '<w:color '));
+        $this->assertStringContainsString('<w:color w:val="FF0000"/>', $xml);
+        $this->assertSame(2, substr_count($xml, '<w:color '));
     }
 
     public function test_rgb_hsl_and_transparent_colours_reach_word(): void

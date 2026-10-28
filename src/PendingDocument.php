@@ -193,6 +193,9 @@ class PendingDocument extends Document
             html: fn () => $this->toHtml(new FakePdfDriver, $options),
             watermark: $format === 'pdf' ? $options->watermark['text'] ?? null : null,
             protected: $format === 'pdf' && $options->protection !== null,
+            text: fn () => $this->text(),
+            blocks: fn () => $this->blocks(),
+            watermarkImage: $this->watermarkImage['source'] ?? null,
         );
     }
 }
