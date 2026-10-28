@@ -85,7 +85,55 @@ Doc::template('report', $data)
 - Given here, they replace the template's own header and footer files (`header.html.php`, `footer.html.php`). Most bundled templates have a footer with page numbers.
 - mPDF prints the header in the top margin and the footer in the bottom margin, so give those margins room for them, as `->margins(30, 15, 20, 15)` does above.
 - Chromium and Gotenberg draw the header and footer apart from the page, in the document font at a small size (9px). Inline styles in your HTML still apply.
-- In Word files, the header and footer become plain text, and `{page}` and `{pages}` become Word page fields (see [Word files](/guide/word)).
+- In Word files, an HTML header and footer become one line of plain text, and `{page}` and `{pages}` become Word page fields (see [Word files](/guide/word)). For a header with a logo or a table in Word, [build it from blocks](#header-blocks).
+- The HTML is used as written, like `Doc::html()`. For a header with data from users, build it from blocks, whose text is escaped.
+
+### Headers built from blocks {#header-blocks}
+
+`->header()` and `->footer()` also take a function that builds the header with [builder blocks](/guide/builder). The same header then comes out in the PDF and in the Word file, with its table and its logo:
+
+```php
+use BiztechEG\EasyPdfWord\Builder\DocumentBuilder;
+
+Doc::make()
+    ->locale('ar')
+    ->header(fn (DocumentBuilder $h) => $h->table(
+        [[['image' => public_path('images/logo.png'), 'width' => 30], ['lines' => [['text' => 'شركة بيزتك', 'bold' => true], 'الدقي، الجيزة']]]],
+        ['borders' => false, 'columns' => [30, 70]],
+    ))
+    ->footer(fn (DocumentBuilder $f) => $f->paragraph('صفحة {page} من {pages}', ['align' => 'center', 'size' => 8]))
+    ->heading('عرض سعر')
+    ->pdf();
+```
+
+- A header or footer takes `paragraph`, `table`, `image`, `line` and `spacer`. Any other block throws `InvalidArgumentException`.
+- `{page}` and `{pages}` work in any paragraph or cell, and become page fields in Word.
+- Images follow the [image rules](/guide/images), as in the body.
+- The function runs at once. For values from your code, capture them with `use` or an arrow function.
+- With mPDF, a header taller than the top margin pushes the body down, as in Word: the margin becomes a minimum. HTML headers keep the fixed margin.
+- An HTML header and a header from blocks replace each other: the last call wins.
+
+### A first page of its own {#first-page}
+
+A price offer or a letter often has a full letterhead on its first page and a small header on the pages after it. `->firstPageHeader()` and `->firstPageFooter()` take HTML or blocks, like `->header()`, or `null` for none on the first page:
+
+```php
+Doc::make()
+    ->header(fn (DocumentBuilder $h) => $h->paragraph('شركة بيزتك', ['size' => 9]))
+    ->footer(fn (DocumentBuilder $f) => $f->paragraph('صفحة {page} من {pages}', ['align' => 'center', 'size' => 8]))
+    ->firstPageHeader(fn (DocumentBuilder $h) => $h->table($letterhead, ['borders' => false])->line())
+    ->firstPageFooter(null)
+    ->headerDistance(6)
+    ->footerDistance(6);
+```
+
+| Engine | First page |
+| --- | --- |
+| mPDF | Its own header and footer |
+| Word | Its own header and footer. Word takes both from the first-page versions, so the one you do not give is repeated there. |
+| Chromium, Gotenberg | Not supported: every page gets the normal header and footer, and a warning is logged |
+
+`->headerDistance()` and `->footerDistance()` set the space in millimetres between the page edge and the header or footer, in mPDF and Word. By default it is half the margin, at most 8 mm.
 
 ### Arabic digits in headers and footers {#header-digits}
 
