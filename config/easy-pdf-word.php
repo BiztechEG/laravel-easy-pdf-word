@@ -27,6 +27,21 @@ return [
 
     'numerals' => 'latin',
 
+    /*
+    |--------------------------------------------------------------------------
+    | Temp folder
+    |--------------------------------------------------------------------------
+    |
+    | Word files, .docx templates, ZIP files and Chromium write temp files
+    | here while a document is made. null uses the system temp folder, which
+    | shared hosting shares with other accounts: there, set a folder of your
+    | own, such as storage_path('easy-pdf-word/tmp'). It is created when
+    | missing. mPDF has its own temp_dir under pdf.drivers.mpdf.
+    |
+    */
+
+    'temp_dir' => env('DOC_TEMP_DIR'),
+
     'pdf' => [
 
         /*
