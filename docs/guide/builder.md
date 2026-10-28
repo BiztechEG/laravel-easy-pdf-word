@@ -125,6 +125,7 @@ The Word file has the same content: right-to-left paragraphs, the table laid out
 | --- | --- | --- |
 | `heading($text, $level = 1, $style = [])` | Level 1 | A heading. Levels 1, 2 and 3 are 18, 14 and 12 pt, bold; level 1 takes the theme's `primary` colour. A heading stays on the same page as the block after it. |
 | `paragraph($text, $style = [])` | | A paragraph: a string, or a list of runs (see below). |
+| `list($items, $options = [])` | Bullets | A numbered or bulleted list, with sub-lists. See [Lists](#lists). |
 | `richText($html, $options = [])` | | HTML written by your users in an editor, cleaned first. See [Rich text](#rich-text). |
 | `table($rows, $options = [])` | | A table: a list of rows, each a list of cells. See [Tables](#tables). |
 | `image($source, $widthMm = 40, $align = 'start')` | 40 mm, start | An image from a file path, an allowed URL or a data URI. |
@@ -181,6 +182,30 @@ Runs can also be underlined, struck through, shaded or links, in the PDF and the
 A `link` must start with `http://`, `https://` or `mailto:`; anything else stays plain text. Links are underlined, in blue (`#0563C1`) unless the run has a `color`. A table cell with a `link` makes its text a link.
 
 A run's `font` names a [registered font](/guide/fonts#custom-fonts). In the PDF, other names are left out and logged as a warning, because the engine has no file for them. In Word, a registered font becomes its [Word name](/guide/fonts#word), and other names are passed to Word as they are, for fonts installed on the reader's computer.
+
+## Lists {#lists}
+
+`list($items, $options)` adds a numbered or bulleted list, such as the terms of a price offer:
+
+```php
+->list([
+    'الأسعار لا تشمل ضريبة القيمة المضافة.',
+    'يسري العرض 30 يوماً من تاريخه.',
+    ['التسليم في:', ['الموقع أ', 'الموقع ب']],
+    [['text' => 'الدفع: ', 'bold' => true], '50% مقدماً، والباقي عند التسليم'],
+], ['ordered' => true])
+```
+
+An item is a string, a run, a list of [runs](#runs), or `[item, [sub-items]]` for an item with a list under it. Sub-lists are numbered like their list: numbers under a numbered list, bullets under a bulleted one.
+
+| Option | Default | What it does |
+| --- | --- | --- |
+| `ordered` | `false` | Numbers instead of bullets |
+| `start` | `1` | The first number |
+| `size`, `color`, `bold`, `italic` | | The style of every item; a run's own style wins |
+| `space_after` | `2` | Space after the list, in millimetres |
+
+In Arabic documents the numbers and bullets are on the right, and with `->numerals('arabic')` the numbers are Arabic digits (١. ٢. ٣.). In Word, each list is a real Word list that starts at its own number, so a reader can add items and Word numbers them.
 
 ## Rich text from an editor {#rich-text}
 

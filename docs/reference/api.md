@@ -534,6 +534,18 @@ A paragraph. `$text` is a string, or a list of runs: each run a string or an arr
 ->paragraph([['text' => 'المبلغ: ', 'bold' => true], '1,250.00 ج.م'], ['align' => 'end', 'space_after' => 4])
 ```
 
+### list() {#builder-list}
+
+```php
+list(array $items, array $options = []): static
+```
+
+A numbered or bulleted list. An item is a string, a run, a list of runs, or `[item, [sub-items]]`; sub-lists are numbered like their list. `$options`: `ordered` (`false`: bullets), `start` (`1`), `size`, `color`, `bold`, `italic`, and `space_after` (mm, `2`). Numbers and bullets are on the start side, and numbers follow `->numerals()`. In Word, each list has its own numbering, so it starts at `start`. See [Lists](/guide/builder#lists).
+
+```php
+->list(['يسري العرض 30 يوماً.', ['التسليم في:', ['الموقع أ', 'الموقع ب']]], ['ordered' => true])
+```
+
 ### richText() {#builder-rich-text}
 
 ```php
