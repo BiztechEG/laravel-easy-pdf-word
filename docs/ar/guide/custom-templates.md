@@ -48,6 +48,8 @@ Doc::template('packing-list', ['title' => 'قائمة التعبئة'])->locale(
 | `word.docx` | لا | ملف Word مصمم في Word ومعه `${placeholders}`، يُقدَّم على كل ما عداه لملفات Word |
 | `header.html.php` أو `header.blade.php` | لا | رأس الصفحة، يتكرر في كل صفحة |
 | `footer.html.php` أو `footer.blade.php` | لا | تذييل الصفحة، يتكرر في كل صفحة، ويمكنه طباعة `{page}` و`{pages}` |
+| `header.layout.php` و`footer.layout.php` | لا | رأس الصفحة والتذييل [مبنيان بالكود](#header-layouts)، لملفات PDF وWord |
+| `first-header.layout.php` و`first-footer.layout.php` | لا | رأس وتذييل خاصان بالصفحة الأولى، مبنيان بالكود |
 | `lang/{language}.json` | لا | التسميات لكل لغة: `lang/ar.json` و`lang/en.json` و`lang/tr.json` و`lang/fr.json` ... |
 
 يعثر `Doc::template()` على المجلد بمجرد أن يحتوي على `template.php` أو `pdf.html.php` أو `pdf.blade.php` أو `layout.php` أو `word.php` أو `word.docx`. لكنه لا يظهر في `doc:templates` ولا في صفحة المعاينة إلا إذا احتوى على `template.php`.
@@ -193,8 +195,31 @@ echo PageLayout::render($doc, ob_get_clean(), $doc->t('title'), $styles);
 - يقعان في هوامش الصفحة. فرأس الصفحة الأطول من سطر أو سطرين يحتاج إلى هامش علوي أكبر، مثل `'margins' => [28, 15, 15, 15]`.
 - استخدم التنسيقات المضمّنة (inline styles). يرسم Chromium رأس الصفحة وتذييلها بمعزل عن الصفحة، فلا يصل إليهما CSS الموجود في صفحة PDF هناك.
 - تتبع الأرقام `->numerals()`. لكن Chromium يطبع `{page}` و`{pages}` بالأرقام اللاتينية حتى مع الأرقام العربية.
-- في ملفات Word، يصبح رأس الصفحة وتذييلها سطراً واحداً من نص صغير في الوسط، مع أرقام صفحات Word حقيقية. وتُسقط تنسيقاتهما وجداولهما وصورهما.
+- في ملفات Word، يصبح رأس الصفحة وتذييلها سطراً واحداً من نص صغير في الوسط، مع أرقام صفحات Word حقيقية. وتُسقط تنسيقاتهما وجداولهما وصورهما؛ ولترويسة في Word [ابنها بالكود](#header-layouts).
 - يستبدل `->header($html)` و`->footer($html)` على المستند ملفاتِ القالب لذلك المستند.
+
+### رأس صفحة مبني بالكود {#header-layouts}
+
+يبني `header.layout.php` و`footer.layout.php` رأس الصفحة والتذييل [بعناصر بناء المستند](/ar/guide/builder)، مثل `layout.php`، فيخرجان بالشكل نفسه في ملف PDF وملف Word، بالشعار والجدول. ويفعل `first-header.layout.php` و`first-footer.layout.php` الشيء نفسه للصفحة الأولى وحدها. وكل ملف يعيد دالة تأخذ العناصر والبيانات و`$doc`:
+
+```php [header.layout.php]
+<?php
+
+use BiztechEG\EasyPdfWord\Builder\DocumentBuilder;
+use BiztechEG\EasyPdfWord\Support\DocContext;
+
+return function (DocumentBuilder $h, array $data, DocContext $doc) {
+    $h->table([[
+        ['image' => $doc->theme('logo'), 'width' => 30],
+        ['lines' => [['text' => $doc->theme('company.name'), 'bold' => true], $data['shipment']['number']]],
+    ]], ['borders' => false, 'columns' => [30, 70]]);
+};
+```
+
+- تقبل العناصر `paragraph` و`table` و`image` و`line` و`spacer`. ويعمل `{page}` و`{pages}` في نصها.
+- **أي ملف يُعتمد.** في ملفات PDF يُقدَّم `header.html.php` على `header.layout.php`، فيبقى شكل القالب الذي فيه رأس صفحة بـ HTML كما هو. وفي ملفات Word يُقدَّم ملف التخطيط. ولاستخدام التخطيط في الصيغتين، أبقِ ملف التخطيط وحده.
+- مع mPDF، رأس الصفحة المبني بالكود والأطول من الهامش العلوي يدفع الصفحة إلى الأسفل.
+- تحل `->header()` و`->footer()` و`->firstPageHeader()` و`->firstPageFooter()` على المستند محلها. انظر [صفحة أولى لها رأسها](/ar/guide/page-settings#first-page).
 
 ## تخطيط واحد لـ PDF وWord: الملف layout.php {#layout-php}
 

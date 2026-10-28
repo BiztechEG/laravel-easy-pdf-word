@@ -48,6 +48,8 @@ The page and the footer are plain PHP, like the bundled templates, so the templa
 | `word.docx` | No | A Word file designed in Word with `${placeholders}`, used for Word before anything else |
 | `header.html.php` or `header.blade.php` | No | A page header, repeated on every page |
 | `footer.html.php` or `footer.blade.php` | No | A page footer, repeated on every page; may print `{page}` and `{pages}` |
+| `header.layout.php`, `footer.layout.php` | No | The header and footer [built in code](#header-layouts), for PDF and Word |
+| `first-header.layout.php`, `first-footer.layout.php` | No | The first page's own header and footer, built in code |
 | `lang/{language}.json` | No | Labels for each language: `lang/ar.json`, `lang/en.json`, `lang/tr.json`, `lang/fr.json` ... |
 
 A folder is found by `Doc::template()` as soon as it has `template.php`, `pdf.html.php`, `pdf.blade.php`, `layout.php`, `word.php` or `word.docx`. It is listed by `doc:templates` and on the preview page only when it has `template.php`.
@@ -193,8 +195,31 @@ What to know:
 - They sit in the page margins. A header taller than a line or two needs a larger top margin, for example `'margins' => [28, 15, 15, 15]`.
 - Use inline styles. Chromium draws headers and footers apart from the page, so the CSS of the PDF page does not reach them there.
 - Digits follow `->numerals()`. Chromium prints `{page}` and `{pages}` in Latin digits even with Arabic digits.
-- In Word files, the header and footer become one centred line of small text, with real Word page numbers. Their styles, tables and images are left out.
+- In Word files, the header and footer become one centred line of small text, with real Word page numbers. Their styles, tables and images are left out; for a letterhead in Word, [build it in code](#header-layouts).
 - `->header($html)` and `->footer($html)` on a document replace the template's files for that document.
+
+### Headers built in code {#header-layouts}
+
+`header.layout.php` and `footer.layout.php` build the header and footer with [builder blocks](/guide/builder), like `layout.php`, so they come out the same in the PDF and the Word file, logo and table included. `first-header.layout.php` and `first-footer.layout.php` do the same for the first page only. Each returns a function that gets the blocks, the data and `$doc`:
+
+```php [header.layout.php]
+<?php
+
+use BiztechEG\EasyPdfWord\Builder\DocumentBuilder;
+use BiztechEG\EasyPdfWord\Support\DocContext;
+
+return function (DocumentBuilder $h, array $data, DocContext $doc) {
+    $h->table([[
+        ['image' => $doc->theme('logo'), 'width' => 30],
+        ['lines' => [['text' => $doc->theme('company.name'), 'bold' => true], $data['shipment']['number']]],
+    ]], ['borders' => false, 'columns' => [30, 70]]);
+};
+```
+
+- They take `paragraph`, `table`, `image`, `line` and `spacer`. `{page}` and `{pages}` work in their text.
+- **Which file wins.** In PDFs, `header.html.php` wins over `header.layout.php`, so a template that already has an HTML header looks the same. In Word files the layout wins. To use the layout in both formats, keep only the layout.
+- With mPDF, a header from a layout that is taller than the top margin pushes the page down.
+- `->header()`, `->footer()`, `->firstPageHeader()` and `->firstPageFooter()` on a document replace them. See [A first page of its own](/guide/page-settings#first-page).
 
 ## One layout for PDF and Word: layout.php {#layout-php}
 
