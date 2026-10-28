@@ -677,6 +677,7 @@ isEmpty(): bool
 | `rowspan` | عدد الصفوف التي تمتد عليها الخلية. وتُكتب الصفوف التالية دون الخلايا التي تغطيها، كما في HTML |
 | `padding` | المسافة داخل هذه الخلية بالمليمتر |
 | `valign` | `top` أو `middle` أو `bottom` |
+| `overlay` | ختم فوق الخلية خلف نصها: `['image' => $path, 'width' => 35, 'height' => 35, 'offset' => [start, down], 'stretch' => false]`، بالمليمتر من ركن الخلية العلوي في جهة البداية. وفي PDF يبقى داخل الخلية. انظر [ختم فوق خلية](/ar/guide/builder#overlay) |
 | `border` | لون `#hex`: إطار حول هذه الخلية |
 
 ```php
