@@ -534,6 +534,18 @@ paragraph(string|array $text, array $style = []): static
 ->paragraph([['text' => 'المبلغ: ', 'bold' => true], '1,250.00 ج.م'], ['align' => 'end', 'space_after' => 4])
 ```
 
+### list() {#builder-list}
+
+```php
+list(array $items, array $options = []): static
+```
+
+قائمة مرقمة أو منقطة. العنصر نص، أو مقطع، أو قائمة مقاطع، أو `[item, [sub-items]]`، وتُرقَّم القوائم الفرعية مثل قائمتها. خيارات `$options`: ‏`ordered` (‏`false`: نقاط)، و`start` (‏`1`)، و`size` و`color` و`bold` و`italic`، و`space_after` (بالمليمتر، `2`). تكون الأرقام والنقاط في جهة البداية، وتتبع الأرقام `->numerals()`. وفي Word لكل قائمة ترقيمها الخاص، فتبدأ من `start`. انظر [القوائم](/ar/guide/builder#lists).
+
+```php
+->list(['يسري العرض 30 يوماً.', ['التسليم في:', ['الموقع أ', 'الموقع ب']]], ['ordered' => true])
+```
+
 ### richText() {#builder-rich-text}
 
 ```php
