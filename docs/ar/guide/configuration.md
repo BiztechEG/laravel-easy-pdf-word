@@ -26,6 +26,7 @@ php artisan vendor:publish --tag=easy-pdf-word-config
 | `DOC_REMOTE_IMAGES` | `false` | روابط الصور: `false` يتجاهلها، و`true` يسمح بأي رابط، أو قائمة نطاقات تفصلها فواصل (`cdn.biztech.example,*.amazonaws.com`). |
 | `DOC_WORD_FONT` | `Arial` | خط ملفات Word. |
 | `DOC_PREVIEW` | غير محدد | صفحة المعاينة: غير محدد أو `null` أو فارغ (`DOC_PREVIEW=`) يعني مفعلة في `local` فقط؛ و`true` أو `false` يفعّلها أو يعطّلها في كل مكان. |
+| `DOC_PREVIEW_LOCAL_OPEN` | `true` | القيمة `false` تطلب الـ gate المسمى `viewDocPreview` في `local` أيضًا. |
 | `APP_NAME` | | متغير Laravel نفسه، ويُستخدم اسمًا افتراضيًا للشركة في الهوية. |
 
 ```dotenv
@@ -167,7 +168,7 @@ DOC_WORD_FONT=Tahoma
 
 | المفتاح | القيمة الافتراضية | المعنى |
 | --- | --- | --- |
-| `images.paths` | `public` و`storage/app` و`resources` | المجلدات الوحيدة التي تُقرأ منها الصور المحلية. و`null` تسمح بأي مجلد. |
+| `images.paths` | `public` و`storage/app` و`resources` | المجلدات الوحيدة التي تُقرأ منها الصور المحلية. و`null` تسمح بأي مجلد. والمجلد `storage/app` يحوي أيضًا الملفات الخاصة المرفوعة: فإذا كانت مسارات الصور تأتي من المستخدمين، [فحدّد مجلدًا واحدًا](/ar/guide/images) بدلًا منه. |
 | `images.remote` | `false` | روابط الصور: `false` أو `true` أو النطاقات المسموح بها في مصفوفة (`['cdn.biztech.example', '*.amazonaws.com']`) أو نص تفصله فواصل. |
 
 انظر [الصور](/ar/guide/images).
@@ -193,6 +194,7 @@ DOC_WORD_FONT=Tahoma
 ```php
 'preview' => [
     'enabled' => env('DOC_PREVIEW'),
+    'local_open' => env('DOC_PREVIEW_LOCAL_OPEN', true),
     'path' => 'doc-preview',
     'middleware' => ['web'],
 ],
@@ -201,6 +203,7 @@ DOC_WORD_FONT=Tahoma
 | المفتاح | القيمة الافتراضية | المعنى |
 | --- | --- | --- |
 | `preview.enabled` | `null` | `null`: مفعلة في `local` فقط. و`true` أو `false`: مفعلة أو معطلة في كل مكان. وخارج `local` تحتاج الصفحة أيضًا إلى الـ gate المسمى `viewDocPreview`. |
+| `preview.local_open` | `true` | القيمة `false` تطلب الـ gate المسمى `viewDocPreview` في `local` أيضًا، تحسبًا لخادم يعمل بـ `APP_ENV=local` خطأً. |
 | `preview.path` | `'doc-preview'` | رابط الصفحة. |
 | `preview.middleware` | `['web']` | الـ middleware لـ routes الصفحة، مثل `['web', 'auth']`. |
 

@@ -26,6 +26,7 @@ The package merges its own file under yours one level deep: a whole section you 
 | `DOC_REMOTE_IMAGES` | `false` | Image URLs: `false` ignores them, `true` allows any, or a comma-separated list of hosts (`cdn.biztech.example,*.amazonaws.com`). |
 | `DOC_WORD_FONT` | `Arial` | The font of Word files. |
 | `DOC_PREVIEW` | not set | The preview page: not set, `null` or empty (`DOC_PREVIEW=`) means on in `local` only; `true` or `false` turns it on or off everywhere. |
+| `DOC_PREVIEW_LOCAL_OPEN` | `true` | `false` asks for the `viewDocPreview` gate in `local` too. |
 | `APP_NAME` | | Laravel's own variable, used as the default company name in the theme. |
 
 ```dotenv
@@ -167,7 +168,7 @@ The bundled fonts are `cairo`, `tajawal` and `naskh`. See [Fonts](/guide/fonts).
 
 | Key | Default | Meaning |
 | --- | --- | --- |
-| `images.paths` | `public`, `storage/app` and `resources` | The only folders local images are read from. `null` allows any folder. |
+| `images.paths` | `public`, `storage/app` and `resources` | The only folders local images are read from. `null` allows any folder. `storage/app` also holds private uploads: when image paths come from users, [list one folder](/guide/images) instead. |
 | `images.remote` | `false` | Image URLs: `false`, `true`, or the hosts to allow as an array (`['cdn.biztech.example', '*.amazonaws.com']`) or a comma-separated string. |
 
 See [Images](/guide/images).
@@ -193,6 +194,7 @@ See [Word files](/guide/word) and [Fonts](/guide/fonts#word).
 ```php
 'preview' => [
     'enabled' => env('DOC_PREVIEW'),
+    'local_open' => env('DOC_PREVIEW_LOCAL_OPEN', true),
     'path' => 'doc-preview',
     'middleware' => ['web'],
 ],
@@ -201,6 +203,7 @@ See [Word files](/guide/word) and [Fonts](/guide/fonts#word).
 | Key | Default | Meaning |
 | --- | --- | --- |
 | `preview.enabled` | `null` | `null`: on in `local` only. `true` or `false`: on or off everywhere. Outside `local` the page also needs the `viewDocPreview` gate. |
+| `preview.local_open` | `true` | `false` asks for the `viewDocPreview` gate in `local` too, in case a server runs with `APP_ENV=local` by mistake. |
 | `preview.path` | `'doc-preview'` | The page's URL. |
 | `preview.middleware` | `['web']` | Middleware for its routes, such as `['web', 'auth']`. |
 
