@@ -75,6 +75,18 @@ Add the folders your images live in, for example a shared uploads folder:
 
 Set `'paths' => null` to allow any folder. Do that only when image paths never come from users.
 
+::: warning storage/app holds private files
+`storage/app` is also Laravel's `local` disk, where private uploads such as other users' files live. If image paths can come from your users, list one folder for document images instead of all of `storage/app`:
+
+```php
+'paths' => [
+    public_path(),
+    storage_path('app/document-images'),
+    resource_path(),
+],
+```
+:::
+
 Files on a cloud disk such as S3 are not local paths. Pass their URL (and allow the host, below), or read them into a data URI:
 
 ```php
