@@ -189,7 +189,7 @@ In the builder, image widths are in millimetres; in a `word.docx`, sizes are in 
 
 | Feature | In a Word file |
 | --- | --- |
-| `->watermark()` | Left out: the Word file is made without it. |
+| `->watermark()` | Left out: the Word file is made without it. Use [`->watermarkImage()`](/guide/page-settings#watermark-image), which Word files show. |
 | `->password()` | Refused: `->word()` throws `LogicException` with "Word files cannot take a password; ->password() works for PDF files only." `->queue('….docx')` refuses it too. A file you meant to protect never goes out open. |
 | Blade views and HTML | Not possible: `->word()` throws `WordNotSupported`. Use a template or the builder. A builder's [`richText()`](/guide/builder#rich-text-word) block is the exception: it goes into the Word file with its formatting. |
 | A template with only `pdf.html.php` (or `pdf.blade.php`) | Not possible: `WordNotSupported` asks you to add `layout.php`, `word.php` or `word.docx`. |

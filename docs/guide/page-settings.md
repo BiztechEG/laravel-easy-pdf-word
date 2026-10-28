@@ -155,7 +155,26 @@ Doc::template('invoice', $data)->watermark('نسخة', opacity: 0.08, color: '#B
 | `opacity` | `0.12` | From `0.01` (barely visible) to `1` (solid). |
 | `color` | `'#000000'` | Any CSS colour: `#B91C1C`, `rgb(185, 28, 28)`, `red`. Anything else falls back to black. |
 
-The watermark is drawn in the document font and sized to fit the page. It works with mPDF, Chromium and Gotenberg. Word files are made without it.
+The watermark is drawn in the document font and sized to fit the page. It works with mPDF, Chromium and Gotenberg. Word files are made without it; for both formats, use an [image watermark](#watermark-image).
+
+### An image watermark, in PDF and Word {#watermark-image}
+
+`->watermarkImage()` puts an image in the middle of every page, in the PDF and the Word file alike. Word cannot draw a text watermark, so prepare "مسودة / DRAFT" once as a PNG with a transparent background:
+
+```php
+Doc::template('quotation', $data)
+    ->locale('ar')
+    ->watermarkImage(resource_path('images/draft.png'), ['opacity' => 0.15, 'width' => 140])
+    ->word()
+    ->download('عرض-سعر.docx');
+```
+
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `opacity` | `0.15` | From `0.01` to `1` |
+| `width` | `140` | Width in millimetres, from 10 to 400; the height follows the image |
+
+The image follows the [image rules](/guide/images): a path in the allowed folders, an allowed URL or a data URI; anything else leaves the watermark out. In Word it is placed in the page header, behind the text, and faded by the package, because Word images have no opacity of their own; a document without a header gets an empty one for it, and a [first page with its own header](#first-page) has it too. An SVG watermark shows in the PDF but is left out of Word files, with a warning in the log.
 
 ## Password {#password}
 
