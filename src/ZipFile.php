@@ -26,7 +26,11 @@ class ZipFile extends RenderedFile
             }
         }
 
-        return new self(fn () => [File::archive($files), 'zip'], $filename);
+        return new self(function () use ($files) {
+            $tempDir = config('easy-pdf-word.temp_dir');
+
+            return [File::archive($files, is_string($tempDir) && $tempDir !== '' ? $tempDir : null), 'zip'];
+        }, $filename);
     }
 
     public function mimeType(): string

@@ -26,6 +26,7 @@ The package merges its own file under yours one level deep: a whole section you 
 | `DOC_REMOTE_IMAGES` | `false` | Image URLs: `false` ignores them, `true` allows any, or a comma-separated list of hosts (`cdn.biztech.example,*.amazonaws.com`). |
 | `DOC_WORD_FONT` | `Arial` | The font of Word files. |
 | `DOC_PREVIEW` | not set | The preview page: not set, `null` or empty (`DOC_PREVIEW=`) means on in `local` only; `true` or `false` turns it on or off everywhere. |
+| `DOC_TEMP_DIR` | empty | A folder for temp files instead of the system's; see [Temp folder](#temp-dir). |
 | `DOC_PREVIEW_LOCAL_OPEN` | `true` | `false` asks for the `viewDocPreview` gate in `local` too. |
 | `APP_NAME` | | Laravel's own variable, used as the default company name in the theme. |
 
@@ -53,6 +54,16 @@ After changing `.env` in production, run `php artisan config:cache` again.
 | `numerals` | `'latin'` | `'latin'` prints 0123456789 and `'arabic'` prints ٠١٢٣٤٥٦٧٨٩ in the document text. Change per document with `->numerals()`. |
 
 See [Arabic support](/guide/arabic).
+
+## Temp folder {#temp-dir}
+
+```php
+'temp_dir' => env('DOC_TEMP_DIR'),
+```
+
+| Key | Default | Meaning |
+| --- | --- | --- |
+| `temp_dir` | `null` | Where Word files, .docx templates, ZIP files and Chromium write temp files while a document is made. `null` uses the system temp folder. On shared hosting, where that folder is shared with other accounts, set a folder of your own, such as `storage_path('easy-pdf-word/tmp')`. It is created when missing. mPDF has its own [`temp_dir`](#pdf). |
 
 ## PDF {#pdf}
 

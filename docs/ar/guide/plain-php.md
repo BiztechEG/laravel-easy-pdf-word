@@ -45,6 +45,7 @@ $docs = EasyPdfWord::create([
 | `views.paths` | `[]` | مجلدات يجد فيها `->view('contracts.show')` الملف `contracts/show.html.php` |
 | `images.paths` | `[]` | المجلدات المسموح أن تأتي منها الصور المحلية (الشعار والتوقيع والختم)؛ لا شيء افتراضيًا |
 | `fonts.custom` | `[]` | خطوطك الخاصة؛ راجع [الخطوط](/ar/guide/fonts) |
+| `temp_dir` | `null` | مجلد للملفات المؤقتة لملفات Word وقوالب docx وملفات ZIP وChromium بدل مجلد النظام؛ مفيد في الاستضافة المشتركة |
 
 القوائم مثل `images.paths` و`pdf.margins` تحل محل القائمة الافتراضية، أما باقي الإعدادات فتُدمج مفتاحًا بمفتاح.
 

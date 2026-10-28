@@ -6,12 +6,16 @@ All notable changes to this package are listed here. The format follows
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-10-28
+
 ### Added
 
+- `temp_dir` (`DOC_TEMP_DIR`), from `biztecheg/easy-pdf-word` 1.5: Word files, .docx templates, ZIP files (`Doc::zip()` too) and Chromium write their temp files in that folder instead of the system's temp folder, which shared hosting shares with other accounts. Unset, nothing changes. Documented in "Configuration", "Installation" (shared hosting) and "Plain PHP".
 - `preview.local_open` (`DOC_PREVIEW_LOCAL_OPEN`): `false` asks for the `viewDocPreview` gate in the `local` environment too, in case a server runs with `APP_ENV=local` by mistake. The default, `true`, keeps the page open in `local` as before. Documented in "Preview page", "Configuration" and "Security".
 
 ### Changed
 
+- Requires `biztecheg/easy-pdf-word` 1.5.
 - The config file and the "Images" and "Configuration" pages warn that `storage/app` in `images.paths` also holds private uploads, and show how to list one folder for document images instead.
 
 ## [1.7.0] - 2026-10-28
@@ -222,7 +226,8 @@ The first release.
 - Colour values, fonts and locales are checked before they reach HTML, CSS or file paths.
 - Chromium runs without JavaScript unless it is turned on in config.
 
-[Unreleased]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/1.6.0...v1.7.0
 [1.6.0]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.5.0...1.6.0
 [1.5.0]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.4.1...v1.5.0

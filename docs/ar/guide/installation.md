@@ -151,6 +151,12 @@ php artisan doc:sample invoice --locale=en --output=storage/app/invoice-sample.d
   ],
   ```
 
+- المجلد المؤقت للنظام مشترك مع باقي الحسابات على الخادم، وتمر به ملفات Word وقوالب docx وملفات ZIP أثناء إنشائها. فخصص لها مجلدًا خاصًا بك:
+
+  ```dotenv
+  DOC_TEMP_DIR=/home/your-account/storage/easy-pdf-word-tmp
+  ```
+
 - الجداول الكبيرة تستهلك الذاكرة: يحتاج mPDF إلى نحو 85 كيلوبايت لكل صف، فتقرير من ألف صف يحتاج إلى أكثر من 128 ميجابايت التي تتيحها PHP افتراضياً. راجع [محركات PDF](/ar/guide/engines).
 
 التالي: تنشئ [البداية السريعة](/ar/guide/quick-start) فاتورة حقيقية من controller.
