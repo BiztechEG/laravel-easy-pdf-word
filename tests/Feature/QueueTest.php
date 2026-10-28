@@ -2,6 +2,7 @@
 
 namespace BiztechEG\EasyPdfWord\Tests\Feature;
 
+use BiztechEG\EasyPdfWord\Builder\DocumentBuilder;
 use BiztechEG\EasyPdfWord\Exceptions\WordNotSupported;
 use BiztechEG\EasyPdfWord\Facades\Doc;
 use BiztechEG\EasyPdfWord\Jobs\SaveDocument;
@@ -143,6 +144,46 @@ class QueueTest extends TestCase
 
         Doc::assertSaved(fn (GeneratedDocument $doc) => $doc->isPdf() && $doc->contains('مرحبا بالعالم'));
         Doc::assertSaved(fn (GeneratedDocument $doc) => $doc->isWord() && $doc->filename() === 'report.docx');
+    }
+
+    public function test_a_header_built_from_blocks_reaches_the_worker(): void
+    {
+        Queue::fake()->serializeAndRestore();
+        Storage::fake('local');
+
+        Doc::make()
+            ->header(fn (DocumentBuilder $h) => $h->table([['شركة النور', 'عرض سعر']], ['borders' => false]))
+            ->footer(fn (DocumentBuilder $f) => $f->paragraph('صفحة {page} من {pages}'))
+            ->firstPageHeader(fn (DocumentBuilder $h) => $h->paragraph('الترويسة الكاملة'))
+            ->firstPageFooter(null)
+            ->headerDistance(6)
+            ->paragraph('نص العرض')
+            ->locale('ar')
+            ->queue('offers/1.docx');
+
+        Queue::pushedJobs()[SaveDocument::class][0]['job']->handle(app(\BiztechEG\EasyPdfWord\DocFactory::class));
+
+        $zip = new ZipArchive;
+        $this->assertTrue($zip->open(Storage::disk('local')->path('offers/1.docx')) === true);
+        $parts = [];
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $name = $zip->getNameIndex($i);
+            if (preg_match('#^word/(header|footer)\d+\.xml$#', $name)) {
+                $parts[$name] = $zip->getFromName($name);
+            }
+        }
+        $document = $zip->getFromName('word/document.xml');
+        $zip->close();
+
+        $headers = implode('', array_filter($parts, fn ($xml, $name) => str_contains($name, 'header'), ARRAY_FILTER_USE_BOTH));
+        $footers = implode('', array_filter($parts, fn ($xml, $name) => str_contains($name, 'footer'), ARRAY_FILTER_USE_BOTH));
+        $this->assertStringContainsString('شركة النور', $headers);
+        $this->assertStringContainsString('<w:tbl>', $headers);
+        $this->assertStringContainsString('الترويسة الكاملة', $headers);
+        $this->assertStringContainsString('NUMPAGES', $footers);
+        $this->assertStringContainsString('<w:titlePg/>', $document);
+        // 6 mm from the top edge.
+        $this->assertStringContainsString('w:header="340"', $document);
     }
 
     public function test_changes_after_queueing_do_not_reach_the_job(): void
