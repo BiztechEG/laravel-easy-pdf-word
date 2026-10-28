@@ -52,16 +52,28 @@ Doc::fake();
 | `numerals` | `'arabic'` أو `'latin'` |
 | `driver` | المحرك المطلوب بـ `->driver()`، أو `null` للمحرك الافتراضي |
 | `watermark` | نص العلامة المائية لملف PDF، أو `null` |
+| `watermarkImage` | مصدر [صورة العلامة المائية](/ar/guide/page-settings#watermark-image) في PDF وWord، أو `null` |
+| `hasWatermark(?string $text = null)` | هل للملف علامة مائية من نص أو من صورة. ومع `$text`: هل نص العلامة المائية هو هذا النص. |
 | `protected` | `true` حين يكون لملف PDF كلمة مرور |
 | `filename()` | اسم الملف مع امتداده، كما يأخذه التنزيل أو المرفق |
 | `data(?string $key = null, mixed $default = null)` | البيانات التي أُنشئ منها الملف. وللقالب تكون بعد قيمه الافتراضية و`prepare()`، فتوجد فيها المجاميع المحسوبة. ويختار المفتاح بصيغة النقاط قيمة واحدة: `data('totals.total')`. |
 | `html()` | الـ HTML الذي سيتسلمه محرك PDF. وليس لملفات Word HTML، فترمي `LogicException`. |
-| `contains(string $text)` | هل يحتوي HTML ملف PDF النص، مهرّبًا كما يطبعه الـ view |
+| `contains(string $text)` | هل يحتوي HTML ملف PDF النص، مهرّبًا كما يطبعه الـ view. ولملف Word: هل يحتويه `text()`. |
+| `text()` | نص كتل المستند: الترويسات والتذييلات أولًا ثم المتن، وخلايا الجدول مفصولة بـ tab وصفوفه بأسطر جديدة، والنص المنسّق مختصرًا إلى نصه. وهو فارغ للـ views والـ HTML وقوالب `word.docx`. |
+| `blocks()` | كتل متن مستند `Doc::make()` أو ملف `layout.php` أو `word.php` في القالب، مصفوفاتٍ لكل منها `type` (`heading` و`paragraph` و`table` و`list` ...) |
 | `wasSaved(?string $path = null, ?string $disk = null)` | هل حُفظ الملف (في ذلك المكان إن حُدد) |
 | `saves()` | كل عمليات الحفظ، بالصيغة `['path' => ..., 'disk' => ..., 'options' => [...]]` |
 | `wasDownloaded(?string $filename = null)` و`wasStreamed(?string $filename = null)` | هل أُرسل الملف للتنزيل أو عُرض في المتصفح |
 
-مع `->numerals('arabic')` يحتوي الـ HTML أرقامًا عربية، فيحتاج `contains()` إلى الأرقام بالعربية أيضًا: `contains('٢٥٬٠٠٠')` أو `contains('٢٥,٠٠٠')` بحسب [الخط](/ar/guide/arabic#separators).
+مع `->numerals('arabic')` يحتوي الـ HTML أرقامًا عربية، فيحتاج `contains()` إلى الأرقام بالعربية أيضًا: `contains('٢٥٬٠٠٠')` أو `contains('٢٥,٠٠٠')` بحسب [الخط](/ar/guide/arabic#separators). أما `text()` فيُبقي الأرقام كما كتبها الكود، فيأخذها `contains()` لملف Word كما كُتبت.
+
+يقرأ `text()` و`blocks()` الكتل دون صنع الملف، فيمكن التحقق من ملف Word مع الـ fake أيضًا:
+
+```php
+Doc::assertGenerated(fn (GeneratedDocument $doc) => $doc->isWord()
+    && $doc->contains('عرض سعر رقم QT-1')
+    && $doc->hasWatermark());
+```
 
 ## اختبار كامل {#example}
 

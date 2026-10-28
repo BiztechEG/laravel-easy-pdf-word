@@ -380,9 +380,11 @@ public function test_the_payslips_zip_has_one_pdf_per_employee(): void
 | `locale`، `direction`، `numerals` | مثل `ar` و`rtl` و`arabic` |
 | `driver` | المحرك المطلوب بـ `->driver()`، أو `null` للمحرك الافتراضي |
 | `watermark`، `protected` | نص العلامة المائية في ملف PDF، وهل له كلمة مرور |
+| `watermarkImage`، `hasWatermark($text = null)` | مصدر صورة العلامة المائية، وهل للملف علامة مائية (بهذا النص إن أُعطي) |
 | `filename()` | اسم الملف مع امتداده |
 | `data($key = null)` | بيانات القالب بعد القيم الافتراضية والإجماليات، بالنقاط للمستويات المتداخلة |
-| `html()`، `contains($text)` | HTML الذي سيصل إلى محرك PDF (لملفات PDF فقط)، وهل يحتوي النص |
+| `html()`، `contains($text)` | HTML الذي سيصل إلى محرك PDF (لملفات PDF فقط)، وهل يحتوي النص (ولملف Word: هل يحتويه `text()`) |
+| `text()`، `blocks()` | نص كتل المستند، الترويسات والتذييلات أولًا، وكتل المتن؛ وهما فارغان للـ views والـ HTML |
 | `wasSaved($path, $disk)`، `wasDownloaded($name)`، `wasStreamed($name)` | ما حدث للملف |
 
 وعندما تعمل الـ job المسماة `SaveDocument` الخاصة بـ `->queue()` أثناء الاختبار، يُسجَّل حفظها أيضاً (انظر [تنويعات](#variations)).
@@ -483,7 +485,21 @@ $this->assertStringStartsWith('%PDF', Storage::disk('s3')->get('invoices/INV-102
 
 ### التحقق من ملف Word
 
-ملف `.docx` هو ملف ZIP، والنص فيه داخل `word/document.xml`:
+مع `Doc::fake()` يقرأ `text()` و`contains()` كتل ملف Word دون صنعه:
+
+```php
+Doc::fake();
+
+Doc::template('quotation', Doc::templates()->get('quotation')->sample())->locale('ar')->word();
+
+Doc::assertGenerated(fn (GeneratedDocument $doc) => $doc->isWord()
+    && $doc->contains('مؤسسة النور للتجارة')
+    && $doc->contains("الإجمالي النهائي\t71,250.00"));
+```
+
+في `text()` تُفصل خلايا الجدول بـ tab وصفوفه بأسطر جديدة، وتبقى الأرقام كما كتبها الكود حتى مع `->numerals('arabic')`.
+
+وللتحقق من الملف الحقيقي اصنعه دون الـ fake. ملف `.docx` هو ملف ZIP، والنص فيه داخل `word/document.xml`:
 
 ```php
 $data = Doc::templates()->get('invoice')->sample();
@@ -511,6 +527,7 @@ $this->assertStringContainsString('INV-2026-1024', $xml);
 
 ```php
 Doc::assertGenerated(fn (GeneratedDocument $doc) => $doc->watermark === 'مسودة');
+Doc::assertGenerated(fn (GeneratedDocument $doc) => $doc->hasWatermark() && $doc->watermarkImage === 'stamps/confidential.png');
 Doc::assertGenerated(fn (GeneratedDocument $doc) => $doc->protected);
 Doc::assertGenerated(fn (GeneratedDocument $doc) => $doc->numerals === 'arabic' && $doc->direction === 'rtl' && $doc->driver === 'chromium');
 Doc::assertNotGenerated(fn (GeneratedDocument $doc) => $doc->isWord());

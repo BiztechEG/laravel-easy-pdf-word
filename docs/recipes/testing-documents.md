@@ -380,9 +380,11 @@ Assertions on the `Doc` facade after `Doc::fake()`:
 | `locale`, `direction`, `numerals` | for example `ar`, `rtl`, `arabic` |
 | `driver` | the engine asked for with `->driver()`, or `null` for the default |
 | `watermark`, `protected` | the PDF's watermark text, and whether it has a password |
+| `watermarkImage`, `hasWatermark($text = null)` | the watermark image's source, and whether the file has a watermark (with that text, when given) |
 | `filename()` | the file name with its extension |
 | `data($key = null)` | the template data after defaults and totals, with dot notation |
-| `html()`, `contains($text)` | the HTML a PDF engine would get (PDF only), and whether it contains the text |
+| `html()`, `contains($text)` | the HTML a PDF engine would get (PDF only), and whether it contains the text (for a Word file, whether `text()` does) |
+| `text()`, `blocks()` | the text of the document's blocks, headers and footers first, and the body blocks; empty for views and HTML |
 | `wasSaved($path, $disk)`, `wasDownloaded($name)`, `wasStreamed($name)` | what was done with the file |
 
 When the `SaveDocument` job of `->queue()` runs during a test, its save is recorded too (see [Variations](#variations)).
@@ -483,7 +485,21 @@ $this->assertStringStartsWith('%PDF', Storage::disk('s3')->get('invoices/INV-102
 
 ### Check a Word file
 
-A `.docx` file is a ZIP; the text is in `word/document.xml`:
+Under `Doc::fake()`, `text()` and `contains()` read a Word file's blocks without making it:
+
+```php
+Doc::fake();
+
+Doc::template('quotation', Doc::templates()->get('quotation')->sample())->locale('ar')->word();
+
+Doc::assertGenerated(fn (GeneratedDocument $doc) => $doc->isWord()
+    && $doc->contains('مؤسسة النور للتجارة')
+    && $doc->contains("الإجمالي النهائي\t71,250.00"));
+```
+
+In `text()`, table cells are joined by tabs and rows by new lines, and the digits are as your code wrote them, even with `->numerals('arabic')`.
+
+To check the real file, make it without the fake. A `.docx` file is a ZIP; the text is in `word/document.xml`:
 
 ```php
 $data = Doc::templates()->get('invoice')->sample();
@@ -511,6 +527,7 @@ The recorded file keeps the settings your code chose:
 
 ```php
 Doc::assertGenerated(fn (GeneratedDocument $doc) => $doc->watermark === 'مسودة');
+Doc::assertGenerated(fn (GeneratedDocument $doc) => $doc->hasWatermark() && $doc->watermarkImage === 'stamps/confidential.png');
 Doc::assertGenerated(fn (GeneratedDocument $doc) => $doc->protected);
 Doc::assertGenerated(fn (GeneratedDocument $doc) => $doc->numerals === 'arabic' && $doc->direction === 'rtl' && $doc->driver === 'chromium');
 Doc::assertNotGenerated(fn (GeneratedDocument $doc) => $doc->isWord());

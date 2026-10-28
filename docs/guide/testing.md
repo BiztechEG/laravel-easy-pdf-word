@@ -52,16 +52,28 @@ A file counts as made when your code calls `->pdf()` or `->word()`. Building a d
 | `numerals` | `'arabic'` or `'latin'` |
 | `driver` | The engine asked for with `->driver()`, or `null` for the default |
 | `watermark` | The watermark text of a PDF, or `null` |
+| `watermarkImage` | The source of the [watermark image](/guide/page-settings#watermark-image), in PDF and Word, or `null` |
+| `hasWatermark(?string $text = null)` | Whether the file has a watermark of text or of an image. With `$text`, whether the text watermark says it. |
 | `protected` | `true` when the PDF has a password |
 | `filename()` | The file name with its extension, as a download or attachment gets it |
 | `data(?string $key = null, mixed $default = null)` | The data the file was made from. For a template, after its defaults and `prepare()`, so computed totals are there. A dot-notation key picks one value: `data('totals.total')`. |
 | `html()` | The HTML a PDF engine would get. Word files have none and throw a `LogicException`. |
-| `contains(string $text)` | Whether the PDF's HTML contains the text, escaped as a view prints it |
+| `contains(string $text)` | Whether the PDF's HTML contains the text, escaped as a view prints it. For a Word file, whether its `text()` does. |
+| `text()` | The text of the document's blocks: headers and footers first, then the body, with table cells joined by tabs and rows by new lines, and rich text reduced to its text. Empty for views, HTML and `word.docx` templates. |
+| `blocks()` | The body blocks of a `Doc::make()` document or of a template's `layout.php` or `word.php`, as arrays with a `type` (`heading`, `paragraph`, `table`, `list` ...) |
 | `wasSaved(?string $path = null, ?string $disk = null)` | Whether the file was saved (there, when given) |
 | `saves()` | Every save, as `['path' => ..., 'disk' => ..., 'options' => [...]]` |
 | `wasDownloaded(?string $filename = null)`, `wasStreamed(?string $filename = null)` | Whether the file was sent as a download or shown in the browser |
 
-With `->numerals('arabic')`, the HTML has Arabic digits, so `contains()` needs the digits in Arabic too: `contains('٢٥٬٠٠٠')` or `contains('٢٥,٠٠٠')`, depending on the [font](/guide/arabic#separators).
+With `->numerals('arabic')`, the HTML has Arabic digits, so `contains()` needs the digits in Arabic too: `contains('٢٥٬٠٠٠')` or `contains('٢٥,٠٠٠')`, depending on the [font](/guide/arabic#separators). `text()` keeps the digits as your code wrote them, so a Word file's `contains()` takes them as written.
+
+`text()` and `blocks()` read the blocks without making the file, so a Word file can be checked under the fake too:
+
+```php
+Doc::assertGenerated(fn (GeneratedDocument $doc) => $doc->isWord()
+    && $doc->contains('عرض سعر رقم QT-1')
+    && $doc->hasWatermark());
+```
 
 ## A complete test {#example}
 
