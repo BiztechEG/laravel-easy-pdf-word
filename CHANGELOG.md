@@ -6,6 +6,10 @@ All notable changes to this package are listed here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Table rows with options in documents built in code, from `biztecheg/easy-pdf-word` 1.3: `DocumentBuilder::row($cells, ['style' => [...], 'total' => true, 'keep_with_next' => true])` styles a whole row, marks several total rows and keeps a section heading with the row after it. Documented in "Building in code" and the API reference.
+
 ## [1.5.0] - 2026-10-13
 
 ### Added
