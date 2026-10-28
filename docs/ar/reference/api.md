@@ -88,7 +88,7 @@ Doc::view('pdf.contract', ['contract' => $contract])->locale('ar')->pdf()->save(
 Doc::html(string $html): PendingDocument
 ```
 
-يبدأ ملف PDF من نص HTML. النص الذي يحتوي على وسم `<html>` يُستخدم كما هو، وأي نص آخر يوضع داخل التخطيط الجاهز في المكتبة فيأخذ الاتجاه والخط والتنسيقات الأساسية. ينتج PDF فقط. يُعامل هذا النص على أنه موثوق، فلا تمرر إليه أبدًا مدخلات المستخدمين.
+يبدأ ملف PDF من نص HTML. النص الذي يحتوي على وسم `<html>` يُستخدم كما هو، وأي نص آخر يوضع داخل التخطيط الجاهز في المكتبة فيأخذ الاتجاه والخط والتنسيقات الأساسية. ينتج PDF فقط. يُعامل هذا النص على أنه موثوق، فلا تمرر إليه أبدًا مدخلات المستخدمين. ولـ HTML يأتي من المستخدمين استخدم كتلة [`richText()`](#builder-rich-text).
 
 ```php
 return Doc::html('<h1>مرحبا</h1><p>إيصال استلام رقم 77</p>')->locale('ar')->pdf()->stream();
@@ -486,7 +486,7 @@ $options->orientation;  // 'landscape'
 
 ### كتل البناء على المستند {#pending-blocks}
 
-المستند الناتج من `Doc::make()` يقبل أيضًا كل دوال الكتل في [`DocumentBuilder`](#document-builder) (`heading` و`paragraph` و`table` و`image` و`qr` و`spacer` و`pageBreak` و`line`) ويعيد نفسه، فتمتزج الكتل والإعدادات في سلسلة واحدة. أما على مستند من قالب أو view أو HTML فترمي هذه الدوال `BadMethodCallException`.
+المستند الناتج من `Doc::make()` يقبل أيضًا كل دوال الكتل في [`DocumentBuilder`](#document-builder) (`heading` و`paragraph` و`richText` و`table` و`image` و`qr` و`spacer` و`pageBreak` و`line`) ويعيد نفسه، فتمتزج الكتل والإعدادات في سلسلة واحدة. أما على مستند من قالب أو view أو HTML فترمي هذه الدوال `BadMethodCallException`.
 
 ### الدوال الداخلية {#pending-internal}
 
@@ -533,6 +533,14 @@ paragraph(string|array $text, array $style = []): static
 ```php
 ->paragraph([['text' => 'المبلغ: ', 'bold' => true], '1,250.00 ج.م'], ['align' => 'end', 'space_after' => 4])
 ```
+
+### richText() {#builder-rich-text}
+
+```php
+richText(string $html, array $options = []): static
+```
+
+نص HTML من محرر نصوص منسقة، يُنظَّف بـ [`HtmlSanitizer`](#html-sanitizer) عند إنشاء المستند. و`$options`: `font_size` (بالنقاط). في ملف PDF يحتفظ بتنسيقه في اتجاه المستند، بأحجام عناوين بناء المستند (من `h1` إلى `h4`: 18 و14 و12 و11 نقطة)، وجداول بإطار حول كل خلية، وتغلب تنسيقات الـ HTML نفسه. والصور يجب أن تكون data URI أو روابط مسموحاً بها، وتُرفض مسارات الخادم. وتأخذ ملفات Word نصه في فقرات عادية. راجع [النص المنسق](/ar/guide/builder#rich-text).
 
 ### table() {#builder-table}
 
@@ -1014,9 +1022,32 @@ Doc::template('invoice', $data)->driver('pdf-service')->pdf()->engine();   // 'p
 | --- | --- |
 | `isLandscape(): bool` | هل الاتجاه `landscape` (أو `L`) |
 | `paperSize(): array` | `[width, height]` بالمليمتر بعد تطبيق الاتجاه |
+| `contentWidth(): float` | عرض نص الصفحة بالمليمتر: عرض الورق ناقص الهامشين الجانبيين |
 | `hasFirstPage(): bool` | هل حُدد `firstHeader` أو `firstFooter` |
 | `static unknownPaper(string $paper): InvalidArgumentException` | الخطأ الخاص بمقاس غير معروف |
 | `PdfOptions::PAPER_SIZES` | ثابت: `name => [width, height]` بالمليمتر من `A2` إلى `EXECUTIVE` |
+
+## HtmlSanitizer {#html-sanitizer}
+
+```php
+use BiztechEG\EasyPdfWord\Support\HtmlSanitizer;
+
+$clean = (new HtmlSanitizer)->sanitize($request->input('terms'));
+```
+
+تنظف `BiztechEG\EasyPdfWord\Support\HtmlSanitizer` نص HTML القادم من محرر نصوص منسقة، وتستخدمها [`richText()`](#builder-rich-text). وما تبقيه وما تحذفه في صفحة [الأمان](/ar/guide/security#rich-text). تعيد XHTML سليم البنية، ولا ترمي استثناء أبداً مع HTML معطوب.
+
+```php
+new HtmlSanitizer(?Closure $image = null, ?Closure $warn = null, float $contentWidth = 180)
+```
+
+| المعامل | ماذا يفعل |
+| --- | --- |
+| `$image` | يأخذ `src` كل صورة ويعيد ما يُستخدم، أو `null` لحذف الصورة. وافتراضياً تبقى روابط http(s) وdata URI لصور PNG وJPEG وGIF وWebP. |
+| `$warn` | يُبلَّغ، مرة واحدة في كل استدعاء، حين تُحذف صورة أو يقطع حدٌّ الـ HTML |
+| `$contentWidth` | عرض نص الصفحة بالمليمتر: يُحد به عرض الجداول والصور |
+
+الحدود ثوابت: `MAX_BYTES` (262144) و`MAX_DEPTH` (20) و`MAX_TABLE_ROWS` (200) و`MAX_TABLE_COLUMNS` (20) و`MAX_SPAN` (20، لـ `colspan` و`rowspan`).
 
 ## الاستثناءات {#exceptions}
 

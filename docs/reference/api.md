@@ -88,7 +88,7 @@ Doc::view('pdf.contract', ['contract' => $contract])->locale('ar')->pdf()->save(
 Doc::html(string $html): PendingDocument
 ```
 
-Starts a PDF from HTML. A string that contains an `<html>` tag is used as it is; anything else is placed inside the package layout, so it gets the direction, font and base styles. PDF only. The HTML is trusted: never pass user input to it.
+Starts a PDF from HTML. A string that contains an `<html>` tag is used as it is; anything else is placed inside the package layout, so it gets the direction, font and base styles. PDF only. The HTML is trusted: never pass user input to it. For HTML from users, use the [`richText()`](#builder-rich-text) block.
 
 ```php
 return Doc::html('<h1>مرحبا</h1><p>إيصال استلام رقم 77</p>')->locale('ar')->pdf()->stream();
@@ -486,7 +486,7 @@ $options->orientation;  // 'landscape'
 
 ### Builder blocks on a document {#pending-blocks}
 
-A document from `Doc::make()` also takes every [`DocumentBuilder`](#document-builder) block method (`heading`, `paragraph`, `table`, `image`, `qr`, `spacer`, `pageBreak`, `line`) and returns itself, so blocks and settings mix in one chain. On a template, view or HTML document, these methods throw `BadMethodCallException`.
+A document from `Doc::make()` also takes every [`DocumentBuilder`](#document-builder) block method (`heading`, `paragraph`, `richText`, `table`, `image`, `qr`, `spacer`, `pageBreak`, `line`) and returns itself, so blocks and settings mix in one chain. On a template, view or HTML document, these methods throw `BadMethodCallException`.
 
 ### Internal methods {#pending-internal}
 
@@ -533,6 +533,14 @@ A paragraph. `$text` is a string, or a list of runs: each run a string or an arr
 ```php
 ->paragraph([['text' => 'المبلغ: ', 'bold' => true], '1,250.00 ج.م'], ['align' => 'end', 'space_after' => 4])
 ```
+
+### richText() {#builder-rich-text}
+
+```php
+richText(string $html, array $options = []): static
+```
+
+HTML from a rich-text editor, cleaned by [`HtmlSanitizer`](#html-sanitizer) when the document is rendered. `$options`: `font_size` (pt). In the PDF it keeps its formatting in the document's direction, with the builder's heading sizes (`h1` to `h4`: 18, 14, 12, 11 pt) and tables with a border around every cell; the HTML's own styles win. Images must be data URIs or allowed URLs; server paths are refused. Word files get its text as plain paragraphs. See [Rich text](/guide/builder#rich-text).
 
 ### table() {#builder-table}
 
@@ -1014,9 +1022,32 @@ Doc::template('invoice', $data)->driver('pdf-service')->pdf()->engine();   // 'p
 | --- | --- |
 | `isLandscape(): bool` | Whether the orientation is `landscape` (or `L`) |
 | `paperSize(): array` | `[width, height]` in mm with the orientation applied |
+| `contentWidth(): float` | The width of the page's text in mm: the paper less the side margins |
 | `hasFirstPage(): bool` | Whether `firstHeader` or `firstFooter` is set |
 | `static unknownPaper(string $paper): InvalidArgumentException` | The error for an unknown size |
 | `PdfOptions::PAPER_SIZES` | Constant: `name => [width, height]` in mm for `A2` ... `EXECUTIVE` |
+
+## HtmlSanitizer {#html-sanitizer}
+
+```php
+use BiztechEG\EasyPdfWord\Support\HtmlSanitizer;
+
+$clean = (new HtmlSanitizer)->sanitize($request->input('terms'));
+```
+
+`BiztechEG\EasyPdfWord\Support\HtmlSanitizer` cleans HTML from a rich-text editor; [`richText()`](#builder-rich-text) uses it. What it keeps and removes is in [Security](/guide/security#rich-text). It returns well-formed XHTML, and never throws on broken HTML.
+
+```php
+new HtmlSanitizer(?Closure $image = null, ?Closure $warn = null, float $contentWidth = 180)
+```
+
+| Argument | What it does |
+| --- | --- |
+| `$image` | Gets each image `src` and returns the one to use, or `null` to drop the image. By default http(s) URLs and PNG, JPEG, GIF and WebP data URIs are kept. |
+| `$warn` | Told, once per call, when an image is dropped or a limit cuts the HTML |
+| `$contentWidth` | The width of the page's text in mm: table widths and images are capped at it |
+
+The limits are constants: `MAX_BYTES` (262144), `MAX_DEPTH` (20), `MAX_TABLE_ROWS` (200), `MAX_TABLE_COLUMNS` (20) and `MAX_SPAN` (20, for `colspan` and `rowspan`).
 
 ## Exceptions {#exceptions}
 

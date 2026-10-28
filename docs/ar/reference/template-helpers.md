@@ -327,6 +327,14 @@ $doc->image(?string $source): ?string
 
 كتل البناء (`image()` و`image` في الخلية) وصور `word.docx` تمر بالفحص نفسه، فمرر إليها المسار كما هو.
 
+### warn() {#context-warn}
+
+```php
+$doc->warn(string $message): void
+```
+
+يرسل رسالة إلى معالج التحذيرات في الحزمة (سجل Laravel، أو الـ closure المسمى `warn` بدون Laravel)، عن شيء تُرك خارج المستند ويجب أن يعرفه المطوّر. ويكمل المستند.
+
 ### usesCssFonts() {#context-uses-css-fonts}
 
 ```php

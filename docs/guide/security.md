@@ -24,6 +24,19 @@ Images are the main way a document could reach outside itself, so they follow st
 - SVG images that refer to files, URLs, scripts or entities are left out, whatever type a data URI or a server claims for them.
 - An image that is left out by these rules is reported as a warning in the log, so a missing logo is easy to trace.
 
+### HTML from an editor is cleaned {#rich-text}
+
+`->richText($html)` takes HTML your users write in an editor and cleans it with `BiztechEG\EasyPdfWord\Support\HtmlSanitizer` before it reaches the document:
+
+- Only a short list of tags is kept. `script`, `style`, `iframe`, `object`, `embed`, `svg` and `math` are removed with their content, and other tags are unwrapped, keeping their text.
+- Every attribute is removed except `style`, `dir`, `href`, `colspan`, `rowspan`, `start` and the image `src`, `width` and `height`. Event attributes, `class` and `id` go too.
+- `style` keeps colours, alignment, direction, bold, italic, underline, strike-through and table widths. Any declaration with `url(`, `expression(`, `var(`, `attr(`, a backslash or `!important` is dropped.
+- Links keep only `http`, `https` and `mailto`, checked after entities, spaces and control characters are removed, so `jav&#x09;ascript:` is caught.
+- Images must be data URIs or URLs from allowed hosts, and go through the [image checks](#images). Files on the server are refused, even in `images.paths`.
+- 256 KB, 20 levels of nesting and tables of 200 rows and 20 columns at most.
+
+To clean HTML before you store it, call it yourself: `(new HtmlSanitizer)->sanitize($html)`.
+
 ### Colours, locales and fonts {#colours-locales-fonts}
 
 - **Colours** in the theme, builder styles and the watermark must be real colours: `#0F766E`, `rgb(15, 118, 110)`, `hsl(...)` or a name such as `teal`. A value like `red; background: url(...)` is replaced by the default colour, so it cannot add CSS or requests.
@@ -48,7 +61,7 @@ A document saved with `->queue()` travels through your queue as an encrypted job
 
 Some input is code you write, and the package uses it as it is:
 
-- **HTML you pass to `Doc::html()`.** It is rendered as written. Never build it from user input.
+- **HTML you pass to `Doc::html()`.** It is rendered as written. Never build it from user input; for HTML from users, use [`richText()`](#rich-text).
 - **Your own views and pages.** In Blade the double-curly-brace echo escapes and `{!! !!}` does not (see the example below); in plain PHP, `<?= $doc->e($value) ?>` escapes and a bare `<?= $value ?>` does not. Never print user input without escaping it.
 - **Templates.** `template.php`, `layout.php` and `word.php` are PHP files that run in your app. Copy or install templates only from sources you trust.
 - **Config.** Paths, fonts, hosts and engine settings in `config/easy-pdf-word.php` and `.env`.
