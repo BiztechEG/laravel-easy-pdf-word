@@ -151,6 +151,12 @@ The package works on shared hosting with mPDF, which is pure PHP:
   ],
   ```
 
+- The system temp folder is shared with the other accounts on the server, and Word files, .docx templates and ZIP files pass through it while they are made. Give them a folder of your own:
+
+  ```dotenv
+  DOC_TEMP_DIR=/home/your-account/storage/easy-pdf-word-tmp
+  ```
+
 - Large tables use memory: mPDF needs about 85 KB per table row, so a report of a thousand rows needs more than PHP's default 128 MB. See [PDF engines](/guide/engines).
 
 Next: the [Quick start](/guide/quick-start) makes a real invoice from a controller.
