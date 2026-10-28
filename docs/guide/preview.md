@@ -64,6 +64,12 @@ public function boot(): void
 
 Without the gate, or for anyone it refuses (including guests), the page answers 403. `DOC_PREVIEW=false` turns the page off in `local` too. An empty `DOC_PREVIEW=` is the same as no line: on in `local` only.
 
+In `local` the page is open to anyone who can reach the app. If a server could run with `APP_ENV=local` by mistake, ask for the gate there too:
+
+```dotenv
+DOC_PREVIEW_LOCAL_OPEN=false
+```
+
 The page only renders the templates' sample data, never your app's data. Rendering still costs CPU, so keep it behind the gate.
 
 ## Path and middleware {#config}
@@ -73,6 +79,7 @@ The page's address and middleware are set in `config/easy-pdf-word.php`:
 ```php
 'preview' => [
     'enabled' => env('DOC_PREVIEW'),
+    'local_open' => env('DOC_PREVIEW_LOCAL_OPEN', true),
     'path' => 'admin/doc-preview',
     'middleware' => ['web', 'auth'],
 ],
@@ -81,6 +88,7 @@ The page's address and middleware are set in `config/easy-pdf-word.php`:
 | Key | Default | Meaning |
 | --- | --- | --- |
 | `enabled` | `env('DOC_PREVIEW')` | `null` or empty: on in `local` only. `true` or `false`: on or off everywhere. |
+| `local_open` | `env('DOC_PREVIEW_LOCAL_OPEN', true)` | `false` asks for the `viewDocPreview` gate in `local` too. |
 | `path` | `'doc-preview'` | The URL of the page. |
 | `middleware` | `['web']` | Middleware for the page's routes. Add `auth` to send guests to your login page instead of a 403. |
 
