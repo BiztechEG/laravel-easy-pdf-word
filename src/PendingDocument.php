@@ -85,8 +85,10 @@ class PendingDocument extends Document
      * PendingDispatch, so ->onQueue(), ->delay() and ->chain() work.
      *
      *   Doc::template('invoice', $data)->locale('ar')->queue('invoices/1024.pdf', 's3')->onQueue('documents');
+     *
+     * @param  array  $options  passed to Storage::put() on the worker, such as ['visibility' => 'private']
      */
-    public function queue(string $path, ?string $disk = null): PendingDispatch
+    public function queue(string $path, ?string $disk = null, array $options = []): PendingDispatch
     {
         $format = match (strtolower(pathinfo($path, PATHINFO_EXTENSION))) {
             'pdf' => 'pdf',
@@ -101,7 +103,7 @@ class PendingDocument extends Document
 
         $this->templateData();
 
-        return new PendingDispatch(new SaveDocument($this->toQueue(), $format, $path, $disk));
+        return new PendingDispatch(new SaveDocument($this->toQueue(), $format, $path, $disk, $options));
     }
 
     /**

@@ -24,12 +24,14 @@ class SaveDocument implements ShouldBeEncrypted, ShouldQueue
     /**
      * @param  array  $document  from PendingDocument::toQueue()
      * @param  'pdf'|'word'  $format
+     * @param  array  $options  for Storage::put(), such as ['visibility' => 'private']
      */
     public function __construct(
         public array $document,
         public string $format,
         public string $path,
         public ?string $disk = null,
+        public array $options = [],
     ) {}
 
     public function handle(DocFactory $factory): void
@@ -38,6 +40,6 @@ class SaveDocument implements ShouldBeEncrypted, ShouldQueue
         $filename = basename(str_replace('\\', '/', $this->path));
         $file = $this->format === 'word' ? $document->word($filename) : $document->pdf($filename);
 
-        $file->save($this->path, $this->disk);
+        $file->save($this->path, $this->disk, $this->options);
     }
 }
