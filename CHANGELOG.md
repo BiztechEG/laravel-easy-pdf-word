@@ -9,6 +9,7 @@ All notable changes to this package are listed here. The format follows
 ### Added
 
 - Table rows with options in documents built in code, from `biztecheg/easy-pdf-word` 1.3: `DocumentBuilder::row($cells, ['style' => [...], 'total' => true, 'keep_with_next' => true])` styles a whole row, marks several total rows and keeps a section heading with the row after it. Documented in "Building in code" and the API reference.
+- Rich text in documents built in code, from `biztecheg/easy-pdf-word` 1.3: `->richText($html, ['font_size' => 10])` adds HTML from an editor such as TipTap, cleaned by `HtmlSanitizer`, safe for HTML your users write. Documented in "Building in code", "Security", "Word files", the API reference (`richText()`, `HtmlSanitizer`, `PdfOptions::contentWidth()`) and the template helpers (`$doc->warn()`).
 
 ## [1.5.0] - 2026-10-13
 

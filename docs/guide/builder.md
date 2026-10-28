@@ -125,6 +125,7 @@ The Word file has the same content: right-to-left paragraphs, the table laid out
 | --- | --- | --- |
 | `heading($text, $level = 1, $style = [])` | Level 1 | A heading. Levels 1, 2 and 3 are 18, 14 and 12 pt, bold; level 1 takes the theme's `primary` colour. A heading stays on the same page as the block after it. |
 | `paragraph($text, $style = [])` | | A paragraph: a string, or a list of runs (see below). |
+| `richText($html, $options = [])` | | HTML written by your users in an editor, cleaned first. See [Rich text](#rich-text). |
 | `table($rows, $options = [])` | | A table: a list of rows, each a list of cells. See [Tables](#tables). |
 | `image($source, $widthMm = 40, $align = 'start')` | 40 mm, start | An image from a file path, an allowed URL or a data URI. |
 | `qr($value, $sizeMm = 30, $align = 'start')` | 30 mm, start | A QR code of any text or link. |
@@ -164,6 +165,34 @@ A paragraph is a string, or a list of **runs**: pieces of text with their own st
 ```
 
 The second argument styles the whole paragraph: `->paragraph('نص', ['align' => 'justify', 'size' => 11])`. A run's own style wins over the paragraph's. A line break in the text (`"السطر الأول\nالسطر الثاني"`) starts a new line in both formats.
+
+## Rich text from an editor {#rich-text}
+
+`richText($html)` adds HTML from a rich-text editor such as TipTap or CKEditor: the preamble or the terms of a price offer, a note on an invoice. The HTML is cleaned first, so you can pass what your users wrote as it is:
+
+```php
+Doc::make()
+    ->locale('ar')
+    ->richText($offer->preamble)
+    ->table($rows, ['header' => true])
+    ->richText($offer->terms, ['font_size' => 10])
+    ->pdf();
+```
+
+What is kept: headings (`h1` to `h4`), paragraphs, bold, italic, underline, strike-through, highlight, colours, alignment, direction, lists, quotes, links (http, https and mailto) and tables. Scripts, event attributes, classes, other styles and other links are removed.
+
+- **Headings** take the builder's sizes: 18, 14, 12 and 11 pt.
+- **Tables** get the builder's look, with a border around every cell and `th` cells as a header.
+- **Direction and digits** follow the document: the block is right to left in Arabic, and `->numerals('arabic')` converts its text.
+- **`font_size`** (pt) sets the size of the block's text.
+- **Images** must be data URIs or URLs from hosts in `images.remote`, and go through the same checks as other images. Paths to files on the server are refused, even inside `images.paths`, so a user cannot put your stamp or a signature into their text.
+- **Limits:** 256 KB of HTML, 20 levels of nesting, tables of 200 rows and 20 columns. What goes beyond is cut, and the cut is written to the log.
+
+::: warning richText() is not Doc::html()
+`Doc::html()` renders trusted HTML exactly as written, for the PDF only. `richText()` cleans the HTML and works in documents built in code, so it is the one for HTML from users.
+:::
+
+In Word files, a `richText()` block comes out as its text, in plain paragraphs, for now.
 
 ## Styles {#styles}
 
