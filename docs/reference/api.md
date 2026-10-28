@@ -195,6 +195,7 @@ The manager that resolves PDF engines by name and handles the fallback. See [Pdf
 | Language and digits | [`locale`](#pending-locale), [`direction`](#pending-direction), [`rtl` / `ltr`](#pending-rtl-ltr), [`numerals`](#pending-numerals) |
 | Look | [`theme`](#pending-theme), [`font`](#pending-font), [`title`](#pending-title) |
 | Page | [`paper`](#pending-paper), [`landscape` / `portrait`](#pending-landscape-portrait), [`margins`](#pending-margins), [`header`](#pending-header), [`footer`](#pending-footer), [`firstPageHeader` / `firstPageFooter`](#pending-first-page), [`headerDistance` / `footerDistance`](#pending-header-distance) |
+| Watermark | [`watermarkImage`](#pending-watermark-image) (PDF and Word) |
 | PDF only | [`driver`](#pending-driver), [`watermark`](#pending-watermark), [`password`](#pending-password) |
 | Output | [`pdf`](#pending-pdf), [`word`](#pending-word), [`queue`](#pending-queue), [`toHtml`](#pending-to-html), [`options`](#pending-options) |
 | `Doc::make()` blocks | [`heading`, `paragraph`, `table` ...](#pending-blocks) |
@@ -407,10 +408,22 @@ The PDF engine for this document: `mpdf`, `chromium` (or `browsershot`, `chrome`
 watermark(string $text, float $opacity = 0.12, string $color = '#000000'): static
 ```
 
-Prints large diagonal text across every page of the PDF, such as `مسودة` or `نسخة`. The text is cut to 100 characters, the opacity kept between 0.01 and 1, and an invalid colour becomes black. Empty text throws `InvalidArgumentException`. Word files are made without it.
+Prints large diagonal text across every page of the PDF, such as `مسودة` or `نسخة`. The text is cut to 100 characters, the opacity kept between 0.01 and 1, and an invalid colour becomes black. Empty text throws `InvalidArgumentException`. Word files are made without it; use [`watermarkImage()`](#pending-watermark-image) for both formats.
 
 ```php
 Doc::template('quotation', $quotation)->watermark('مسودة', opacity: 0.08, color: '#B91C1C')->pdf();
+```
+
+### watermarkImage() {#pending-watermark-image}
+
+```php
+watermarkImage(string $source, array $options = []): static
+```
+
+An image in the middle of every page, in PDF and Word. `$options`: `opacity` (0.01 to 1, default `0.15`) and `width` in mm (10 to 400, default `140`); the height follows the image. The image follows the [image rules](/guide/images); one they refuse leaves the watermark out. An empty source throws `InvalidArgumentException`. In Word the image is a header watermark, faded by the package, on the first page too when it has its own header; SVG images are left out of Word files. See [An image watermark](/guide/page-settings#watermark-image).
+
+```php
+Doc::template('quotation', $quotation)->watermarkImage(resource_path('images/draft.png'), ['opacity' => 0.12])->word();
 ```
 
 ### password() {#pending-password}
@@ -1040,6 +1053,7 @@ Doc::template('invoice', $data)->driver('pdf-service')->pdf()->engine();   // 'p
 | `firstHeader`, `firstFooter` | `string` HTML for the first page, `false` for none, or `null` for the normal one | `null` |
 | `headerDistance`, `footerDistance` | `?float` mm from the page edge | `null` |
 | `fitHeaders` | `bool`: the margins are a minimum, so a taller header pushes the body (mPDF) | `false` |
+| `watermarkImage` | `['src' => data URI, 'opacity' => ..., 'width' => mm]` or `null` | `null` |
 
 | Method | Returns |
 | --- | --- |

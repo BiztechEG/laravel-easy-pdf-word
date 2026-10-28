@@ -195,6 +195,7 @@ Doc::pdfManager(): PdfManager
 | اللغة والأرقام | [`locale`](#pending-locale) و[`direction`](#pending-direction) و[`rtl` / `ltr`](#pending-rtl-ltr) و[`numerals`](#pending-numerals) |
 | المظهر | [`theme`](#pending-theme) و[`font`](#pending-font) و[`title`](#pending-title) |
 | الصفحة | [`paper`](#pending-paper) و[`landscape` / `portrait`](#pending-landscape-portrait) و[`margins`](#pending-margins) و[`header`](#pending-header) و[`footer`](#pending-footer) و[`firstPageHeader` / `firstPageFooter`](#pending-first-page) و[`headerDistance` / `footerDistance`](#pending-header-distance) |
+| العلامة المائية | [`watermarkImage`](#pending-watermark-image) (PDF وWord) |
 | لملفات PDF فقط | [`driver`](#pending-driver) و[`watermark`](#pending-watermark) و[`password`](#pending-password) |
 | الإخراج | [`pdf`](#pending-pdf) و[`word`](#pending-word) و[`queue`](#pending-queue) و[`toHtml`](#pending-to-html) و[`options`](#pending-options) |
 | كتل `Doc::make()` | [`heading` و`paragraph` و`table` ...](#pending-blocks) |
@@ -407,10 +408,22 @@ driver(string $driver): static
 watermark(string $text, float $opacity = 0.12, string $color = '#000000'): static
 ```
 
-يطبع نصًا كبيرًا مائلًا على كل صفحات ملف PDF، مثل `مسودة` أو `نسخة`. يُقص النص إلى 100 حرف، وتُحصر الشفافية بين 0.01 و1، واللون غير الصالح يصبح أسود. النص الفارغ يرمي `InvalidArgumentException`. ملفات Word تُنشأ بدون العلامة المائية.
+يطبع نصًا كبيرًا مائلًا على كل صفحات ملف PDF، مثل `مسودة` أو `نسخة`. يُقص النص إلى 100 حرف، وتُحصر الشفافية بين 0.01 و1، واللون غير الصالح يصبح أسود. النص الفارغ يرمي `InvalidArgumentException`. ملفات Word تُنشأ بدون العلامة المائية. وللصيغتين معًا استخدم [`watermarkImage()`](#pending-watermark-image).
 
 ```php
 Doc::template('quotation', $quotation)->watermark('مسودة', opacity: 0.08, color: '#B91C1C')->pdf();
+```
+
+### watermarkImage() {#pending-watermark-image}
+
+```php
+watermarkImage(string $source, array $options = []): static
+```
+
+صورة في منتصف كل صفحة، في PDF وWord. خيارات `$options`: ‏`opacity` (من 0.01 إلى 1، والافتراضي `0.15`) و`width` بالمليمتر (من 10 إلى 400، والافتراضي `140`)، ويتبعه الارتفاع حسب الصورة. تتبع الصورة [قواعد الصور](/ar/guide/images)، والصورة التي ترفضها تترك العلامة المائية. والمصدر الفارغ يرمي `InvalidArgumentException`. وفي Word تكون الصورة علامة مائية في رأس الصفحة تخففها الحزمة، وتظهر في الصفحة الأولى أيضًا حين يكون لها رأسها الخاص؛ وتُترك صور SVG من ملفات Word. انظر [علامة مائية من صورة](/ar/guide/page-settings#watermark-image).
+
+```php
+Doc::template('quotation', $quotation)->watermarkImage(resource_path('images/draft.png'), ['opacity' => 0.12])->word();
 ```
 
 ### password() {#pending-password}
@@ -1040,6 +1053,7 @@ Doc::template('invoice', $data)->driver('pdf-service')->pdf()->engine();   // 'p
 | `firstHeader` و`firstFooter` | `string` نص HTML للصفحة الأولى، أو `false` لعدم وجود شيء، أو `null` للعادي | `null` |
 | `headerDistance` و`footerDistance` | `?float` بالمليمتر من حافة الصفحة | `null` |
 | `fitHeaders` | `bool`: الهوامش حد أدنى، فرأس الصفحة الأطول يدفع المتن (mPDF) | `false` |
+| `watermarkImage` | `['src' => data URI, 'opacity' => ..., 'width' => مم]` أو `null` | `null` |
 
 | الدالة | تعيد |
 | --- | --- |

@@ -145,7 +145,7 @@ str_contains(Doc::make()->image($path)->toHtml(), '<img');   // false: the image
 
 **Thousands and decimal separators.** With Arabic digits, Word files keep `,` and `.` (١٢,٥٠٠.٧٥), because the reader's font may not draw the Arabic separators.
 
-**No watermark.** Word files are made without the watermark; it is for PDFs only.
+**No watermark.** Word files are made without the text watermark; it is for PDFs only. Use [`->watermarkImage()`](/guide/page-settings#watermark-image) for a watermark in both formats.
 
 **Errors when making the file:**
 
