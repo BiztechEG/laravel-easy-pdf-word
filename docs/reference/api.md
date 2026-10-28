@@ -528,7 +528,7 @@ A heading at level 1, 2 or 3 (other values are clamped): 18, 14 and 12 pt, bold.
 paragraph(string|array $text, array $style = []): static
 ```
 
-A paragraph. `$text` is a string, or a list of runs: each run a string or an array with `text` and run styles (`bold`, `italic`, `size`, `color`, `ltr`). `$style` applies to the whole paragraph and also takes `space_after` (mm) and `line_height` (`1.5` is one and a half lines). Line breaks in the text are kept.
+A paragraph. `$text` is a string, or a list of runs: each run a string or an array with `text` and run styles (`bold`, `italic`, `size`, `color`, `background`, `underline`, `strike`, `link`, `font`, `ltr`). `$style` applies to the whole paragraph and also takes `space_after` (mm) and `line_height` (`1.5` is one and a half lines). Line breaks in the text are kept.
 
 ```php
 ->paragraph([['text' => 'المبلغ: ', 'bold' => true], '1,250.00 ج.م'], ['align' => 'end', 'space_after' => 4])
@@ -622,13 +622,16 @@ Headings, paragraphs, runs and table cells take these keys:
 | `bold` | `true` | |
 | `italic` | `true` | |
 | `size` | points, e.g. `9.5` | |
-| `color` | `#hex`, `rgb()` or `hsl()` (or a colour name in PDF) | Word leaves colour names out and drops the alpha of `#RRGGBBAA` |
+| `color` | `#hex`, `rgb()`, `hsl()` or a CSS colour name (`teal`) | Word drops the alpha of `#RRGGBBAA` |
+| `underline` | `true` | |
+| `strike` | `true` | Strike-through |
+| `link` | an `http`, `https` or `mailto` URL | Runs and cells. Other URLs leave the text plain. Underlined, in `#0563C1` unless the run has a `color` |
 | `align` | `start`, `end`, `center`, `justify` | `start` is right in Arabic documents, left in English ones. Not for single runs |
 | `ltr` | `true` | Keeps a phone number, code or e-mail in left-to-right order inside Arabic text |
-| `background` | `#hex` | Table cells only |
+| `background` | a colour | Shades a run; fills a table cell |
 | `space_after` | millimetres | Paragraphs only |
 | `line_height` | e.g. `1.5` | Paragraphs only |
-| `font` | a font name, e.g. `Tahoma` | Word files only; PDFs use the document font |
+| `font` | a registered font, e.g. `naskh` | Runs and cells. PDF: other names are left out with a warning. Word: a registered font becomes its `word` name or the Word font; other names (`Tahoma`) are passed as they are |
 
 ### Table options {#builder-table-options}
 
