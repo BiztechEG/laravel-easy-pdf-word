@@ -863,6 +863,7 @@ Doc::assertSaved('invoices/INV-2026-1024.pdf', 's3');
 | `driver` | `?string` | The engine given with `->driver()`, or `null` |
 | `watermark` | `?string` | The PDF watermark text (in the document's digits), or `null` |
 | `protected` | `bool` | Whether the PDF has a password |
+| `watermarkImage` | `?string` | The source given to `watermarkImage()`, in PDF and Word, or `null` |
 
 | Method | Returns |
 | --- | --- |
@@ -870,7 +871,10 @@ Doc::assertSaved('invoices/INV-2026-1024.pdf', 's3');
 | `filename(): string` | The name with its extension, as a download would get it |
 | `data(?string $key = null, mixed $default = null): mixed` | The data the file was made from; for templates after defaults and `prepare` (so totals are there). A dot key picks one value |
 | `html(): string` | The HTML a PDF engine would get. Throws `LogicException` for Word files |
-| `contains(string $text): bool` | Whether the PDF's HTML contains the text, escaped as Blade prints it. With Arabic digits, write the text in Arabic digits |
+| `contains(string $text): bool` | Whether the PDF's HTML contains the text, escaped as Blade prints it. With Arabic digits, write the text in Arabic digits. For a Word file, whether `text()` contains it |
+| `text(): string` | The text of the document's blocks, without rendering: headers and footers, then the body; table cells joined by tabs and rows by new lines; digits as written. Empty for views, HTML and `word.docx` templates |
+| `blocks(): array` | The body blocks of a `Doc::make()` document or of a template's `layout.php` or `word.php`; `[]` for views, HTML and `word.docx` templates |
+| `hasWatermark(?string $text = null): bool` | Whether the file has a text or image watermark; with `$text`, whether the text watermark is that text |
 | `saves(): array` | Every save: `['path' => ..., 'disk' => ..., 'options' => [...]]` |
 | `wasSaved(?string $path = null, ?string $disk = null): bool` | Saved (to that path and disk) |
 | `wasDownloaded(?string $filename = null): bool` | Sent as a download (with that name) |
