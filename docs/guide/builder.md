@@ -197,7 +197,7 @@ You rarely need `ltr` for numbers: a negative number such as `-2.5` keeps its mi
 | `borders` | `true` | A line under every row. `false` for a layout table without lines. |
 | `border_color` | Theme `border` | Colour of those lines |
 | `striped` | none | A background colour for every other row, such as `#F9FAFB` |
-| `footer` | `false` | The last row is bold, for totals |
+| `footer` | `false` | The last row is bold, for totals. For several total rows, see [Rows](#rows). |
 | `font_size` | The document size | Font size of the whole table, in points |
 | `columns` | none | One entry per column: a width in percent (`30`), or `['width' => 30, 'align' => 'end']` |
 
@@ -249,6 +249,34 @@ Each entry of `lines` is a line in the cell. A line is a string, a styled run, a
     ['image' => public_path('images/stamp.png'), 'width' => 25],
 ]]
 ```
+
+### Rows {#rows}
+
+A row is a list of cells. To style a whole row, make it a total row or keep it with the next row, build it with `DocumentBuilder::row($cells, $options)`:
+
+```php
+use BiztechEG\EasyPdfWord\Builder\DocumentBuilder as B;
+
+->table([
+    ['#', 'البند', 'الوحدة', 'الكمية', 'السعر', 'الإجمالي'],
+    B::row([['text' => 'أعمال مدنية', 'colspan' => 6]], ['style' => ['bold' => true, 'background' => '#F1F5F9'], 'keep_with_next' => true]),
+    ['1', 'حفر', 'م3', '120', '85.00', '10,200.00'],
+    B::row(['2', 'اختياري: طبقة إضافية', 'م2', '40', '30.00', '(1,200.00)'], ['style' => ['italic' => true, 'color' => '#64748B']]),
+    B::row([['text' => 'المجموع: أعمال مدنية', 'colspan' => 5], '10,200.00'], ['total' => true]),
+], ['header' => true])
+```
+
+| Option | What it does |
+| --- | --- |
+| `style` | A style for every cell of the row: `bold`, `italic`, `size`, `color`, `background`, `align`, `border` |
+| `total` | A total row: bold, with a line above it. Several rows can be totals, such as a subtotal after each section. |
+| `keep_with_next` | Keeps the row on one page with the next one, so a section heading never ends a page |
+
+A cell's own style wins over its row's `style`, and the row's wins over the table's: the column `align`, `font_size`, and the colours of `header` and `striped`. `footer => true` still makes the last row bold, without the line; give it `total` for the line too.
+
+`keep_with_next` works in Word and with mPDF 8.2.4 or later. With the Chromium engines, the browser decides where the page breaks.
+
+Rows built from your records are read as before, even a record with a `cells` column: only an array with a `cells` list and nothing but these options is a row object.
 
 ## Language and settings {#settings}
 
