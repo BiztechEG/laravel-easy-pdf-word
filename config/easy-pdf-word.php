@@ -164,10 +164,14 @@ return [
     |
     |   Gate::define('viewDocPreview', fn ($user) => $user->isAdmin());
     |
+    | "local_open" false asks for the gate in "local" too, in case a server
+    | runs with APP_ENV=local by mistake.
+    |
     */
 
     'preview' => [
         'enabled' => env('DOC_PREVIEW'),
+        'local_open' => env('DOC_PREVIEW_LOCAL_OPEN', true),
         'path' => 'doc-preview',
         'middleware' => ['web'],
     ],
