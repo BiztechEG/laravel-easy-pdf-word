@@ -6,11 +6,17 @@ All notable changes to this package are listed here. The format follows
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-10-28
+
 ### Added
 
 - Headers and footers built from blocks, from `biztecheg/easy-pdf-word` 1.3: `->header(fn (DocumentBuilder $h) => ...)` and `->footer()` make a letterhead with a logo and a table in both PDF and Word; `->firstPageHeader()` and `->firstPageFooter()` give the first page its own, or none with `null`; `->headerDistance()` and `->footerDistance()` set their distance from the page edge; templates can hold `header.layout.php`, `footer.layout.php`, `first-header.layout.php` and `first-footer.layout.php`. Documented in "Page settings", "Word files", "Custom templates" and the API reference.
 - Table rows with options in documents built in code, from `biztecheg/easy-pdf-word` 1.3: `DocumentBuilder::row($cells, ['style' => [...], 'total' => true, 'keep_with_next' => true])` styles a whole row, marks several total rows and keeps a section heading with the row after it. Documented in "Building in code" and the API reference.
 - Rich text in documents built in code, from `biztecheg/easy-pdf-word` 1.3: `->richText($html, ['font_size' => 10])` adds HTML from an editor such as TipTap, cleaned by `HtmlSanitizer`, safe for HTML your users write. Documented in "Building in code", "Security", "Word files", the API reference (`richText()`, `HtmlSanitizer`, `PdfOptions::contentWidth()`) and the template helpers (`$doc->warn()`). In Word files the block keeps its formatting too: headings, right-to-left lists, quotes, merged table cells, links and images.
+
+### Changed
+
+- Requires `biztecheg/easy-pdf-word` 1.3, and mPDF 8.2.4 or newer: it is the first mPDF that keeps a table row with the next one.
 
 ## [1.5.0] - 2026-10-13
 
@@ -191,7 +197,8 @@ The first release.
 - Colour values, fonts and locales are checked before they reach HTML, CSS or file paths.
 - Chromium runs without JavaScript unless it is turned on in config.
 
-[Unreleased]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.4.1...v1.5.0
 [1.4.1]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.3.0...v1.4.0
