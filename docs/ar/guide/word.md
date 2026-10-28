@@ -191,7 +191,7 @@ Doc::template('quote-word', [
 | --- | --- |
 | `->watermark()` | تُسقط: يُنشأ ملف Word بدونها. |
 | `->password()` | مرفوضة: يرمي `->word()` الاستثناء `LogicException` بالرسالة "Word files cannot take a password; ->password() works for PDF files only.". ويرفضها `->queue('….docx')` أيضاً. فالملف الذي أردت حمايته لا يخرج أبداً دون حماية. |
-| ملفات Blade وHTML | غير ممكنة: يرمي `->word()` الاستثناء `WordNotSupported`. استخدم قالباً أو بناء المستند بالكود. والاستثناء كتلة [`richText()`](/ar/guide/builder#rich-text) في بناء المستند: تدخل ملف Word، في فقرات عادية حالياً. |
+| ملفات Blade وHTML | غير ممكنة: يرمي `->word()` الاستثناء `WordNotSupported`. استخدم قالباً أو بناء المستند بالكود. والاستثناء كتلة [`richText()`](/ar/guide/builder#rich-text-word) في بناء المستند: تدخل ملف Word بتنسيقها. |
 | قالب ليس فيه إلا `pdf.html.php` (أو `pdf.blade.php`) | غير ممكن: يطلب منك `WordNotSupported` إضافة `layout.php` أو `word.php` أو `word.docx`. |
 | الخطوط | لا تُضمَّن: يجب أن يكون [خط Word](#word-font) على جهاز القارئ. ويُتجاهل `->font()`. |
 | رأس الصفحة وتذييلها | رأس الصفحة أو التذييل المكتوب بـ HTML يصبح سطراً واحداً من نص صغير في الوسط، مع أرقام الصفحات، وتُسقط تنسيقاته وجداوله وصوره. أما رأس الصفحة [المبني من العناصر](/ar/guide/page-settings#header-blocks) فيحتفظ بجداوله وصوره، ويمكن أن يكون للصفحة الأولى رأسها الخاص. |

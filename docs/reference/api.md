@@ -540,7 +540,7 @@ A paragraph. `$text` is a string, or a list of runs: each run a string or an arr
 richText(string $html, array $options = []): static
 ```
 
-HTML from a rich-text editor, cleaned by [`HtmlSanitizer`](#html-sanitizer) when the document is rendered. `$options`: `font_size` (pt). In the PDF it keeps its formatting in the document's direction, with the builder's heading sizes (`h1` to `h4`: 18, 14, 12, 11 pt) and tables with a border around every cell; the HTML's own styles win. Images must be data URIs or allowed URLs; server paths are refused. Word files get its text as plain paragraphs. See [Rich text](/guide/builder#rich-text).
+HTML from a rich-text editor, cleaned by [`HtmlSanitizer`](#html-sanitizer) when the document is rendered. `$options`: `font_size` (pt). In the PDF and in Word it keeps its formatting in the document's direction, with the builder's heading sizes (`h1` to `h4`: 18, 14, 12, 11 pt) and tables with a border around every cell; the HTML's own styles win. Images must be data URIs or allowed URLs; server paths are refused. In Word, headings use the styles `Heading1` to `Heading4`; if Word cannot take the block, its text is written as plain paragraphs and a warning is logged. See [Rich text](/guide/builder#rich-text).
 
 ### table() {#builder-table}
 

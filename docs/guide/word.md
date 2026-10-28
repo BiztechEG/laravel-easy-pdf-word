@@ -191,7 +191,7 @@ In the builder, image widths are in millimetres; in a `word.docx`, sizes are in 
 | --- | --- |
 | `->watermark()` | Left out: the Word file is made without it. |
 | `->password()` | Refused: `->word()` throws `LogicException` with "Word files cannot take a password; ->password() works for PDF files only." `->queue('….docx')` refuses it too. A file you meant to protect never goes out open. |
-| Blade views and HTML | Not possible: `->word()` throws `WordNotSupported`. Use a template or the builder. A builder's [`richText()`](/guide/builder#rich-text) block is the exception: it goes into the Word file, as plain paragraphs for now. |
+| Blade views and HTML | Not possible: `->word()` throws `WordNotSupported`. Use a template or the builder. A builder's [`richText()`](/guide/builder#rich-text-word) block is the exception: it goes into the Word file with its formatting. |
 | A template with only `pdf.html.php` (or `pdf.blade.php`) | Not possible: `WordNotSupported` asks you to add `layout.php`, `word.php` or `word.docx`. |
 | Fonts | Not embedded: the [Word font](#word-font) must be on the reader's computer. `->font()` is ignored. |
 | Header and footer | An HTML header or footer becomes one centred line of small text, with page numbers; its styles, tables and images are left out. A header [built from blocks](/guide/page-settings#header-blocks) keeps its tables and images, and the first page can have its own. |
