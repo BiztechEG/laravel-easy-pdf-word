@@ -58,7 +58,7 @@ Doc::fake();
 | `html()` | الـ HTML الذي سيتسلمه محرك PDF. وليس لملفات Word HTML، فترمي `LogicException`. |
 | `contains(string $text)` | هل يحتوي HTML ملف PDF النص، مهرّبًا كما يطبعه الـ view |
 | `wasSaved(?string $path = null, ?string $disk = null)` | هل حُفظ الملف (في ذلك المكان إن حُدد) |
-| `saves()` | كل عمليات الحفظ، بالصيغة `['path' => ..., 'disk' => ...]` |
+| `saves()` | كل عمليات الحفظ، بالصيغة `['path' => ..., 'disk' => ..., 'options' => [...]]` |
 | `wasDownloaded(?string $filename = null)` و`wasStreamed(?string $filename = null)` | هل أُرسل الملف للتنزيل أو عُرض في المتصفح |
 
 مع `->numerals('arabic')` يحتوي الـ HTML أرقامًا عربية، فيحتاج `contains()` إلى الأرقام بالعربية أيضًا: `contains('٢٥٬٠٠٠')` أو `contains('٢٥,٠٠٠')` بحسب [الخط](/ar/guide/arabic#separators).

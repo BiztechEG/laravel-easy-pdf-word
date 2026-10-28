@@ -52,12 +52,15 @@ abstract class RenderedFile extends File implements Attachable, Responsable
     /**
      * Save to a path on a filesystem disk, or to an absolute local path when
      * no disk is given and the path is absolute.
+     *
+     * @param  array  $options  passed to Storage::put(), such as ['visibility' => 'private'];
+     *                          ignored for an absolute local path
      */
-    public function save(string $path, ?string $disk = null): string
+    public function save(string $path, ?string $disk = null, array $options = []): string
     {
         if ($this->fake !== null) {
             $this->content();
-            $this->fake->recordSave($path, $disk);
+            $this->fake->recordSave($path, $disk, $options);
 
             return $path;
         }
@@ -68,7 +71,7 @@ abstract class RenderedFile extends File implements Attachable, Responsable
 
         // Disks do not throw by default; a failed write must not look saved
         // (a queued save would otherwise finish without a file).
-        if (! Storage::disk($disk)->put($path, $this->content())) {
+        if (! Storage::disk($disk)->put($path, $this->content(), $options)) {
             throw new RuntimeException("Could not write [{$path}] to the [".($disk ?? config('filesystems.default')).'] disk.');
         }
 

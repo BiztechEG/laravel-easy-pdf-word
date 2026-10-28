@@ -58,7 +58,7 @@ A file counts as made when your code calls `->pdf()` or `->word()`. Building a d
 | `html()` | The HTML a PDF engine would get. Word files have none and throw a `LogicException`. |
 | `contains(string $text)` | Whether the PDF's HTML contains the text, escaped as a view prints it |
 | `wasSaved(?string $path = null, ?string $disk = null)` | Whether the file was saved (there, when given) |
-| `saves()` | Every save, as `['path' => ..., 'disk' => ...]` |
+| `saves()` | Every save, as `['path' => ..., 'disk' => ..., 'options' => [...]]` |
 | `wasDownloaded(?string $filename = null)`, `wasStreamed(?string $filename = null)` | Whether the file was sent as a download or shown in the browser |
 
 With `->numerals('arabic')`, the HTML has Arabic digits, so `contains()` needs the digits in Arabic too: `contains('٢٥٬٠٠٠')` or `contains('٢٥,٠٠٠')`, depending on the [font](/guide/arabic#separators).
