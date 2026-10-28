@@ -451,10 +451,10 @@ Returns the Word file as a [`WordDocument`](#rendered-files), built from the tem
 ### queue() {#pending-queue}
 
 ```php
-queue(string $path, ?string $disk = null): PendingDispatch
+queue(string $path, ?string $disk = null, array $options = []): PendingDispatch
 ```
 
-Renders and saves the file on a queue worker instead of during the request. The extension picks the format: `.pdf` or `.docx` (anything else throws `InvalidArgumentException`). Template data is validated before the job is queued. Returns Laravel's `Illuminate\Foundation\Bus\PendingDispatch`, so `->onQueue()`, `->onConnection()`, `->delay()` and `->chain()` work. The job is [`SaveDocument`](#save-document).
+Renders and saves the file on a queue worker instead of during the request. The extension picks the format: `.pdf` or `.docx` (anything else throws `InvalidArgumentException`). Template data is validated before the job is queued. `$options` reach `Storage::put()` on the worker, such as `['visibility' => 'private']`. Returns Laravel's `Illuminate\Foundation\Bus\PendingDispatch`, so `->onQueue()`, `->onConnection()`, `->delay()` and `->chain()` work. The job is [`SaveDocument`](#save-document).
 
 ```php
 Doc::template('invoice', $data)->locale('ar')
@@ -703,7 +703,7 @@ A cell is a string, or an array with these keys plus any [text style](#builder-s
 | `download(?string $filename = null): Response` | response | Sends the file as a download |
 | `stream(?string $filename = null): Response` | response | Shows the file in the browser |
 | `inline(?string $filename = null): Response` | response | The same as `stream()` |
-| `save(string $path, ?string $disk = null): string` | the path | Saves to a disk, or to an absolute local path when no disk is given |
+| `save(string $path, ?string $disk = null, array $options = []): string` | the path | Saves to a disk, or to an absolute local path when no disk is given. `$options` go to `Storage::put()`, such as `['visibility' => 'private']` |
 | `toResponse($request): Response` | response | Lets a controller return the file; it is streamed |
 | `toMailAttachment(): Attachment` | attachment | Lets a Mailable or `MailMessage::attach()` take the file |
 
@@ -771,7 +771,7 @@ Doc::zip([
 `BiztechEG\EasyPdfWord\Jobs\SaveDocument` is the job `->queue()` dispatches. It implements `ShouldQueue` and `ShouldBeEncrypted` (Laravel encrypts its payload with the app key, since it carries the document's data and any PDF password) and uses `Dispatchable`, `InteractsWithQueue` and `Queueable`.
 
 ```php
-new SaveDocument(array $document, string $format, string $path, ?string $disk = null)
+new SaveDocument(array $document, string $format, string $path, ?string $disk = null, array $options = [])
 ```
 
 | Public property | Type | Value |
@@ -780,6 +780,7 @@ new SaveDocument(array $document, string $format, string $path, ?string $disk = 
 | `$format` | `string` | `'pdf'` or `'word'` |
 | `$path` | `string` | Where the file is saved |
 | `$disk` | `?string` | The disk, or `null` for the default disk (or an absolute path) |
+| `$options` | `array` | Passed to `Storage::put()`, such as `['visibility' => 'private']` |
 
 ```php
 handle(DocFactory $factory): void
@@ -857,7 +858,7 @@ Doc::assertSaved('invoices/INV-2026-1024.pdf', 's3');
 | `data(?string $key = null, mixed $default = null): mixed` | The data the file was made from; for templates after defaults and `prepare` (so totals are there). A dot key picks one value |
 | `html(): string` | The HTML a PDF engine would get. Throws `LogicException` for Word files |
 | `contains(string $text): bool` | Whether the PDF's HTML contains the text, escaped as Blade prints it. With Arabic digits, write the text in Arabic digits |
-| `saves(): array` | Every save: `['path' => ..., 'disk' => ...]` |
+| `saves(): array` | Every save: `['path' => ..., 'disk' => ..., 'options' => [...]]` |
 | `wasSaved(?string $path = null, ?string $disk = null): bool` | Saved (to that path and disk) |
 | `wasDownloaded(?string $filename = null): bool` | Sent as a download (with that name) |
 | `wasStreamed(?string $filename = null): bool` | Shown in the browser (with that name) |

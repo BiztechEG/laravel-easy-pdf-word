@@ -33,7 +33,7 @@ $word = $document->word('فاتورة-INV-2026-1024.docx');
 | --- | --- | --- |
 | `download(?string $filename = null)` | `Response` | ترسل الملف للتنزيل (`Content-Disposition: attachment`). |
 | `stream(?string $filename = null)` | `Response` | تعرض الملف في المتصفح (`inline`). و`inline()` هي الدالة نفسها. |
-| `save(string $path, ?string $disk = null)` | `string` | تكتب الملف على disk، أو في مسار مطلق إن لم تحدد disk. وتعيد المسار. |
+| `save(string $path, ?string $disk = null, array $options = [])` | `string` | تكتب الملف على disk، أو في مسار مطلق إن لم تحدد disk. وتذهب `$options` إلى `Storage::put()`. وتعيد المسار. |
 | `content()` | `string` | محتوى الملف. و`toString()` مثلها. |
 | `base64()` | `string` | المحتوى بترميز base64، لواجهة JSON مثلًا. |
 | `filename()` | `string` | الاسم المستخدم في التنزيل والمرفقات، مع الامتداد. |
@@ -102,6 +102,16 @@ $pdf->save(storage_path('app/exports/INV-2026-1024.pdf'));
 ```
 
 المسار الذي يبدأ بـ `/` (أو `C:\` على Windows) يُكتب مباشرة في نظام الملفات إن لم تحدد disk. وأي مسار آخر يذهب إلى disk.
+
+ويُمرَّر المعامل الثالث إلى `Storage::put()`، مثلًا لإبقاء عرض السعر خاصًا على bucket عام:
+
+```php
+$pdf->save('offers/QT-2026-0091.pdf', 's3', ['visibility' => 'private']);
+
+Doc::template('quotation', $data)->queue('offers/QT-2026-0091.docx', 's3', ['visibility' => 'private']);
+```
+
+وبدونه تنطبق الـ visibility الافتراضية للـ disk. وتُتجاهل الخيارات في المسار المحلي المطلق.
 
 ### عند فشل الحفظ {#save-failures}
 

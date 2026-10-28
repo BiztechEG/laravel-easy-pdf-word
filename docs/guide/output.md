@@ -33,7 +33,7 @@ The name you pass to `->pdf()` or `->word()` is used for downloads and mail atta
 | --- | --- | --- |
 | `download(?string $filename = null)` | `Response` | Sends the file as a download (`Content-Disposition: attachment`). |
 | `stream(?string $filename = null)` | `Response` | Shows the file in the browser (`inline`). `inline()` is the same method. |
-| `save(string $path, ?string $disk = null)` | `string` | Writes the file to a filesystem disk, or to an absolute path when no disk is given. Returns the path. |
+| `save(string $path, ?string $disk = null, array $options = [])` | `string` | Writes the file to a filesystem disk, or to an absolute path when no disk is given. `$options` go to `Storage::put()`. Returns the path. |
 | `content()` | `string` | The file's bytes. `toString()` is the same. |
 | `base64()` | `string` | The bytes encoded as base64, for example for a JSON API. |
 | `filename()` | `string` | The name used for downloads and attachments, with its extension. |
@@ -102,6 +102,16 @@ $pdf->save(storage_path('app/exports/INV-2026-1024.pdf'));
 ```
 
 A path that starts with `/` (or `C:\` on Windows) is written straight to the file system when you give no disk. Any other path goes to a disk.
+
+The third argument is passed to `Storage::put()`, for example to keep a price offer private on a public bucket:
+
+```php
+$pdf->save('offers/QT-2026-0091.pdf', 's3', ['visibility' => 'private']);
+
+Doc::template('quotation', $data)->queue('offers/QT-2026-0091.docx', 's3', ['visibility' => 'private']);
+```
+
+Without it, the disk's default visibility applies. The options are ignored for an absolute local path.
 
 ### When a save fails {#save-failures}
 

@@ -451,10 +451,10 @@ word(?string $filename = null): WordDocument
 ### queue() {#pending-queue}
 
 ```php
-queue(string $path, ?string $disk = null): PendingDispatch
+queue(string $path, ?string $disk = null, array $options = []): PendingDispatch
 ```
 
-يُنشئ الملف ويحفظه في الـ queue بدلًا من أثناء الطلب. الامتداد يحدد الصيغة: `.pdf` أو `.docx` (وأي امتداد آخر يرمي `InvalidArgumentException`). يُتحقق من بيانات القالب قبل إضافة الـ job. يعيد `Illuminate\Foundation\Bus\PendingDispatch` من Laravel، فتعمل `->onQueue()` و`->onConnection()` و`->delay()` و`->chain()`. الـ job هو [`SaveDocument`](#save-document).
+يُنشئ الملف ويحفظه في الـ queue بدلًا من أثناء الطلب. الامتداد يحدد الصيغة: `.pdf` أو `.docx` (وأي امتداد آخر يرمي `InvalidArgumentException`). يُتحقق من بيانات القالب قبل إضافة الـ job. وتصل `$options` إلى `Storage::put()` على الـ worker، مثل `['visibility' => 'private']`. يعيد `Illuminate\Foundation\Bus\PendingDispatch` من Laravel، فتعمل `->onQueue()` و`->onConnection()` و`->delay()` و`->chain()`. الـ job هو [`SaveDocument`](#save-document).
 
 ```php
 Doc::template('invoice', $data)->locale('ar')
@@ -703,7 +703,7 @@ isEmpty(): bool
 | `download(?string $filename = null): Response` | رد | يرسل الملف للتنزيل |
 | `stream(?string $filename = null): Response` | رد | يعرض الملف في المتصفح |
 | `inline(?string $filename = null): Response` | رد | مثل `stream()` |
-| `save(string $path, ?string $disk = null): string` | المسار | يحفظ على disk، أو في مسار محلي مطلق إن لم تحدد disk |
+| `save(string $path, ?string $disk = null, array $options = []): string` | المسار | يحفظ على disk، أو في مسار محلي مطلق إن لم تحدد disk. وتذهب `$options` إلى `Storage::put()`، مثل `['visibility' => 'private']` |
 | `toResponse($request): Response` | رد | يتيح للـ controller إعادة الملف مباشرة فيُعرض في المتصفح |
 | `toMailAttachment(): Attachment` | مرفق | يتيح لـ Mailable أو `MailMessage::attach()` استقبال الملف |
 
@@ -771,7 +771,7 @@ Doc::zip([
 `BiztechEG\EasyPdfWord\Jobs\SaveDocument` هو الـ job الذي يرسله `->queue()`. يطبّق `ShouldQueue` و`ShouldBeEncrypted` (يشفّر Laravel محتواه بمفتاح التطبيق لأنه يحمل بيانات المستند وكلمة مرور PDF إن وجدت)، ويستخدم `Dispatchable` و`InteractsWithQueue` و`Queueable`.
 
 ```php
-new SaveDocument(array $document, string $format, string $path, ?string $disk = null)
+new SaveDocument(array $document, string $format, string $path, ?string $disk = null, array $options = [])
 ```
 
 | الخاصية العامة | النوع | القيمة |
@@ -780,6 +780,7 @@ new SaveDocument(array $document, string $format, string $path, ?string $disk = 
 | `$format` | `string` | `'pdf'` أو `'word'` |
 | `$path` | `string` | مكان حفظ الملف |
 | `$disk` | `?string` | الـ disk، أو `null` للـ disk الافتراضي (أو لمسار مطلق) |
+| `$options` | `array` | تُمرَّر إلى `Storage::put()`، مثل `['visibility' => 'private']` |
 
 ```php
 handle(DocFactory $factory): void
@@ -857,7 +858,7 @@ Doc::assertSaved('invoices/INV-2026-1024.pdf', 's3');
 | `data(?string $key = null, mixed $default = null): mixed` | البيانات التي أُنشئ منها الملف، وفي القوالب بعد القيم الافتراضية و`prepare` (فتجد الإجماليات). المفتاح بالنقاط يختار قيمة واحدة |
 | `html(): string` | نص HTML الذي سيستلمه محرك PDF. يرمي `LogicException` لملفات Word |
 | `contains(string $text): bool` | هل يحتوي HTML ملف PDF على النص، بعد ترميزه كما يطبعه Blade. مع الأرقام العربية اكتب النص بالأرقام العربية |
-| `saves(): array` | كل عمليات الحفظ: `['path' => ..., 'disk' => ...]` |
+| `saves(): array` | كل عمليات الحفظ: `['path' => ..., 'disk' => ..., 'options' => [...]]` |
 | `wasSaved(?string $path = null, ?string $disk = null): bool` | هل حُفظ (في هذا المسار وهذا الـ disk) |
 | `wasDownloaded(?string $filename = null): bool` | هل أُرسل للتنزيل (بهذا الاسم) |
 | `wasStreamed(?string $filename = null): bool` | هل عُرض في المتصفح (بهذا الاسم) |
