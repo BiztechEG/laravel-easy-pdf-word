@@ -319,6 +319,7 @@ A cell is a string, or an array:
 | `['text' => 'الإجمالي', 'colspan' => 2]` | A cell across two columns |
 | `['text' => 'أعمال مدنية', 'rowspan' => 3]` | A cell down three rows (below) |
 | `['text' => '1,250.00', 'padding' => 1, 'valign' => 'middle']` | A cell with its own padding (mm) and vertical alignment |
+| `['lines' => [...], 'overlay' => ['image' => $stamp, 'width' => 35]]` | A stamp over the cell, behind its text (below) |
 | `['text' => 'مدفوع', 'background' => '#16A34A', 'color' => '#FFFFFF']` | A coloured cell |
 | `['text' => 'ملاحظة', 'border' => '#DC2626']` | A cell with a box around it |
 | `['lines' => [...]]` | Several lines in one cell (below) |
@@ -337,6 +338,30 @@ Each entry of `lines` is a line in the cell. A line is a string, a styled run, a
     ['image' => public_path('images/stamp.png'), 'width' => 25],
 ]]
 ```
+
+### A stamp over a cell {#overlay}
+
+A company stamp over the signature goes on the signature cell, as its `overlay`:
+
+```php
+->table([[
+    ['lines' => ['العميل', '', '']],
+    ['lines' => ['مدير المبيعات', '', '', 'عمرو محمد'], 'overlay' => [
+        'image' => storage_path('app/stamps/biztech.png'),
+        'width' => 35,
+        'offset' => [5, 2],
+    ]],
+]], ['borders' => false, 'columns' => [50, 50]])
+```
+
+| Key | What it does |
+| --- | --- |
+| `image` | The stamp: a path, an allowed URL or a data URI, as for [images](/guide/images). PNG with a transparent background looks best. |
+| `width`, `height` | The size in millimetres. The stamp keeps its proportions and fits inside both; give only one for the other to follow. Without either, it is 30 mm wide. |
+| `stretch` | `true` stretches it to exactly `width` × `height` |
+| `offset` | `[start, down]` in millimetres from the cell's start-top corner: a positive start moves it toward the right in Arabic, toward the left in English |
+
+In the PDF the stamp is the cell's background, so it stays inside the cell: a part past the cell's edges is cut off. Give the signature cell a few empty lines, as above, so the stamp fits. In Word it floats behind the text, in the cell's first line, and is not cut. SVG stamps are left out with a warning; use a PNG.
 
 ### Rows {#rows}
 
