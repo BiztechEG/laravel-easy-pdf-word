@@ -407,7 +407,7 @@ $priceList = Doc::make()
     ->footer('<p>Page {page} of {pages}</p>');
 ```
 
-ينطبق مقاس الورق واتجاهه والهوامش ورأس الصفحة وتذييلها والعنوان واللغة والأرقام وألوان الهوية على الصيغتين. أما الخط فينطبق على ملف PDF، وتستخدم ملفات Word خط Word، راجع [ملفات Word](/ar/guide/word#word-font). و`->watermark()` و`->password()` لملفات PDF فقط. راجع [إعدادات الصفحة](/ar/guide/page-settings) و[دعم اللغة العربية](/ar/guide/arabic).
+ينطبق مقاس الورق واتجاهه والهوامش ورأس الصفحة وتذييلها والعنوان واللغة والأرقام وألوان الهوية على الصيغتين. أما الخط فينطبق على ملف PDF، وتستخدم ملفات Word خط Word، راجع [ملفات Word](/ar/guide/word#word-font). و`->watermark()` و`->password()` لملفات PDF فقط، أما `->watermarkImage()` فتعمل في الصيغتين. راجع [إعدادات الصفحة](/ar/guide/page-settings) و[دعم اللغة العربية](/ar/guide/arabic).
 
 ## إضافة العناصر في حلقة {#loops}
 

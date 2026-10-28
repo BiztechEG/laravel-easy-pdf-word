@@ -189,7 +189,7 @@ Doc::template('quote-word', [
 
 | الميزة | في ملف Word |
 | --- | --- |
-| `->watermark()` | تُسقط: يُنشأ ملف Word بدونها. |
+| `->watermark()` | تُسقط: يُنشأ ملف Word بدونها. استخدم [`->watermarkImage()`](/ar/guide/page-settings#watermark-image)، فهي تظهر في ملفات Word. |
 | `->password()` | مرفوضة: يرمي `->word()` الاستثناء `LogicException` بالرسالة "Word files cannot take a password; ->password() works for PDF files only.". ويرفضها `->queue('….docx')` أيضاً. فالملف الذي أردت حمايته لا يخرج أبداً دون حماية. |
 | ملفات Blade وHTML | غير ممكنة: يرمي `->word()` الاستثناء `WordNotSupported`. استخدم قالباً أو بناء المستند بالكود. والاستثناء كتلة [`richText()`](/ar/guide/builder#rich-text-word) في بناء المستند: تدخل ملف Word بتنسيقها. |
 | قالب ليس فيه إلا `pdf.html.php` (أو `pdf.blade.php`) | غير ممكن: يطلب منك `WordNotSupported` إضافة `layout.php` أو `word.php` أو `word.docx`. |

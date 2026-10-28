@@ -407,7 +407,7 @@ $priceList = Doc::make()
     ->footer('<p>Page {page} of {pages}</p>');
 ```
 
-Paper, orientation, margins, header, footer, title, locale, digits and theme colours apply to both formats. The font applies to the PDF; Word files use the Word font, see [Word files](/guide/word#word-font). `->watermark()` and `->password()` are for PDFs only. See [Page settings](/guide/page-settings) and [Arabic support](/guide/arabic).
+Paper, orientation, margins, header, footer, title, locale, digits and theme colours apply to both formats. The font applies to the PDF; Word files use the Word font, see [Word files](/guide/word#word-font). `->watermark()` and `->password()` are for PDFs only; `->watermarkImage()` works in both. See [Page settings](/guide/page-settings) and [Arabic support](/guide/arabic).
 
 ## Adding blocks in a loop {#loops}
 
