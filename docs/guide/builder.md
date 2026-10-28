@@ -192,7 +192,19 @@ What is kept: headings (`h1` to `h4`), paragraphs, bold, italic, underline, stri
 `Doc::html()` renders trusted HTML exactly as written, for the PDF only. `richText()` cleans the HTML and works in documents built in code, so it is the one for HTML from users.
 :::
 
-In Word files, a `richText()` block comes out as its text, in plain paragraphs, for now.
+### In Word files {#rich-text-word}
+
+The block keeps its formatting in Word files too:
+
+- Paragraphs and headings are right to left in Arabic, with their alignment kept. Arabic runs use Word's right-to-left settings.
+- Headings use the paragraph styles `Heading1` to `Heading4`, at the builder's sizes, so they appear in Word's navigation pane.
+- Lists are numbered from the right in Arabic, nested levels indent inward, and a bulleted list inside a numbered one keeps its bullets.
+- Quotes are indented, 1 cm per level.
+- Tables keep their header, `colspan` and `rowspan` (merged cells), with a border around every cell.
+- Links, underline, strike-through, highlight and colours are kept.
+- Images are converted for Word as builder images are: SVG is left out, WebP and BMP become PNG.
+
+If Word cannot take a block, its text is written as plain paragraphs and a warning is logged, so one block never stops the file.
 
 ## Styles {#styles}
 
