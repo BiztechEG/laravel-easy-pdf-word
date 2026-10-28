@@ -8,10 +8,12 @@ All notable changes to this package are listed here. The format follows
 
 ### Added
 
+- `temp_dir` (`DOC_TEMP_DIR`), from `biztecheg/easy-pdf-word` 1.5: Word files, .docx templates, ZIP files (`Doc::zip()` too) and Chromium write their temp files in that folder instead of the system's temp folder, which shared hosting shares with other accounts. Unset, nothing changes. Documented in "Configuration", "Installation" (shared hosting) and "Plain PHP".
 - `preview.local_open` (`DOC_PREVIEW_LOCAL_OPEN`): `false` asks for the `viewDocPreview` gate in the `local` environment too, in case a server runs with `APP_ENV=local` by mistake. The default, `true`, keeps the page open in `local` as before. Documented in "Preview page", "Configuration" and "Security".
 
 ### Changed
 
+- Requires `biztecheg/easy-pdf-word` 1.5.
 - The config file and the "Images" and "Configuration" pages warn that `storage/app` in `images.paths` also holds private uploads, and show how to list one folder for document images instead.
 
 ## [1.7.0] - 2026-10-28
