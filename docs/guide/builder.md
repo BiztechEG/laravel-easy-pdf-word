@@ -255,8 +255,12 @@ You rarely need `ltr` for numbers: a negative number such as `-2.5` keeps its mi
 | `header` | `false` | The first row is a header: bold, coloured, and repeated at the top of every page. |
 | `header_background` | Theme `primary` | Background of the header row |
 | `header_color` | `#FFFFFF` | Text colour of the header row |
-| `borders` | `true` | A line under every row. `false` for a layout table without lines. |
+| `borders` | `'rows'` | `'rows'`: a line under every row. `'grid'`: lines around every cell. `'none'`: no lines, for a layout table. `true` and `false` still mean `'rows'` and `'none'`. |
 | `border_color` | Theme `border` | Colour of those lines |
+| `border_width` | 1px | Width of those lines, in points: `1.5` |
+| `padding` | `2` | Space inside every cell, in millimetres |
+| `valign` | `'top'` | Vertical alignment of every cell: `top`, `middle` or `bottom` |
+| `keep_together` | `false` | Keeps the whole table on one page, for a small table such as the totals |
 | `striped` | none | A background colour for every other row, such as `#F9FAFB` |
 | `footer` | `false` | The last row is bold, for totals. For several total rows, see [Rows](#rows). |
 | `font_size` | The document size | Font size of the whole table, in points |
@@ -285,6 +289,25 @@ A column's `align` applies to every cell in it, the header too. Columns without 
 
 A table without borders is also the way to place things side by side, such as a company block next to the document details, as in the [complete example](#example).
 
+A bill of quantities with a grid, a section name merged down its rows, and the totals kept on one page:
+
+```php
+use BiztechEG\EasyPdfWord\Builder\DocumentBuilder as B;
+
+->table([
+    ['القسم', 'البند', 'الكمية', 'الإجمالي'],
+    [['text' => 'أعمال مدنية', 'rowspan' => 2, 'valign' => 'middle'], 'حفر', '120', '10,200.00'],
+    ['ردم', '80', '4,000.00'],
+    [['text' => 'كهرباء', 'rowspan' => 2, 'valign' => 'middle'], 'كابلات', '300', '9,000.00'],
+    ['لوحات', '4', '6,000.00'],
+], ['header' => true, 'borders' => 'grid', 'border_width' => 0.75, 'padding' => 3])
+->table([
+    ['المجموع', '29,200.00'],
+    ['ضريبة القيمة المضافة 15%', '4,380.00'],
+    B::row(['الإجمالي', '33,580.00'], ['total' => true]),
+], ['keep_together' => true, 'borders' => 'none', 'columns' => [70, ['width' => 30, 'align' => 'end']]])
+```
+
 ### Cells {#cells}
 
 A cell is a string, or an array:
@@ -294,11 +317,15 @@ A cell is a string, or an array:
 | `'1,250.00'` | Text |
 | `['text' => '1,250.00', 'bold' => true, 'align' => 'end']` | Styled text, with any [style](#styles) key |
 | `['text' => 'الإجمالي', 'colspan' => 2]` | A cell across two columns |
+| `['text' => 'أعمال مدنية', 'rowspan' => 3]` | A cell down three rows (below) |
+| `['text' => '1,250.00', 'padding' => 1, 'valign' => 'middle']` | A cell with its own padding (mm) and vertical alignment |
 | `['text' => 'مدفوع', 'background' => '#16A34A', 'color' => '#FFFFFF']` | A coloured cell |
 | `['text' => 'ملاحظة', 'border' => '#DC2626']` | A cell with a box around it |
 | `['lines' => [...]]` | Several lines in one cell (below) |
 | `['image' => $path, 'width' => 30]` | An image, width in millimetres (30 by default) |
 | `['qr' => $value, 'width' => 20]` | A QR code, width in millimetres (30 by default) |
+
+A cell with `rowspan` covers the cells below it. Write the rows below without those cells, as in HTML: in the bill of quantities above, the row after `أعمال مدنية` has three cells, not four. A `rowspan` past the last row stops there. In Word the cells are merged the way Word merges them, so a reader can split them again.
 
 Each entry of `lines` is a line in the cell. A line is a string, a styled run, a list of runs, or an image:
 
@@ -329,13 +356,13 @@ use BiztechEG\EasyPdfWord\Builder\DocumentBuilder as B;
 
 | Option | What it does |
 | --- | --- |
-| `style` | A style for every cell of the row: `bold`, `italic`, `size`, `color`, `background`, `align`, `border` |
+| `style` | A style for every cell of the row: `bold`, `italic`, `size`, `color`, `background`, `align`, `border`, `padding`, `valign` |
 | `total` | A total row: bold, with a line above it. Several rows can be totals, such as a subtotal after each section. |
 | `keep_with_next` | Keeps the row on one page with the next one, so a section heading never ends a page |
 
-A cell's own style wins over its row's `style`, and the row's wins over the table's: the column `align`, `font_size`, and the colours of `header` and `striped`. `footer => true` still makes the last row bold, without the line; give it `total` for the line too.
+A cell's own style wins over its row's `style`, and the row's wins over the table's: the column `align`, `font_size`, `padding`, `valign`, and the colours of `header` and `striped`. `footer => true` still makes the last row bold, without the line; give it `total` for the line too.
 
-`keep_with_next` works in Word and with mPDF 8.2.4 or later. With the Chromium engines, the browser decides where the page breaks.
+`keep_with_next` and the table's `keep_together` work in Word and with mPDF. With the Chromium engines, the browser decides where the page breaks.
 
 Rows built from your records are read as before, even a record with a `cells` column: only an array with a `cells` list and nothing but these options is a row object.
 
