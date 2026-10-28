@@ -665,6 +665,7 @@ A cell is a string, or an array with these keys plus any [text style](#builder-s
 | `rowspan` | Number of rows the cell spans. The rows below leave out the cells it covers, as in HTML |
 | `padding` | Space inside this cell, in mm |
 | `valign` | `top`, `middle` or `bottom` |
+| `overlay` | A stamp over the cell, behind its text: `['image' => $path, 'width' => 35, 'height' => 35, 'offset' => [start, down], 'stretch' => false]`, in mm from the cell's start-top corner. In PDF it stays inside the cell. See [A stamp over a cell](/guide/builder#overlay) |
 | `border` | A `#hex` colour: a box around this cell |
 
 ```php
