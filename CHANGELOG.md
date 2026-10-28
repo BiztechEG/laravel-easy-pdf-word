@@ -6,6 +6,8 @@ All notable changes to this package are listed here. The format follows
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-10-28
+
 ### Added
 
 - `temp_dir` (`DOC_TEMP_DIR`), from `biztecheg/easy-pdf-word` 1.5: Word files, .docx templates, ZIP files (`Doc::zip()` too) and Chromium write their temp files in that folder instead of the system's temp folder, which shared hosting shares with other accounts. Unset, nothing changes. Documented in "Configuration", "Installation" (shared hosting) and "Plain PHP".
@@ -224,7 +226,8 @@ The first release.
 - Colour values, fonts and locales are checked before they reach HTML, CSS or file paths.
 - Chromium runs without JavaScript unless it is turned on in config.
 
-[Unreleased]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.8.0...HEAD
+[1.8.0]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/1.6.0...v1.7.0
 [1.6.0]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.5.0...1.6.0
 [1.5.0]: https://github.com/BiztechEG/laravel-easy-pdf-word/compare/v1.4.1...v1.5.0
