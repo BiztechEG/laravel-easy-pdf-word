@@ -18,7 +18,7 @@ class GeneratedDocument
 
     private ?string $resolvedHtml = null;
 
-    /** @var list<array{path: string, disk: ?string}> */
+    /** @var list<array{path: string, disk: ?string, options: array}> */
     private array $saves = [];
 
     /** @var list<array{filename: string, disposition: string}> */
@@ -96,7 +96,7 @@ class GeneratedDocument
         return str_contains($this->html(), e($text));
     }
 
-    /** @return list<array{path: string, disk: ?string}> */
+    /** @return list<array{path: string, disk: ?string, options: array}> */
     public function saves(): array
     {
         return $this->saves;
@@ -136,9 +136,9 @@ class GeneratedDocument
     }
 
     /** @internal */
-    public function recordSave(string $path, ?string $disk): void
+    public function recordSave(string $path, ?string $disk, array $options = []): void
     {
-        $this->saves[] = ['path' => $path, 'disk' => $disk];
+        $this->saves[] = ['path' => $path, 'disk' => $disk, 'options' => $options];
     }
 
     /** @internal */
