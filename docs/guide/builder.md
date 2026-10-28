@@ -166,6 +166,22 @@ A paragraph is a string, or a list of **runs**: pieces of text with their own st
 
 The second argument styles the whole paragraph: `->paragraph('نص', ['align' => 'justify', 'size' => 11])`. A run's own style wins over the paragraph's. A line break in the text (`"السطر الأول\nالسطر الثاني"`) starts a new line in both formats.
 
+Runs can also be underlined, struck through, shaded or links, in the PDF and the Word file alike:
+
+```php
+->paragraph([
+    ['text' => 'السعر قبل الخصم: ', 'bold' => true],
+    ['text' => '12,000', 'strike' => true, 'color' => 'gray'],
+    ['text' => ' 10,000 ريال', 'background' => '#FEF3C7', 'underline' => true],
+    ' — التفاصيل على ',
+    ['text' => 'موقعنا', 'link' => 'https://biztech.example/offers'],
+])
+```
+
+A `link` must start with `http://`, `https://` or `mailto:`; anything else stays plain text. Links are underlined, in blue (`#0563C1`) unless the run has a `color`. A table cell with a `link` makes its text a link.
+
+A run's `font` names a [registered font](/guide/fonts#custom-fonts). In the PDF, other names are left out and logged as a warning, because the engine has no file for them. In Word, a registered font becomes its [Word name](/guide/fonts#word), and other names are passed to Word as they are, for fonts installed on the reader's computer.
+
 ## Rich text from an editor {#rich-text}
 
 `richText($html)` adds HTML from a rich-text editor such as TipTap or CKEditor: the preamble or the terms of a price offer, a note on an invoice. The HTML is cleaned first, so you can pass what your users wrote as it is:
@@ -213,16 +229,20 @@ If Word cannot take a block, its text is written as plain paragraphs and a warni
 | `bold` | Headings, paragraphs, runs, cells | `true` for bold |
 | `italic` | Headings, paragraphs, runs, cells | `true` for italic, when the font has an italic |
 | `size` | Headings, paragraphs, runs, cells | Font size in points |
-| `color` | Headings, paragraphs, runs, cells | Text colour, as hex: `#0F766E` |
+| `color` | Headings, paragraphs, runs, cells | Text colour: `#0F766E`, or a name such as `teal` |
+| `underline` | Headings, paragraphs, runs, cells | `true` to underline |
+| `strike` | Headings, paragraphs, runs, cells | `true` to strike through |
+| `link` | Runs, cells | An `http`, `https` or `mailto` URL; the text becomes a link |
+| `font` | Runs, cells | A [registered font](/guide/fonts#custom-fonts) |
 | `align` | Headings, paragraphs, cells, cell lines | `start`, `end`, `center` or `justify` |
 | `ltr` | Headings, paragraphs, runs, cells | `true` keeps a phone number, code or e-mail in left-to-right order inside Arabic text |
 | `space_after` | Paragraphs | Space below the paragraph, in millimetres |
 | `line_height` | Paragraphs | Line spacing: `1.5` is one and a half lines |
-| `background` | Cells | Background colour |
+| `background` | Runs, cells | Background colour: a run is shaded, a cell filled |
 | `border` | Cells | A colour; draws a box around the cell |
 | `colspan` | Cells | The number of columns the cell spans |
 
-Colours can be hex (`#0F766E`, or `#0F766E80` with the alpha dropped in Word), `rgb()` or `hsl()`, in the PDF and the Word file alike. Colour names such as `teal` work in the PDF only; Word leaves them out. Invalid colours are ignored.
+Colours can be hex (`#0F766E`, or `#0F766E80` with the alpha dropped in Word), `rgb()`, `hsl()` or one of the 148 CSS colour names (`teal`, `navy`, `gray`), in the PDF and the Word file alike. Invalid colours are ignored.
 
 You rarely need `ltr` for numbers: a negative number such as `-2.5` keeps its minus sign in front in Arabic text by itself, and ranges like `2020 - 2021` stay as written. Use it for values mixing letters, digits and symbols, such as `INV-2026-1024` or `+20 100 000 0000`.
 

@@ -292,7 +292,7 @@ $tenant->document('invoice', $invoice->toDocumentData())
 
 ### دع كل شركة تضبط هويتها
 
-تأتي القيم من نموذج إعدادات. تحقق منها بحيث تعمل في ملفات PDF وWord معاً، فملفات Word تترك أسماء الألوان مثل `navy`، لذا اقبل الألوان بصيغة hex:
+تأتي القيم من نموذج إعدادات. تحقق منها قبل حفظها: أداة اختيار اللون تعطي قيم hex، فاقبل هذه القيم:
 
 ```php
 // app/Http/Controllers/BrandingController.php

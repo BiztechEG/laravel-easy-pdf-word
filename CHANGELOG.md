@@ -6,6 +6,14 @@ All notable changes to this package are listed here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Run styles in documents built in code, from `biztecheg/easy-pdf-word` 1.4: `underline`, `strike` and `link` (http, https and mailto) on runs and cells, a run's `background` in Word too, and a run's `font` in PDF when it names a registered font. A registered font takes its new `word` name in Word files. Documented in "Building in code", "Fonts" and the API reference.
+
+### Changed
+
+- Colour names such as `navy` work in Word files too, from `biztecheg/easy-pdf-word` 1.4, so the docs no longer ask for hex colours when you make Word files.
+
 ## [1.6.0] - 2026-10-28
 
 ### Added

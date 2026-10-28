@@ -78,6 +78,7 @@ Doc::template('letter', $data)->locale('ar')->font('naskh')->pdf();
 | `bold` و`italic` و`bold_italic` | لا | الأنماط الأخرى. وبدون ملف عريض يطبع mPDF النص العريض بالوزن العادي. |
 | `arabic_separators` | لا | `true` حين يرسم الخط `٫` و`٬` بوضوح، فتستخدمهما المستندات ذات الأرقام العربية (١٢٬٥٠٠٫٧٥). انظر [دعم اللغة العربية](/ar/guide/arabic#separators). |
 | `arabic` | لا | `false` لخط بلا حروف عربية. ومع تفعيل `auto_lang_to_font` يُكتب النص العربي حينئذ بخط Cairo. والقيمة الافتراضية `true`. |
+| `word` | لا | اسم الخط في Word، حين يكون مثبتًا لدى قرائك (`'word' => 'IBM Plex Sans Arabic'`). انظر [الخطوط في ملفات Word](#word). |
 
 لا فرق بين الأحرف الكبيرة والصغيرة في الأسماء. والخط الخاص الذي يحمل اسم خط مرفق (`cairo`) يحل محله.
 
@@ -136,6 +137,8 @@ DOC_WORD_FONT="Sakkal Majalla"
 ```
 
 اختر خطًا موجودًا لدى قرائك ويغطي العربية: Arial أو Tahoma أو Times New Roman أو Simplified Arabic أو Traditional Arabic أو Sakkal Majalla على Windows. ويحدد `word.font_size` في ملف الإعدادات الحجم (11 افتراضيًا). وتجد المزيد عن مخرجات Word في [ملفات Word](/ar/guide/word).
+
+والمقطع أو الخلية في البناء بالكود التي لها `font` خاص (`['text' => '...', 'font' => 'ibm-plex']`) تستخدم في Word اسم الخط المسجّل في `word`، أو خط Word إن لم يكن له اسم فيه. أما الاسم غير المسجّل (`'font' => 'Tahoma'`) فيُمرَّر إلى Word كما هو.
 
 ## الخطوط مع Chromium وGotenberg {#chromium}
 

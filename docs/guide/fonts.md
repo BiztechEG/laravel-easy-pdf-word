@@ -78,6 +78,7 @@ Put the `.ttf` files in your app, for example in `resources/fonts`, and register
 | `bold`, `italic`, `bold_italic` | No | The other styles. Without a bold file, mPDF prints bold text in the regular weight. |
 | `arabic_separators` | No | `true` when the font draws `٫` and `٬` clearly, so documents with Arabic digits use them (١٢٬٥٠٠٫٧٥). See [Arabic support](/guide/arabic#separators). |
 | `arabic` | No | `false` for a font without Arabic letters. With `auto_lang_to_font` on, Arabic text then falls back to Cairo. Defaults to `true`. |
+| `word` | No | The font's name in Word, when your readers have it installed (`'word' => 'IBM Plex Sans Arabic'`). See [Fonts in Word files](#word). |
 
 Names are matched without case. A custom font with the name of a bundled one (`cairo`) replaces it.
 
@@ -136,6 +137,8 @@ DOC_WORD_FONT="Sakkal Majalla"
 ```
 
 Pick a font that your readers have and that covers Arabic: Arial, Tahoma, Times New Roman, Simplified Arabic, Traditional Arabic or Sakkal Majalla on Windows. The size is set by `word.font_size` in the config (11 by default). More about Word output in [Word files](/guide/word).
+
+A builder run or cell with its own `font` (`['text' => '...', 'font' => 'ibm-plex']`) uses, in Word, the registered font's `word` name, or the Word font when it has none. A name that is not registered (`'font' => 'Tahoma'`) is passed to Word as it is.
 
 ## Fonts with Chromium and Gotenberg {#chromium}
 
