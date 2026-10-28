@@ -51,7 +51,7 @@ Chromium (Browsershot) and Gotenberg render with JavaScript off. HTML that slipp
 
 ### The preview page is closed {#preview}
 
-The [preview page](/guide/preview) is on in the `local` environment only. Anywhere else you must turn it on with `DOC_PREVIEW=true`, and it then needs the `viewDocPreview` gate: without the gate, everyone gets a 403. The page only renders the templates' sample data, sends a strict Content Security Policy, and shows the HTML view in a sandbox without scripts.
+The [preview page](/guide/preview) is on in the `local` environment only, where it is open without the gate unless `DOC_PREVIEW_LOCAL_OPEN=false`. Anywhere else you must turn it on with `DOC_PREVIEW=true`, and it then needs the `viewDocPreview` gate: without the gate, everyone gets a 403. The page only renders the templates' sample data, sends a strict Content Security Policy, and shows the HTML view in a sandbox without scripts.
 
 ### Queued documents are encrypted {#queue}
 

@@ -46,6 +46,30 @@ class PreviewTest extends TestCase
         $this->get('/doc-preview')->assertOk();
     }
 
+    public function test_local_open_false_asks_for_the_gate_in_local_too(): void
+    {
+        Gate::define('viewDocPreview', fn ($user = null) => false);
+        $this->app['env'] = 'local';
+        config(['easy-pdf-word.preview.local_open' => false]);
+
+        $this->get('/doc-preview')->assertForbidden();
+
+        Gate::define('viewDocPreview', fn ($user = null) => true);
+        $this->get('/doc-preview')->assertOk();
+    }
+
+    public function test_local_open_read_from_env_strings(): void
+    {
+        Gate::define('viewDocPreview', fn ($user = null) => false);
+        $this->app['env'] = 'local';
+
+        config(['easy-pdf-word.preview.local_open' => 'false']);
+        $this->get('/doc-preview')->assertForbidden();
+
+        config(['easy-pdf-word.preview.local_open' => '']);
+        $this->get('/doc-preview')->assertOk();
+    }
+
     public function test_the_preview_page_lists_the_templates(): void
     {
         $this->get('/doc-preview')

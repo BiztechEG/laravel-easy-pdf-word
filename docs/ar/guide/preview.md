@@ -64,6 +64,12 @@ public function boot(): void
 
 بدون الـ gate، أو لمن يرفضه (والزوار غير المسجلين منهم)، تجيب الصفحة بالرمز 403. ويعطّل `DOC_PREVIEW=false` الصفحة في `local` أيضًا. أما `DOC_PREVIEW=` الفارغة فمثل عدم وجود السطر: مفعلة في `local` فقط.
 
+في `local` تكون الصفحة مفتوحة لكل من يصل إلى التطبيق. فإذا كان من الممكن أن يعمل خادم بـ `APP_ENV=local` خطأً، فاطلب الـ gate هناك أيضًا:
+
+```dotenv
+DOC_PREVIEW_LOCAL_OPEN=false
+```
+
 لا تنشئ الصفحة إلا البيانات التجريبية للقوالب، ولا تعرض بيانات تطبيقك أبدًا. لكن الإنشاء يستهلك المعالج، فأبقها خلف الـ gate.
 
 ## المسار والـ middleware {#config}
@@ -73,6 +79,7 @@ public function boot(): void
 ```php
 'preview' => [
     'enabled' => env('DOC_PREVIEW'),
+    'local_open' => env('DOC_PREVIEW_LOCAL_OPEN', true),
     'path' => 'admin/doc-preview',
     'middleware' => ['web', 'auth'],
 ],
@@ -81,6 +88,7 @@ public function boot(): void
 | المفتاح | القيمة الافتراضية | المعنى |
 | --- | --- | --- |
 | `enabled` | `env('DOC_PREVIEW')` | `null` أو فارغة: مفعلة في `local` فقط. `true` أو `false`: مفعلة أو معطلة في كل مكان. |
+| `local_open` | `env('DOC_PREVIEW_LOCAL_OPEN', true)` | القيمة `false` تطلب الـ gate المسمى `viewDocPreview` في `local` أيضًا. |
 | `path` | `'doc-preview'` | رابط الصفحة. |
 | `middleware` | `['web']` | الـ middleware لـ routes الصفحة. أضف `auth` لتحويل الزوار غير المسجلين إلى صفحة تسجيل الدخول بدلًا من 403. |
 

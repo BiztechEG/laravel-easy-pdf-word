@@ -120,6 +120,10 @@ return [
     | folders, so a file path that arrives in user data cannot embed other
     | files from the server. Set "paths" to null to allow any folder.
     |
+    | storage/app also holds Laravel's private disk. If image paths can come
+    | from your users, list only the folders they may use, such as
+    | storage_path('app/document-images').
+    |
     | Image URLs are downloaded by the server (the PDF engine or PhpWord), so
     | they are off by default. "remote" is true for any URL, or the hosts to
     | allow: ['cdn.example.com', '*.amazonaws.com'], or in .env
@@ -164,10 +168,14 @@ return [
     |
     |   Gate::define('viewDocPreview', fn ($user) => $user->isAdmin());
     |
+    | "local_open" false asks for the gate in "local" too, in case a server
+    | runs with APP_ENV=local by mistake.
+    |
     */
 
     'preview' => [
         'enabled' => env('DOC_PREVIEW'),
+        'local_open' => env('DOC_PREVIEW_LOCAL_OPEN', true),
         'path' => 'doc-preview',
         'middleware' => ['web'],
     ],
