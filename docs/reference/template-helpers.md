@@ -327,6 +327,14 @@ An image ready for `<img src>`: a local file becomes a data URI, an allowed URL 
 
 Builder blocks (`image()`, a cell's `image`) and `word.docx` images go through the same check, so pass them the raw path.
 
+### warn() {#context-warn}
+
+```php
+$doc->warn(string $message): void
+```
+
+Sends a message to the package's warning handler (the Laravel log, or the `warn` closure without Laravel), for something left out of the document that the developer should hear about. The document goes on.
+
 ### usesCssFonts() {#context-uses-css-fonts}
 
 ```php
