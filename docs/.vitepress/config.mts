@@ -29,6 +29,7 @@ const en: Labels = {
   troubleshooting: 'Troubleshooting',
   'plain-php': 'Plain PHP',
   wordpress: 'WordPress',
+  'wordpress-plugin': 'WordPress plugin',
   symfony: 'Symfony',
   // Templates
   'invoice:t': 'Tax invoice',
@@ -85,6 +86,7 @@ const ar: Labels = {
   troubleshooting: 'حل المشكلات',
   'plain-php': 'PHP بدون إطار عمل',
   wordpress: 'WordPress',
+  'wordpress-plugin': 'إضافة WordPress',
   symfony: 'Symfony',
   'invoice:t': 'الفاتورة الضريبية',
   'eg-invoice:t': 'الفاتورة الإلكترونية المصرية',
@@ -124,7 +126,7 @@ function sidebar(prefix: string, l: Labels, sections: Labels): DefaultTheme.Side
     { text: sections.arabic, items: ['arabic', 'languages', 'fonts', 'images'].map(p => item('guide', p)) },
     { text: sections.tools, items: ['preview', 'commands', 'testing'].map(p => item('guide', p)) },
     { text: sections.production, items: ['security', 'configuration', 'troubleshooting'].map(p => item('guide', p)) },
-    { text: sections.php, items: ['plain-php', 'wordpress', 'symfony'].map(p => item('guide', p)) },
+    { text: sections.php, items: ['plain-php', 'wordpress', 'wordpress-plugin', 'symfony'].map(p => item('guide', p)) },
     { text: sections.reference, items: ['api', 'template-helpers'].map(p => item('reference', p)) },
   ]
 
