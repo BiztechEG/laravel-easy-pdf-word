@@ -67,6 +67,11 @@ cd docs && npm ci && npm run build   # or npm run dev
   BizTech's server over FTP (vars `DOCS_FTP_SERVER`, `DOCS_FTP_DIR` with a
   trailing `/`, `DOCS_FTP_PROTOCOL=ftp`; secrets `DOCS_FTP_USERNAME`,
   `DOCS_FTP_PASSWORD`). Merging docs to `main` publishes them.
+- The upload is `.github/scripts/deploy-docs.py` (Python standard library only):
+  it keeps `.ftp-deploy-sync-state.json` on the server in FTP-Deploy-Action's
+  format and saves it as it goes, so a deploy the server cut off continues
+  where it stopped when the job is re-run. Try it with `--dry-run`, or against
+  a local `pyftpdlib` server.
 - Bump the version shown in the docs menu (`docs/.vitepress/config.mts`) in the release PR.
 
 ## Rules from the maintainer
