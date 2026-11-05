@@ -4,6 +4,10 @@ This page builds a small WordPress plugin that gives WooCommerce orders a PDF ta
 
 The code on this page was run on WordPress 7.1 with WooCommerce 11.2.
 
+::: tip A ready-made plugin
+For invoices, credit notes and delivery notes of WooCommerce orders without writing code, install the [WordPress plugin](/guide/wordpress-plugin). This page is for building your own.
+:::
+
 ## Install in your plugin {#install}
 
 Create the plugin folder and install the library there with Composer:
